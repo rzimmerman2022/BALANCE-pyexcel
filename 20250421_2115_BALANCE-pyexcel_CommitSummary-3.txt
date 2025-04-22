@@ -1,0 +1,59 @@
+Refactor: Implement Schema-Aware Ingestion & Update Core Modules
+
+Context:
+This major update refactors the core ETL pipeline to handle multiple diverse CSV formats dynamically using a configuration-driven approach. It also updates related modules, documentation, and adds the initial test structure for this new system.
+
+Changes Verified/Implemented in this Update:
+
+1.  Schema Registry (`rules/schema_registry.yml`):
+    * Created and populated the YAML file defining parsing rules (filename match, header signature, column map, sign rule, derived columns) for multiple formats (Chase, Discover, Wells Fargo, Monarch, Rocket Money).
+    * Added comments within the YAML for clarity and maintainability.
+    * NOTE: Wells Fargo schema currently uses regex derivation for Amount, pending validation.
+
+2.  Ingestion Logic (`src/balance_pipeline/ingest.py`):
+    * Completely replaced previous code with a new schema-aware version.
+    * Reads `schema_registry.yml` to get parsing rules.
+    * Recursively scans input directory for CSVs in owner subfolders (`rglob`).
+    * Determines 'Owner' based on subfolder name.
+    * Matches each CSV to a schema using filename and headers (`_find_schema`).
+    * Dynamically applies column mapping (`column_map`) from the matched schema.
+    * Applies amount sign correction (`_apply_sign_rule`) based on the schema's `sign_rule`.
+    * Handles derived columns (`_derive_columns`) if specified in the schema (e.g., for Wells Fargo).
+    * Added detailed structured comments and logging.
+
+3.  Normalization Logic (`src/balance_pipeline/normalize.py`):
+    * Refactored to utilize helper functions imported from `utils.py` (`clean_whitespace`, `sha256_hex`).
+    * Updated `_ID_COLS_FOR_HASH` to include 'Owner' for unique TxnID generation across users.
+    * Updated `FINAL_COLS` list to include 'Owner' and 'Category' columns passed from the new ingest logic.
+    * Ensured the function correctly selects and orders `FINAL_COLS`.
+    * Added detailed structured comments and logging.
+
+4.  Utilities (`src/balance_pipeline/utils.py`):
+    * Implemented shared helper functions: `strip_accents`, `clean_whitespace`, `sha256_hex`.
+    * Added detailed structured comments.
+
+5.  Orchestrator (`src/balance_pipeline/__init__.py`):
+    * Updated `etl_main` function to use proper logging (`logging.getLogger`).
+    * Ensured it correctly calls the updated `load_folder` and `normalize_df` functions.
+    * Added detailed structured comments.
+
+6.  Testing (`tests/test_cross_schema.py`):
+    * Created the new test file.
+    * Added the initial test function `test_multi_schema_load` to verify basic multi-schema ingestion, owner tagging, standard columns, null checks, and amount sign convention. (Requires sample data to run).
+
+7.  Documentation (`README.md`, `architecture.md`):
+    * Updated `architecture.md` significantly to reflect the new YAML-driven architecture, including an updated Mermaid diagram (with fences), Layers table, Data Flow steps, and Key Design Decisions. Added simple `# ---` separators for raw text readability.
+    * Updated `README.md` to describe the schema-aware features, updated setup steps (YAML config, external CSV folders with owner subdirs), revised usage workflow, and updated project structure diagram.
+
+Current State (After these changes):
+* The core Python code for ingestion and normalization now supports multiple CSV formats via external YAML configuration.
+* Documentation reflects the current architecture.
+* A basic test structure exists for the new ingestion logic.
+* The project is ready for testing via `pytest` (once sample data is added) and subsequent integration testing via the Excel Python cell.
+
+Next Steps (Immediate):
+* Create `sample_data_multi/` folder with `jordyn/` and `ryan/` subfolders.
+* Populate subfolders with anonymized sample CSV files for each format.
+* Run `poetry run pytest` to execute tests and debug failures.
+
+--- End of Content ---

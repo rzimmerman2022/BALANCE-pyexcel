@@ -1,0 +1,24 @@
+site_name: BALANCE‑pyexcel Docs
+site_url: https://<your‑github‑user>.github.io/BALANCE-pyexcel
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - content.code.copy
+repo_url: https://github.com/<your‑github‑user>/BALANCE-pyexcel
+nav:
+  - Home: index.md
+  - Quick Start: quick_start.md
+  - Schema Registry: schema_registry.md
+  - Developer Guide: developer_setup.md
+  - FAQ: faq.md
+  - Reference:
+      - balance_pipeline: reference/
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            paths: ["src"]

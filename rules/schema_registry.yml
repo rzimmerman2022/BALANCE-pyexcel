@@ -1,0 +1,122 @@
+# ==============================================================================
+# Schema Registry for BALANCE-pyexcel CSV Ingestion
+# ==============================================================================
+# This file defines rules for parsing different bank/source CSV formats.
+# The 'ingest.py' script reads this file to determine how to handle each CSV.
+# Each item in the list (-) represents one distinct CSV format schema.
+# ---
+
+# ------------------------------------------------------------------------------
+# Schema ID: chase_total_checking
+# Description: Rules for Chase Total Checking account exports.
+# ------------------------------------------------------------------------------
+- id: chase_total_checking
+  # How to identify files matching this schema (uses glob pattern matching on filename).
+  match_filename: "Chase Bank - Total Checking*"
+  # List of column headers that MUST be present in the CSV to confirm it's this schema.
+  header_signature: ["Transaction Date", "Post Date", "Reference Number"]
+  # Mapping from the column names found IN THE CSV to our STANDARD column names.
+  column_map:
+    Transaction Date: Date       # Source 'Transaction Date' maps to our 'Date'
+    Description: Description    # Source 'Description' maps to our 'Description'
+    Amount: Amount              # Source 'Amount' maps to our 'Amount'
+    Category: Category          # Source 'Category' maps to our 'Category' (Chase provides this)
+  # Rule for correcting the sign of the 'Amount' column.
+  # 'flip_if_withdrawal': Makes 'Amount' negative ONLY IF the 'Category' column
+  #                       contains 'Withdrawal' or 'Payment' (case-insensitive).
+  #                       Assumes deposits are already negative in the source file.
+  sign_rule: flip_if_withdrawal
+
+# ------------------------------------------------------------------------------
+# Schema ID: discover_it_card
+# Description: Rules for Discover It credit card exports.
+# ------------------------------------------------------------------------------
+- id: discover_it_card
+  match_filename: "Discover It Card*"
+  header_signature: ["Date", "Post Date", "Card Type"] # Columns unique to Discover export
+  column_map:
+    Date: Date                  # Source 'Date' maps to our 'Date'
+    Description: Description    # Source 'Description' maps to our 'Description'
+    Amount: Amount              # Source 'Amount' maps to our 'Amount'
+    Category: Category          # Source 'Category' maps to our 'Category' (Discover provides this)
+  # 'as_is': Keep the sign of the 'Amount' column exactly as it is in the CSV.
+  #          Discover samples showed payments (outflow context) were already negative.
+  sign_rule: as_is
+
+# ------------------------------------------------------------------------------
+# Schema ID: wells_fargo_card
+# Description: Rules for Wells Fargo Active Cash card exports.
+# NOTE: This schema assumes Amount is NOT a direct column and must be derived.
+# ------------------------------------------------------------------------------
+- id: wells_fargo_card
+  match_filename: "Wells Fargo - Active Cash*"
+  header_signature: ["Date", "Post Date", "Account Description"] # Key identifying columns
+  column_map:
+    Date: Date                  # Source 'Date' maps to our 'Date'
+    Description: Description    # Source 'Description' maps to our 'Description'
+    # Note: No 'Amount' mapping here; it will be derived below.
+    # Note: Wells Fargo doesn't seem to provide a 'Category' in samples.
+  # Defines rules to create new columns, often by extracting data from others.
+  derived_columns:
+    # Rule to create a temporary column 'AmountFromDesc' by extracting
+    # a number from the end of the 'Description' column using Regex.
+    # Regex Explanation:
+    #   (?P<amt>...) : Creates a named capture group called 'amt'.
+    #   -?          : Matches an optional hyphen (for negative numbers).
+    #   \\d+        : Matches one or more digits (the whole number part).
+    #   \\.         : Matches a literal dot (the decimal point).
+    #   \\d{2}      : Matches exactly two digits (the cents part).
+    #   $           : Anchors the match to the very end of the string.
+    # REVIEW: Confirm this pattern reliably extracts the amount from YOUR WF descriptions!
+    AmountFromDesc: "(?P<amt>-?\\d+\\.\\d{2})$"
+  # 'as_is': Assumes the sign of the amount extracted via regex is already correct
+  #          (e.g., negative for charges). If not, this rule would need changing.
+  sign_rule: as_is
+
+# ------------------------------------------------------------------------------
+# Schema ID: monarch_export
+# Description: Rules for exports generated from Monarch Money aggregator.
+# ------------------------------------------------------------------------------
+- id: monarch_export
+  match_filename: "BALANCE - Monarch Money*"
+  header_signature: ["Merchant", "Account", "Original Statement"] # Key identifying columns
+  column_map:
+    Date: Date                  # Monarch uses 'Date' correctly.
+    Merchant: Description       # Use Monarch's 'Merchant' field as our 'Description'.
+    Amount: Amount              # Monarch 'Amount' maps to our 'Amount'.
+    Account: Account            # Monarch 'Account' maps to our 'Account'.
+    # Category: Category        # Uncomment if Monarch provides a usable Category column you want mapped.
+  # 'flip_if_positive': Monarch uses positive numbers for expenses/outflows.
+  #                     This rule flips the sign of any positive Amount to make it negative,
+  #                     aligning with our standard (outflow = negative). Assumes inflows are already negative or zero.
+  sign_rule: flip_if_positive
+
+# ------------------------------------------------------------------------------
+# Schema ID: rocket_money
+# Description: Rules for exports generated from Rocket Money aggregator.
+# ------------------------------------------------------------------------------
+- id: rocket_money
+  match_filename: "BALANCE - Rocket Money*"
+  header_signature: ["Account Name", "Institution Name", "Amount"] # Key identifying columns
+  column_map:
+    Date: Date                  # Rocket Money uses 'Date'.
+    Name: Description           # Use Rocket Money's 'Name' field as our 'Description'.
+    Amount: Amount              # Rocket Money 'Amount' maps to our 'Amount'.
+    Account Name: Account       # Rocket Money 'Account Name' maps to our 'Account'.
+    # Category: Category        # Uncomment if Rocket Money provides a usable Category column.
+  # 'flip_if_positive': Samples suggest Rocket Money uses positive values for
+  #                     expenses/payments (outflows). This rule flips them to negative.
+  sign_rule: flip_if_positive
+
+# ==============================================================================
+# End of Schema Registry
+# ==============================================================================
+# Instructions: To add a new CSV format:
+# 1. Copy an existing block (e.g., `- id: ... sign_rule: ...`).
+# 2. Change the `id` to something unique (e.g., `amex_blue_cash`).
+# 3. Update `match_filename` with a glob pattern matching the new CSV's name.
+# 4. Update `header_signature` with a few column names unique to that CSV format.
+# 5. Update `column_map` to map the CSV's column names to our STANDARD_COLS.
+# 6. Choose the correct `sign_rule` ('as_is', 'flip_if_positive', 'flip_if_withdrawal').
+# 7. Add `derived_columns` only if needed (like the Wells Fargo example).
+# ==============================================================================

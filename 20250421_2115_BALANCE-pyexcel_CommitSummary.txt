@@ -1,0 +1,58 @@
+Update Summary - April 21, 2025
+Project: BALANCE-pyexcel
+
+Version Target: v0.1.0 (Initial Setup)
+
+Context:
+This update represents the foundational setup for the BALANCE-pyexcel project. The goal was to establish a clean, modern Python project structure integrated with Git for version control and Poetry for dependency/environment management, alongside the skeleton Excel workbook. This prepares the project for the implementation of the Python-in-Excel ETL pipeline for shared finance tracking. All prerequisite tools (Git, Python, pipx, Poetry) were installed and verified before project setup.
+
+Changes Verified/Implemented in this Update:
+
+1.  Repository Setup:
+    * Initialized a new Git repository in the project root directory (`C:\BALANCE\BALANCE-pyexcel-repository\BALANCE-pyexcel\`).
+    * Configured global Git settings (user name, user email, default branch name 'main').
+
+2.  Environment & Dependency Management:
+    * Initialized the project using `poetry init`, creating `pyproject.toml`.
+    * Added core runtime dependencies (`pandas`, `python-dotenv`) using `poetry add`.
+    * Added development dependencies (`pytest`, `pytest-cov`, `black`, `ruff`) to the 'dev' group using `poetry add --group dev`.
+    * Successfully resolved and installed all dependencies into a Poetry-managed virtual environment (`balance-pyexcel-pipeline-fCJTT6-F-py3.13`).
+    * Generated the `poetry.lock` file, ensuring reproducible dependency installation.
+
+3.  Directory Structure Created:
+    * Established standard Python project layout including:
+        * `src/balance_pipeline/` (for main Python package code)
+        * `tests/` (for unit tests)
+        * `rules/` (placeholder for rule definition files)
+        * `sample_data/` (placeholder for example input CSVs)
+    * Added necessary empty files (`__init__.py`, `.gitkeep`) to ensure structure is recognized and folders can be tracked by Git if empty.
+
+4.  Documentation & Configuration Files:
+    * Created and populated `README.md` with project overview, setup instructions, and structure.
+    * Created and populated `architecture.md` with high-level design, data flow (Mermaid diagram), layers, and key decisions.
+    * Created and populated `.gitignore` with standard Python, Poetry, VS Code, OS, and temporary file patterns to exclude from version control.
+
+5.  Excel Workbook Skeleton:
+    * Created the main workbook `BALANCE-pyexcel.xlsm`.
+    * Manually added the required sheets: `Dashboard`, `Transactions`, `Queue_Review`, `Config`, `Rules_Merchants`, `Rules_Shared`.
+    * Added specified headers to `Transactions` and `Queue_Review` sheets.
+    * Set up label/value structure in `Config` sheet.
+    * Added headers, formatted as Excel Tables, and named tables (`tblMerchantRules`, `tblSharedRules`) in `Rules_Merchants` and `Rules_Shared` sheets respectively.
+
+Current State (After this initial setup):
+* The Git repository is initialized and contains the complete project scaffolding.
+* The Poetry environment is configured with all necessary base dependencies installed and locked.
+* The standard Python project directory structure is in place with empty source/test files.
+* Core documentation files (`README.md`, `architecture.md`) provide project context.
+* The Excel workbook (`BALANCE-pyexcel.xlsm`) contains the required sheets and basic structure, ready for configuration input and data output/interaction via Python.
+* No functional Python code for the ETL pipeline exists yet within the `.py` files.
+
+Next Steps:
+* Make the initial Git commit to save this baseline state.
+* Begin implementation of Python ETL logic (Refined Plan: Phase 2), starting with defining configurations (`config.py`), helper functions (`utils.py`), data ingestion (`ingest.py`), and data normalization (`normalize.py`).
+* Add detailed docstrings, type hints, and function signatures within the Python files to improve clarity and AI-assistability.
+* Populate `sample_data` with anonymized example CSVs to test ingestion.
+* Write initial unit tests for implemented functions in `tests/`.
+* Implement the Python cell code (`=PY(...)`) in Excel to connect and run the pipeline (Refined Plan: Phase 3).
+
+--- End of Content for commit 042125 update.txt ---
