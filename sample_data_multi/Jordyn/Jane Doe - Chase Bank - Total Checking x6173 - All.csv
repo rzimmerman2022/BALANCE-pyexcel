@@ -1,0 +1,9 @@
+Name,Institution,Account Type,Statement Start Date,Statement End Date,Transaction Date,Post Date,Description,Reference Number,Amount,Category
+Jane Doe,JPMorgan Chase Bank,Total Checking x6173,12/15/2023,1/16/2024,12/18/2023,12/18/2023,Zelle Payment To Ryan Zimmerman Jpm99A6Kgo9F,Jpm99A6Kgo9F,1000,Withdrawal
+Jane Doe,JPMorgan Chase Bank,Total Checking x6173,12/15/2023,1/16/2024,12/18/2023,12/18/2023,Chase Credit Crd Autopay PPD ID: 4760039224,4760039224,2.99,Withdrawal
+Jane Doe,JPMorgan Chase Bank,Total Checking x6173,12/15/2023,1/16/2024,12/19/2023,12/19/2023,Wells Fargo Card Copymt 90753612981885 Web ID: 3411650794,"3411650794, 90753612981885",72.95,Withdrawal
+Jane Doe,JPMorgan Chase Bank,Total Checking x6173,12/15/2023,1/16/2024,12/22/2023,12/22/2023,Edu Healthcare L Direct Dep PPD ID: 9111111103,9111111103,-2917.63,Deposit
+Jane Doe,JPMorgan Chase Bank,Total Checking x6173,12/15/2023,1/16/2024,12/26/2023,12/26/2023,Chase Credit Crd Autopay PPD ID: 4760039224,4760039224,11.59,Withdrawal
+Jane Doe,JPMorgan Chase Bank,Total Checking x6173,12/15/2023,1/16/2024,1/1/2024,1/2/2024,Non-Chase ATM Withdraw 01/01 723 N Scottsdale Rd Scottsdale AZ Card 5073,,113,Withdrawal
+Jane Doe,JPMorgan Chase Bank,Total Checking x6173,12/15/2023,1/16/2024,1/2/2024,1/2/2024,Zelle Payment To Mom 19154771023,19154771023,47,Withdrawal
+Jane Doe,JPMorgan Chase Bank,Total Checking x6173,12/15/2023,1/16/2024,1/2/2024,1/2/2024,San Palmas Web Pmts P6G2Hf Web ID: 9000327993,"9000327993, P6G2Hf",2118.77,Withdrawal
