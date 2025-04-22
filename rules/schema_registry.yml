@@ -100,7 +100,8 @@
   header_signature: ["Account Name", "Institution Name", "Amount"] # Key identifying columns
   column_map:
     Date: Date                  # Rocket Money uses 'Date'.
-    Name: Description           # Use Rocket Money's 'Name' field as our 'Description'.
+    Name: Description           # <<< KEEP THIS LINE
+    # Custom Name: Description  # <<< DELETE or COMMENT OUT this line if it exists
     Amount: Amount              # Rocket Money 'Amount' maps to our 'Amount'.
     Account Name: Account       # Rocket Money 'Account Name' maps to our 'Account'.
     # Category: Category        # Uncomment if Rocket Money provides a usable Category column.
