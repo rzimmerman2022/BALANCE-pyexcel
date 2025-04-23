@@ -97,16 +97,20 @@
   match_filename: "BALANCE - Monarch Money*"
   # Header check: Ensure these specific columns exist in the CSV.
   header_signature: ["Merchant", "Account", "Original Statement"]
+  # Static columns to add to every row from this source
+  extra_static_cols:
+    Source: "Monarch"
   # Column mapping: Source CSV column -> Standard internal column name.
   column_map:
-    Date: Date                  # <<< FIX: Changed from 'c' based on user sample
+    Date: Date
     Merchant: Description       # Use Monarch's 'Merchant' field as our standard 'Description'.
     Amount: Amount
     Account: Account
-    Category: Category          # <<< FIX: Added direct Category mapping (sample confirmed it exists)
+    Institution: Bank           # Map Institution to Bank for consistent naming
+    Category: Category
   # Sign rule: How to handle the Amount sign.
   # 'as_is': Keep the sign as is. Monarch sample showed outflows were already negative.
-  sign_rule: as_is              # <<< FIX: Changed from flip_if_positive based on user sample
+  sign_rule: as_is
 
 # ------------------------------------------------------------------------------
 # Schema ID: rocket_money
@@ -117,13 +121,17 @@
   match_filename: "BALANCE - Rocket Money*"
   # Header check: Ensure these specific columns exist in the CSV.
   header_signature: ["Account Name", "Institution Name", "Amount"]
+  # Static columns to add to every row from this source
+  extra_static_cols:
+    Source: "Rocket"
   # Column mapping: Source CSV column -> Standard internal column name.
   column_map:
     Date: Date
     Description: Description    # Use the existing Description field instead of Name
     Amount: Amount
     Account Name: Account       # Use Rocket Money's 'Account Name' as our standard 'Account'.
-    Category: Category          # <<< FIX: Added direct Category mapping (sample confirmed it exists)
+    Institution Name: Bank      # Map Institution Name to Bank for consistent naming
+    Category: Category
   # Sign rule: How to handle the Amount sign.
   # 'flip_if_positive': Flips positive amounts to negative.
   #                     Rocket Money sample showed expenses were positive.

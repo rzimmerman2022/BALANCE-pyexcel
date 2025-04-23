@@ -38,17 +38,17 @@ log = logging.getLogger(__name__)
 # Columns used to generate the deterministic Transaction ID (TxnID).
 # IMPORTANT: These columns MUST exist and be stable *before* normalization steps
 #            within normalize_df might alter them (e.g., cleaning description).
-#            We now include 'Owner' to ensure uniqueness across user accounts.
+#            Now includes 'Bank' and 'Source' to handle deduplication of aggregator data.
 # REVIEW: Confirm these columns are reliably populated by the updated ingest.py
-_ID_COLS_FOR_HASH = ["Owner", "Date", "Amount", "Description", "Account"]
+_ID_COLS_FOR_HASH = ["Date", "Amount", "Description", "Bank", "Account"]
 
 # Defines the exact list and order of columns for the final output DataFrame.
 # This ensures consistency regardless of intermediate processing steps.
-# Added 'Owner', 'Category', and 'SplitPercent' based on recent updates.
+# Added 'Bank', 'Source', 'Category', and 'SplitPercent' based on recent updates.
 FINAL_COLS = [
-    "TxnID", "Owner", "Date", "Account",
+    "TxnID", "Owner", "Date", "Account", "Bank", 
     "Description", "CleanDesc", "Category",
-    "Amount", "SharedFlag", "SplitPercent"
+    "Amount", "SharedFlag", "SplitPercent", "Source"
 ]
 
 # ==============================================================================
@@ -123,9 +123,6 @@ def _txn_id(row: pd.Series) -> str | None:
         # --- Prepare components for hashing ---
         # Ensure consistent string formatting for reliable hashing.
 
-        # Owner: Convert to lowercase string, handle None/NA.
-        owner_str = str(row.get("Owner", "") or "").lower()
-
         # Date: Format as YYYY-MM-DD, handle NaT (Not a Time).
         date_obj = pd.to_datetime(row.get("Date"), errors='coerce')
         date_str = date_obj.strftime('%Y-%m-%d') if pd.notna(date_obj) else ''
@@ -137,14 +134,16 @@ def _txn_id(row: pd.Series) -> str | None:
         # Description: Use the *original* Description for stability before cleaning. Handle None/NA.
         desc_str = str(row.get("Description", "") or "")
 
+        # Bank: Convert to string, handle None/NA.
+        bank_str = str(row.get("Bank", "") or "").lower()
+
         # Account: Convert to string, handle None/NA.
         acct_str = str(row.get("Account", "") or "")
 
         # --- Combine into a single string ---
         # Use a clear separator (e.g., '|') to prevent ambiguity.
-        # Order matters: ensure consistent column order based on _ID_COLS_FOR_HASH if needed,
-        # but accessing by name like this is generally fine if columns exist.
-        base_parts = [owner_str, date_str, amount_str, desc_str, acct_str]
+        # Order matters: ensure consistent column order based on _ID_COLS_FOR_HASH.
+        base_parts = [date_str, amount_str, desc_str, bank_str, acct_str]
         base = "|".join(base_parts)
 
         # --- Generate Hash ---
@@ -252,7 +251,25 @@ def normalize_df(df: pd.DataFrame) -> pd.DataFrame:
     # Select only the columns specified in FINAL_COLS and in that specific order.
     # Sort the entire DataFrame by 'Date' ascending. Put rows with invalid/missing dates first.
     out = out[FINAL_COLS].sort_values("Date", ascending=True, na_position='first')
-
+    
+    # --- Deduplication for aggregator sources (Rocket Money and Monarch) ---
+    # Drop duplicate rows based on TxnID - these would be the same transaction appearing in
+    # multiple aggregator sources
+    initial_row_count = len(out)
+    
+    # Sort by Source column to prioritize which rows to keep when dropping duplicates
+    # If out["Source"] exists and any duplicates, prioritize Rocket over Monarch
+    if "Source" in df.columns and out.duplicated(subset=["TxnID"], keep=False).any():
+        # First sort with "Rocket" first, then drop duplicates
+        # "Rocket" > "Monarch" alphabetically, so sorting descending puts Rocket first
+        if "Source" in out.columns:
+            out = out.sort_values("Source", ascending=False)
+            dupe_count_before = out.duplicated(subset=["TxnID"], keep=False).sum()
+            out = out.drop_duplicates(subset=["TxnID"], keep="first")
+            dupe_count_after = initial_row_count - len(out)
+            if dupe_count_after > 0:
+                log.info(f"Removed {dupe_count_after} duplicate transactions from aggregator sources. Prioritized based on Source.")
+    
     log.info("Normalization complete. Returning %s rows.", len(out))
     return out
 

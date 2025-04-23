@@ -39,7 +39,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # This list defines the exact columns (and their order) we want in the
 # final DataFrame produced by the load_folder function. All input CSVs
 # will be transformed to match this structure.
-STANDARD_COLS = ["Owner", "Date", "Description", "Amount", "Account", "Category"]
+STANDARD_COLS = ["Owner", "Date", "Description", "Amount", "Account", "Category", "Bank", "Source"]
 
 # --- Load Schema Registry from YAML ---
 # The schema registry defines the rules for processing each different CSV format.
@@ -390,6 +390,12 @@ def load_folder(folder: Path) -> pd.DataFrame:
             # Apply column renaming based on the schema's 'column_map'.
             column_map = schema.get("column_map", {})
             df = df.rename(columns=column_map)
+            
+            # Add any static columns specified in the schema (e.g., Source for aggregator sources)
+            extra_static_cols = schema.get("extra_static_cols", {})
+            for col_name, col_value in extra_static_cols.items():
+                df[col_name] = col_value
+                logging.info(f"Added static column '{col_name}' with value '{col_value}' to all rows.")
 
             # Derive any additional columns specified in the schema.
             derived_cfg = schema.get("derived_columns")
