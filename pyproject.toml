@@ -1,32 +1,42 @@
-[project]
+[tool.poetry]
 name = "balance-pyexcel-pipeline"
 version = "0.1.0"
 description = "Python ETL pipeline for the BALANCE-pyexcel shared finance tracker."
-authors = [
-    {name = "Ryan Zimmerman",email = "your-email@example.com"}
-]
+# Use the standard list format for authors under tool.poetry
+authors = ["Ryan Zimmerman <rzimmerman2022@gmail.com>"] # Updated email
 readme = "README.md"
-requires-python = "^3.11"
-dependencies = [
-    "pandas (>=2.2.3,<3.0.0)",
-    "python-dotenv (>=1.1.0,<2.0.0)"
-]
+# Define where the package source code lives
+packages = [{include = "balance_pipeline", from = "src"}]
 
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.dependencies]
+# Specify the compatible Python version range
+python = ">=3.11,<3.14" # Pinned more specifically than just ^3.11
+# List main runtime dependencies found by 'poetry add'
+pandas = "^2.2.3"
+python-dotenv = "^1.1.0"
+# Added PyYAML dependency needed for reading schema_registry.yml
+PyYAML = "^6.0.1" # Assumes latest stable version, adjust if needed
 
 [tool.poetry.group.dev.dependencies]
+# Define development-only dependencies under a SINGLE group header
 pytest = "^8.3.5"
-pytest-cov = "^6.1.1"
-black = "^25.1.0"
-ruff = "^0.11.6"
-
-[tool.poetry.group.dev.dependencies]
+pytest-cov = "^6.1.1" # Using version from your later block
+black = "^25.1.0" # Using version from your later block
+ruff = "^0.11.6" # Using version from your later block
+# Dependencies from the second block in your paste (excluding redundant python-dotenv)
 mkdocs-material = "^9.5"
 mkdocstrings-python = "^1.9"
-python-dotenv = "^1.0"
 pre-commit = "^3.7"
 
+[build-system]
+# Standard build system configuration for Poetry projects
+requires = ["poetry-core>=1.8.0"] # Use a reasonably recent version
+build-backend = "poetry.core.masonry.api"
 
+# Optional: Add tool-specific configurations below later if needed
+# [tool.ruff]
+# ...
+# [tool.black]
+# ...
+# [tool.pytest.ini_options]
+# ...

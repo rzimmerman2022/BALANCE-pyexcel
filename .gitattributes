@@ -1,1 +1,2 @@
 *.xlsm binary
+*.env text eol=lf

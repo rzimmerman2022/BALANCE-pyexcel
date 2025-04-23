@@ -44,11 +44,11 @@ _ID_COLS_FOR_HASH = ["Owner", "Date", "Amount", "Description", "Account"]
 
 # Defines the exact list and order of columns for the final output DataFrame.
 # This ensures consistency regardless of intermediate processing steps.
-# Added 'Owner' and 'Category' based on recent updates to ingest.py.
+# Added 'Owner', 'Category', and 'SplitPercent' based on recent updates.
 FINAL_COLS = [
     "TxnID", "Owner", "Date", "Account",
-    "Description", "CleanDesc", "Category", # Added Category
-    "Amount", "SharedFlag"
+    "Description", "CleanDesc", "Category",
+    "Amount", "SharedFlag", "SplitPercent"
 ]
 
 # ==============================================================================
