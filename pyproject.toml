@@ -17,7 +17,7 @@ python-dotenv = "^1.1.0"
 # Added PyYAML dependency needed for reading schema_registry.yml
 PyYAML = "^6.0.1" # Assumes latest stable version, adjust if needed
 # Added openpyxl for Excel file reading/writing in CLI
-openpyxl = ">=3.1.2"
+openpyxl = "^3.1"   # <<< Make sure this line looks like this
 
 [tool.poetry.group.dev.dependencies]
 # Define development-only dependencies under a SINGLE group header
