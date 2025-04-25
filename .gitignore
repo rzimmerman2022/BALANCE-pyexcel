@@ -88,3 +88,6 @@ workbook/*.temp.xlsx
 # Ignore ANY lock files created by the CLI in the workbook folder
 workbook/*.lock
 
+# root copies live only in template folder
+BALANCE-template.xlsm
+ImportFromTemp.bas
