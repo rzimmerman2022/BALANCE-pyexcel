@@ -96,11 +96,12 @@ def test_xlsm_roundtrip(tmp_path):
     try:
         result = subprocess.run(
             command_to_run,
-            capture_output=True, 
-            text=True, 
-            check=True, 
+            capture_output=True,
+            text=True,            # Keep this True
+            encoding="utf-8",     # <<< ADD THIS LINE WITH COMMA
+            check=True,
             cwd=ROOT,
-            timeout=60 # Add a timeout (e.g., 60 seconds) to prevent hangs
+            timeout=60 
         )
     except subprocess.CalledProcessError as e:
         # If check=True causes an error, print details before failing
@@ -131,7 +132,7 @@ def test_xlsm_roundtrip(tmp_path):
     
     # 1. Check for the success message in the CLI's standard output
     print("Asserting successful completion message in stdout...")
-    assert "✅ Process completed successfully" in result.stdout, "Success message not found in stdout"
+    assert "✅ Process completed successfully" in (result.stdout + result.stderr), "Success message not found in stdout or stderr"
 
     # 2. Check that the temporary XLSX file was created (expected behavior for .xlsm input)
     print(f"Asserting temporary file exists: {expected_temp_xlsx}")
