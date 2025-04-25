@@ -29,6 +29,25 @@ from balance_pipeline.ingest import load_folder
 from balance_pipeline.normalize import normalize_df
 from balance_pipeline.sync import sync_review_decisions
 
+# --- Force UTF-8 Encoding for stdout/stderr ---
+# This helps ensure emojis (like ✅) and other Unicode characters print correctly,
+# especially on Windows consoles that might default to a different encoding (e.g., cp1252).
+# It attempts to reconfigure the standard streams if possible (Python 3.7+).
+try:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        # Optional: Log this change if logging is set up VERY early, otherwise skip logging here.
+        # print("INFO: Reconfigured stdout/stderr for UTF-8.", file=sys.stderr) 
+    else:
+        # Fallback for older versions might involve io.TextIOWrapper, but can be complex.
+        # For simplicity, we'll rely on reconfigure if available.
+        pass 
+except Exception as e_encode:
+    # Log a warning if reconfiguration fails, but don't stop the script.
+    print(f"WARNING: Could not force UTF-8 encoding: {e_encode}", file=sys.stderr)
+# --- End UTF-8 Encoding ---
+
 # Configure logging (basic setup, will be refined by setup_logging)
 log = logging.getLogger(__name__)
 
@@ -142,7 +161,24 @@ def main():
     Main CLI entry point
     """
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="BALANCE-pyexcel ETL Pipeline")
+        parser = argparse.ArgumentParser(
+        description="BALANCE-pyexcel ETL Pipeline: Process CSVs and update Excel.", 
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter, # Existing argument
+        # Add the epilog argument right here:
+        epilog="""
+Examples:
+  # Process CSVs in 'MyCSVs' and update/create 'MyWorkbook.xlsx'
+  poetry run balance-pyexcel ".\\MyCSVs" ".\\MyWorkbook.xlsx"
+
+  # Process CSVs, update macro-enabled workbook (using temp file), log verbosely
+  poetry run balance-pyexcel "C:\\CSV Inbox" "S:\\Shared\\Finance\\BALANCE.xlsm" -v --log process.log
+  
+  # Dry run - process data but only output to CSV, don't touch Excel
+  poetry run balance-pyexcel "Input" "Output.xlsx" --dry-run
+  
+  # Use a custom name for the review sheet
+  poetry run balance-pyexcel "Input" "Output.xlsx" --queue-sheet "Review_Needed" 
+""" # Make sure the closing triple quotes and parenthesis are correct
     parser.add_argument("inbox", help="Path to CSV inbox folder")
     parser.add_argument("workbook", help="Path to Excel workbook (.xlsx or .xlsm)")
     parser.add_argument("--no-sync", action="store_true", help="Skip syncing decisions from Queue_Review")
