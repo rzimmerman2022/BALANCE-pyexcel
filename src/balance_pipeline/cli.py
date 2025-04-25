@@ -134,12 +134,13 @@ def setup_logging(log_file: Optional[str] = None, verbose: bool = False) -> None
     log.debug(f"Logging configured. Level: {logging.getLevelName(log_level)}. Handlers: {[h.name for h in handlers if hasattr(h, 'name')]}")
 
 
-def etl_main(inbox_path: Path) -> pd.DataFrame:
+def etl_main(inbox_path: Path, prefer_source: str = "Rocket") -> pd.DataFrame:
     """
     Main ETL function that loads CSVs, normalizes data, and returns a DataFrame.
     
     Args:
         inbox_path: Path to the folder containing CSV files to process
+        prefer_source: Preferred source for deduplication (default: "Rocket")
         
     Returns:
         pd.DataFrame: Processed and normalized transaction data
@@ -151,7 +152,7 @@ def etl_main(inbox_path: Path) -> pd.DataFrame:
     
     # Normalize the data
     log.info("Normalizing data")
-    df = normalize_df(df) # Assumes normalize_df handles internal logging
+    df = normalize_df(df, prefer_source=prefer_source) # Pass the preferred source parameter
     log.info(f"Normalized data contains {len(df)} rows")
     
     return df
@@ -189,6 +190,8 @@ Examples:
     parser.add_argument("--dry-run", action="store_true", help="Process data but do not write to Excel")
     parser.add_argument("--queue-sheet", default="Queue_Review", 
                         help="Name of the sheet containing decisions (default: Queue_Review)")
+    parser.add_argument("--prefer-source", default="Rocket", 
+                        help="Preferred source when deduplicating transactions (default: Rocket)")
     args = parser.parse_args()
     
     # --- Setup Logging ---
@@ -271,7 +274,7 @@ Examples:
 
     try:
         # Step 1: Run ETL pipeline
-        df = etl_main(inbox)
+        df = etl_main(inbox, prefer_source=args.prefer_source)
         if df.empty and inbox.exists(): 
              log.warning("ETL process resulted in an empty DataFrame. Check source CSVs and logs.")
              # Continue to ensure sheets are created/cleared if needed.

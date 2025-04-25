@@ -169,7 +169,7 @@ def _txn_id(row: pd.Series) -> str | None:
 # ------------------------------------------------------------------------------
 # Function: normalize_df
 # ------------------------------------------------------------------------------
-def normalize_df(df: pd.DataFrame) -> pd.DataFrame:
+def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFrame:
     """
     Normalizes the ingested DataFrame after initial processing by ingest.py.
 
@@ -258,7 +258,7 @@ def normalize_df(df: pd.DataFrame) -> pd.DataFrame:
     initial_row_count = len(out)
     
     # Sort by Source column to prioritize which rows to keep when dropping duplicates
-    # If out["Source"] exists and any duplicates, prioritize Rocket over Monarch
+    # Using the preferred source parameter (default 'Rocket') to control which source wins
     # Check if there are any duplicated rows by TxnID with Source column
     if "Source" in out.columns:
         # Log duplicates for debugging
@@ -266,13 +266,20 @@ def normalize_df(df: pd.DataFrame) -> pd.DataFrame:
         if not dupes.empty:
             log.info(f"Found {len(dupes)} rows with duplicated TxnIDs")
             
-            # Sort with "Rocket" first (descending order puts Rocket before Monarch alphabetically)
-            out = out.sort_values("Source", ascending=False)
+            # Sort to prioritize the preferred source first
+            log.info(f"Using preferred source '{prefer_source}' for deduplication")
+            
+            # Custom sorting logic that puts the preferred source first in the sort order
+            def prefer_source_sorter(source_series):
+                return [0 if s == prefer_source else 1 for s in source_series]
+                
+            # Use the custom sorter to prioritize the preferred source
+            out = out.sort_values("Source", key=prefer_source_sorter)
             
             # Count dupes before removal
             dupe_count_before = out.duplicated(subset=["TxnID"], keep=False).sum()
             
-            # Remove duplicates, keeping the first occurrence (which will be Rocket due to sorting)
+            # Remove duplicates, keeping the first occurrence (which will be the preferred source due to sorting)
             out = out.drop_duplicates(subset=["TxnID"], keep="first")
             
             # Calculate how many were removed
