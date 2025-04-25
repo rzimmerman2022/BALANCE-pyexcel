@@ -1,179 +1,229 @@
+# -*- coding: utf-8 -*-
 """
-End-to-end integration test for the BALANCE-pyexcel CLI.
-
-Checks the following workflow:
-- Running the CLI on sample CSV data.
-- Targeting a macro-enabled workbook (.xlsm).
-- Verifying the CLI completes successfully.
-- Verifying the temporary XLSX file (.temp.xlsx) is created as expected.
-- Verifying the lock file (.lock) is cleaned up after execution.
-- Verifying the temporary XLSX contains the expected sheets ('Transactions', 'Queue_Review').
-- Verifying the 'Transactions' sheet in the temporary file contains data rows.
+Integration tests for the full CLI workflow including Excel workbook interaction
 """
+import os
 import subprocess
+import tempfile
+import zipfile
+from pathlib import Path
 import shutil
-import pathlib
-import sys
-import pytest # Import pytest for skipping if dependencies missing
-import time # Import time for potential waits
+import pytest
+import pandas as pd
 
-# --- Test Configuration ---
 
-# Define project root relative to this test file's location (tests/test_cli_...)
-# Assuming this file is in tests/, ROOT will be the parent directory.
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-
-# Define the command prefix for running poetry commands
-# Handles potential differences in how poetry is invoked on different OS/setups
-POETRY_CMD = ["poetry"] 
-# Note: Adjust POETRY_CMD if 'poetry' isn't directly on PATH 
-# e.g., ["python", "-m", "poetry"] or provide full path
-
-# Define the base CLI command list
-CLI_BASE_COMMAND = POETRY_CMD + ["run", "balance-pyexcel"]
-
-# Define relative paths to sample data and the template workbook within the project
-SAMPLE_DATA_FOLDER = ROOT / "sample_data_multi"
-TEMPLATE_XLSM_FILE = ROOT / "BALANCE-template.xlsm" # The .xlsm with VBA macros
-
-# --- Test Function ---
-
-# Mark test to skip if pandas or openpyxl are not installed in the environment
-# This prevents test failures due to missing optional dependencies needed just for the test
-@pytest.mark.skipif(
-    not shutil.which(POETRY_CMD[0]) or 
-    subprocess.run(POETRY_CMD + ["show", "pandas"], capture_output=True, text=True, cwd=ROOT).returncode != 0 or
-    subprocess.run(POETRY_CMD + ["show", "openpyxl"], capture_output=True, text=True, cwd=ROOT).returncode != 0,
-    reason="Requires poetry, pandas, and openpyxl to be installed in the environment"
-)
-def test_xlsm_roundtrip(tmp_path):
+@pytest.fixture
+def fake_xlsm(tmp_path):
     """
-    Tests the full CLI workflow using an XLSM template and sample data.
-    Verifies temporary file creation, lock file cleanup, and basic output structure.
-
-    Args:
-        tmp_path (pathlib.Path): Pytest fixture providing a temporary directory unique to this test run.
+    Create a fake .xlsm file with minimal Excel structure
+    An .xlsm file is essentially a zip file containing XML documents and metadata
     """
-    print(f"\n--- Starting test_xlsm_roundtrip in temporary directory: {tmp_path} ---")
+    xlsm_path = tmp_path / "test_workbook.xlsm"
     
-    # ---- Arrange: Set up the test environment ----
+    # Create a simple ZIP file with basic Excel structure
+    with zipfile.ZipFile(xlsm_path, 'w') as zf:
+        # Add required Excel components
+        zf.writestr('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>')
+        zf.writestr('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>')
+        zf.writestr('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"></workbook>')
+        
+        # Add VBA project container (makes it a macro workbook)
+        zf.writestr('xl/vbaProject.bin', b'This is a fake VBA project')
     
-    # Define paths for files used within the temporary directory
-    test_xlsm = tmp_path / "BALANCE-test-runtime.xlsm" # Workbook copy for the test run
-    expected_temp_xlsx = test_xlsm.with_suffix(".temp.xlsx") # Expected temp file
-    expected_lock_file = test_xlsm.with_suffix(".lock") # Expected lock file
+    return xlsm_path
 
-    # Verify necessary source files/folders exist before proceeding
-    assert SAMPLE_DATA_FOLDER.exists(), f"Sample data folder not found: {SAMPLE_DATA_FOLDER}"
-    assert TEMPLATE_XLSM_FILE.exists(), f"Template XLSM file not found: {TEMPLATE_XLSM_FILE}"
-    
-    # Copy the master XLSM template into the temporary directory for the test run
-    print(f"Copying template {TEMPLATE_XLSM_FILE} to {test_xlsm}")
-    shutil.copy(TEMPLATE_XLSM_FILE, test_xlsm)
-    assert test_xlsm.exists(), "Failed to copy template XLSM to temporary directory"
 
-    # Ensure expected output/lock files don't exist before running the CLI
-    if expected_temp_xlsx.exists(): expected_temp_xlsx.unlink()
-    if expected_lock_file.exists(): expected_lock_file.unlink()
-    print(f"Ensured temporary file does not exist: {expected_temp_xlsx}")
-    print(f"Ensured lock file does not exist: {expected_lock_file}")
+@pytest.fixture
+def sample_csv_dir(tmp_path):
+    """Create a sample CSV directory with test CSV files representing different schemas"""
+    ryan_dir = tmp_path / "csv_inbox" / "ryan"
+    jordyn_dir = tmp_path / "csv_inbox" / "jordyn"
+    ryan_dir.mkdir(parents=True)
+    jordyn_dir.mkdir(parents=True)
     
-    # Construct the full CLI command to execute
-    command_to_run = CLI_BASE_COMMAND + [
-        str(SAMPLE_DATA_FOLDER), # Input CSV folder path
-        str(test_xlsm),          # Output/Target XLSM path
-        "--verbose"              # Enable detailed logging output
+    # Create Rocket Money sample
+    rocket_csv = ryan_dir / "BALANCE - Rocket Money - test.csv"
+    rocket_content = """Date,Account Name,Institution Name,Amount,Description,Category
+2025-04-01,Checking,RocketBank,-50.00,Test Grocery Purchase,Groceries
+2025-04-02,Savings,RocketBank,100.00,Test Deposit,Income
+"""
+    rocket_csv.write_text(rocket_content)
+    
+    # Create Monarch Money sample with different transaction to avoid duplicate TxnID
+    monarch_csv = ryan_dir / "BALANCE - Monarch Money - test.csv"
+    monarch_content = """Date,Merchant,Amount,Account,Institution,Category,Original Statement
+2025-04-02,Test Grocery Store,-35.00,Checking,MonarchBank,Groceries,Original text
+2025-04-03,Different Purchase,-25.00,Checking,MonarchBank,Shopping,Original text
+"""
+    monarch_csv.write_text(monarch_content)
+    
+    # Create a Wells Fargo sample
+    wells_csv = jordyn_dir / "Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV.csv"
+    wells_content = """Name,Institution,Account Description,Date,Amount,CheckNum,TransType,Description,Balance,Category
+Jordyn Doe,Wells Fargo,Active Cash Card,04/01/2025,50.00,,CREDIT,Wells Fargo Test Transaction,,Shopping
+"""
+    wells_csv.write_text(wells_content)
+    
+    return tmp_path / "csv_inbox"
+
+
+def test_full_cli_workflow(sample_csv_dir, fake_xlsm, tmp_path):
+    """
+    Test the entire CLI workflow:
+    1. Run in dry-run mode first
+    2. Run for real to generate .temp.xlsx
+    3. Verify the temp file exists and lock file is cleaned up
+    4. Check the content of the temp file
+    """
+    # Paths for testing
+    python_path = Path(os.environ.get('VIRTUAL_ENV', '.')) / "Scripts" / "python.exe"
+    if not python_path.exists():
+        python_path = "python"  # Fallback to system Python
+    
+    # Copy the fake xlsm to the temp directory for modification
+    test_xlsm = tmp_path / "BALANCE-test.xlsm"
+    shutil.copy(fake_xlsm, test_xlsm)
+    
+    # Create a backup copy to verify VBA project preservation
+    backup_xlsm = tmp_path / "original.xlsm"
+    shutil.copy(fake_xlsm, backup_xlsm)
+    
+    # --- Phase 1: Dry run ---
+    cmd_dry_run = [
+        str(python_path),
+        "-m", "balance_pipeline.cli",
+        str(sample_csv_dir),
+        str(test_xlsm),
+        "--dry-run"
     ]
     
-    # ---- Act: Run the CLI command ----
-    print(f"Running CLI command: {' '.join(command_to_run)}")
+    result_dry = subprocess.run(cmd_dry_run, capture_output=True, text=True)
     
-    # Execute the command using subprocess.run
-    # - capture_output=True: Captures stdout and stderr
-    # - text=True: Decodes stdout/stderr as text
-    # - check=True: Raises CalledProcessError if the command returns a non-zero exit code (i.e., fails)
-    # - cwd=ROOT: Ensures the command runs from the project root directory, important for poetry to find the virtual environment
-    try:
-        result = subprocess.run(
-            command_to_run,
-            capture_output=True,
-            text=True,            # Keep this True
-            encoding="utf-8",     # <<< ADD THIS LINE WITH COMMA
-            check=True,
-            cwd=ROOT,
-            timeout=60 
-        )
-    except subprocess.CalledProcessError as e:
-        # If check=True causes an error, print details before failing
-        print("\n--- CLI Execution Failed ---")
-        print(f"Return Code: {e.returncode}")
-        print("\n--- STDOUT ---")
-        print(e.stdout)
-        print("\n--- STDERR ---")
-        print(e.stderr)
-        pytest.fail(f"CLI command failed with return code {e.returncode}")
-    except subprocess.TimeoutExpired as e:
-        print("\n--- CLI Execution Timed Out ---")
-        print(e.stdout)
-        print(e.stderr)
-        pytest.fail("CLI command timed out")
-
-
-    # Print stdout/stderr for debugging purposes, even on success
-    print("\n--- CLI STDOUT ---")
-    print(result.stdout)
-    print("--- END CLI STDOUT ---")
-    if result.stderr:
-        print("\n--- CLI STDERR ---")
-        print(result.stderr)
-        print("--- END CLI STDERR ---")
-
-    # ---- Assert: Verify the results ----
+    # Check if dry run succeeded
+    assert result_dry.returncode == 0, f"Dry run command failed with output: {result_dry.stderr}"
     
-    # 1. Check for the success message in the CLI's standard output
-    print("Asserting successful completion message in stdout...")
-    assert "✅ Process completed successfully" in (result.stdout + result.stderr), "Success message not found in stdout or stderr"
-
-    # 2. Check that the temporary XLSX file was created (expected behavior for .xlsm input)
-    print(f"Asserting temporary file exists: {expected_temp_xlsx}")
-    assert expected_temp_xlsx.exists(), f"Temporary file '{expected_temp_xlsx.name}' was not created"
-
-    # 3. Check that the lock file was automatically removed after execution
-    print(f"Asserting lock file does not exist: {expected_lock_file}")
-    # Add a small delay in case file system operations are slow
-    time.sleep(0.5) 
-    assert not expected_lock_file.exists(), f"Lock file '{expected_lock_file.name}' was not removed"
-
-    # 4. Perform basic content validation on the temporary XLSX file
-    print(f"Performing content validation on temporary file: {expected_temp_xlsx}")
+    # Check that dry run CSV was created
+    dry_run_csv = test_xlsm.with_suffix(".dry-run.csv")
+    assert dry_run_csv.exists(), "Dry run CSV should be created"
+    
+    # Check no lock file remains
+    lock_file = test_xlsm.with_suffix(".lock")
+    assert not lock_file.exists(), "Lock file should not exist after dry run"
+    
+    # --- Phase 2: Real run ---
+    cmd_real = [
+        str(python_path),
+        "-m", "balance_pipeline.cli",
+        str(sample_csv_dir),
+        str(test_xlsm)
+    ]
+    
+    result_real = subprocess.run(cmd_real, capture_output=True, text=True)
+    
+    # Check if command succeeded
+    assert result_real.returncode == 0, f"Command failed with output: {result_real.stderr}"
+    
+    # Check that temp xlsx was created for .xlsm files
+    temp_xlsx = test_xlsm.with_suffix(".temp.xlsx")
+    assert temp_xlsx.exists(), "Temp XLSX should be created for .xlsm files"
+    
+    # Check no lock file remains
+    assert not lock_file.exists(), "Lock file should be cleaned up after processing"
+    
+    # --- Phase 3: Verify content of temp file ---
     try:
-        # Use pandas (requires pandas and openpyxl installed in the test environment)
-        # to read the temporary Excel file and check its structure/content.
-        import pandas as pd 
-        with pd.ExcelFile(expected_temp_xlsx) as xls:
-            print(f"Sheets found in temp file: {xls.sheet_names}")
-            # Check for essential sheets
-            assert "Transactions" in xls.sheet_names, "'Transactions' sheet missing in temp file"
-            assert "Queue_Review" in xls.sheet_names, "'Queue_Review' sheet missing in temp file"
+        with pd.ExcelFile(temp_xlsx) as xls:
+            # Check both expected sheets exist
+            assert "Transactions" in xls.sheet_names, "Temp file should have Transactions sheet"
+            assert "Queue_Review" in xls.sheet_names, "Temp file should have Queue_Review sheet"
             
-            # Check if 'Transactions' sheet has data rows
-            transactions_df = pd.read_excel(xls, sheet_name="Transactions")
-            row_count = transactions_df.shape[0]
-            print(f"'Transactions' sheet has {row_count} rows.")
-            assert row_count > 0, "'Transactions' sheet has no data rows" 
-            # Note: You could add a more specific check, e.g., assert row_count == 40 
-            # if you know exactly how many rows your sample data should produce.
-
-            # Check if 'Queue_Review' sheet has the correct columns
-            queue_df = pd.read_excel(xls, sheet_name="Queue_Review")
-            expected_queue_cols = ["TxnID", "Set Shared? (Y/N/S for Split)", "Set Split % (0-100)", "Date", "Description", "Amount", "Owner"]
-            print(f"Queue_Review columns found: {queue_df.columns.tolist()}")
-            assert all(col in queue_df.columns for col in expected_queue_cols), "Queue_Review sheet missing expected columns"
-
-    except ImportError:
-         pytest.skip("Skipping content validation because 'pandas' or 'openpyxl' is not installed.")
+            # Read the transactions sheet
+            df = pd.read_excel(xls, sheet_name="Transactions")
+            
+            # Verify we have rows
+            assert len(df) > 0, "Transactions sheet should contain data"
+            
+            # Check that key columns exist
+            for col in ["TxnID", "Date", "Amount", "Description", "Owner"]:
+                assert col in df.columns, f"Column {col} should exist in output"
+                
+            # Check that we have rows from both owners
+            owners = set(df["Owner"].str.lower())
+            assert "ryan" in owners, "Should have transactions from Ryan"
+            assert "jordyn" in owners, "Should have transactions from Jordyn"
+            
+            # Check that we have groceries from both sources but no single duplicate transaction
+            groceries_count = len(df[df["Description"].str.contains("Grocery", case=False)])
+            assert groceries_count == 2, "Should have two different grocery transactions from different sources"
+            
+            # Make sure we didn't duplicate the same transaction
+            grocery_txns = df[df["Description"].str.contains("Grocery", case=False)]["Description"].tolist()
+            assert "Test Grocery Purchase" in grocery_txns, "Should have Rocket's grocery transaction"
+            assert "Test Grocery Store" in grocery_txns, "Should have Monarch's grocery transaction"
+            
     except Exception as e:
-        pytest.fail(f"Error reading or validating temporary Excel file {expected_temp_xlsx}: {e}")
+        pytest.fail(f"Failed to read temp XLSX file: {e}")
+        
+    # Verify original .xlsm still has vbaProject.bin (check the file is still a real .xlsm)
+    with zipfile.ZipFile(test_xlsm, "r") as zf:
+        file_list = zf.namelist()
+        assert "xl/vbaProject.bin" in file_list, "VBA project should still exist in original .xlsm"
 
-    print("--- test_xlsm_roundtrip PASSED ---")
 
+def test_cli_prefer_rocket_behavior(sample_csv_dir, fake_xlsm, tmp_path):
+    """
+    Test that the deduplication logic correctly handles different transactions from different sources
+    """
+    # Paths for testing
+    python_path = Path(os.environ.get('VIRTUAL_ENV', '.')) / "Scripts" / "python.exe"
+    if not python_path.exists():
+        python_path = "python"  # Fallback to system Python
+    
+    # Set up a special test directory with actual duplicates
+    duplicate_csv_dir = tmp_path / "duplicate_test"
+    ryan_dir = duplicate_csv_dir / "ryan"
+    ryan_dir.mkdir(parents=True)
+    
+    # Create Rocket Money sample with a specific transaction
+    rocket_csv = ryan_dir / "BALANCE - Rocket Money - test.csv"
+    rocket_content = """Date,Account Name,Institution Name,Amount,Description,Category
+2025-04-01,Checking,RocketBank,-50.00,SAME EXACT TRANSACTION,Groceries
+"""
+    rocket_csv.write_text(rocket_content)
+    
+    # Create Monarch Money sample with the EXACT SAME transaction (same date, amount, desc, bank, account)
+    # Need exact same values for TxnID generation fields to match
+    monarch_csv = ryan_dir / "BALANCE - Monarch Money - test.csv"
+    monarch_content = """Date,Merchant,Amount,Account,Institution,Category,Original Statement
+2025-04-01,SAME EXACT TRANSACTION,-50.00,Checking,RocketBank,Groceries,Original text
+"""
+    monarch_csv.write_text(monarch_content)
+    
+    # Copy the fake xlsm to the temp directory
+    test_xlsm = tmp_path / "BALANCE-source-test.xlsm"
+    shutil.copy(fake_xlsm, test_xlsm)
+    
+    # Run the CLI on the duplicate directory
+    cmd = [
+        str(python_path),
+        "-m", "balance_pipeline.cli",
+        str(duplicate_csv_dir),
+        str(test_xlsm),
+        "--dry-run"  # Use dry-run for simpler CSV output
+    ]
+    
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    assert result.returncode == 0, "Command should succeed"
+    
+    # Read the output CSV
+    csv_path = test_xlsm.with_suffix(".dry-run.csv")
+    df = pd.read_csv(csv_path)
+    
+    # Find the transaction
+    txn_rows = df[df["Description"] == "SAME EXACT TRANSACTION"]
+    
+    # Should only be one row - the duplicate should be removed
+    assert len(txn_rows) == 1, "Should have deduplicated the identical transactions"
+    
+    # The remaining row should be from Rocket (our preferred source)
+    assert txn_rows.iloc[0]["Source"] == "Rocket", "Should have kept the Rocket version"

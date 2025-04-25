@@ -259,14 +259,25 @@ def normalize_df(df: pd.DataFrame) -> pd.DataFrame:
     
     # Sort by Source column to prioritize which rows to keep when dropping duplicates
     # If out["Source"] exists and any duplicates, prioritize Rocket over Monarch
-    if "Source" in df.columns and out.duplicated(subset=["TxnID"], keep=False).any():
-        # First sort with "Rocket" first, then drop duplicates
-        # "Rocket" > "Monarch" alphabetically, so sorting descending puts Rocket first
-        if "Source" in out.columns:
+    # Check if there are any duplicated rows by TxnID with Source column
+    if "Source" in out.columns:
+        # Log duplicates for debugging
+        dupes = out[out.duplicated(subset=["TxnID"], keep=False)]
+        if not dupes.empty:
+            log.info(f"Found {len(dupes)} rows with duplicated TxnIDs")
+            
+            # Sort with "Rocket" first (descending order puts Rocket before Monarch alphabetically)
             out = out.sort_values("Source", ascending=False)
+            
+            # Count dupes before removal
             dupe_count_before = out.duplicated(subset=["TxnID"], keep=False).sum()
+            
+            # Remove duplicates, keeping the first occurrence (which will be Rocket due to sorting)
             out = out.drop_duplicates(subset=["TxnID"], keep="first")
+            
+            # Calculate how many were removed
             dupe_count_after = initial_row_count - len(out)
+            
             if dupe_count_after > 0:
                 log.info(f"Removed {dupe_count_after} duplicate transactions from aggregator sources. Prioritized based on Source.")
     
