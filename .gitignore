@@ -36,10 +36,8 @@ venv.bak/
 
 # === Excel ===
 # Ignore general temporary Excel files (often start with ~$)
-~$*.xlsx
-~$*.xlsm 
-
-# === VS Code ===
+# Use more specific pattern to catch variations
+~$*.xls?* # === VS Code ===
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -79,7 +77,6 @@ secrets.yml
 # === BALANCE-pyexcel Specific Ignores ===
 
 # Ignore the LIVE workbook inside the workbook folder
-# IMPORTANT: Make sure your TEMPLATE workbook (e.g., workbook/template/BALANCE-template-empty.xlsm) IS tracked by Git
 workbook/BALANCE-pyexcel.xlsm
 
 # Ignore ANY temporary Excel files created by the CLI in the workbook folder
@@ -88,6 +85,12 @@ workbook/*.temp.xlsx
 # Ignore ANY lock files created by the CLI in the workbook folder
 workbook/*.lock
 
-# root copies live only in template folder
+# Explicitly RE-INCLUDE the template folder and its contents 
+# (This overrides broader ignores if any were added, ensures template IS tracked)
+!workbook/template/
+!workbook/template/*
+
+# Ignore root-level duplicates (template/bas should be in workbook/template/)
 BALANCE-template.xlsm
 ImportFromTemp.bas
+
