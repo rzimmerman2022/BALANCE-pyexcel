@@ -161,10 +161,9 @@ def main():
     Main CLI entry point
     """
     # Parse command line arguments
-        parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(
         description="BALANCE-pyexcel ETL Pipeline: Process CSVs and update Excel.", 
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter, # Existing argument
-        # Add the epilog argument right here:
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog="""
 Examples:
   # Process CSVs in 'MyCSVs' and update/create 'MyWorkbook.xlsx'
@@ -178,115 +177,126 @@ Examples:
   
   # Use a custom name for the review sheet
   poetry run balance-pyexcel "Input" "Output.xlsx" --queue-sheet "Review_Needed" 
-""" # Make sure the closing triple quotes and parenthesis are correct
+""" 
+    ) # End of ArgumentParser definition
+    
+    # Define arguments AFTER the ArgumentParser initialization
     parser.add_argument("inbox", help="Path to CSV inbox folder")
-    parser.add_argument("workbook", help="Path to Excel workbook (.xlsx or .xlsm)")
-    parser.add_argument("--no-sync", action="store_true", help="Skip syncing decisions from Queue_Review")
+    parser.add_argument("workbook", help="Path to target Excel workbook (.xlsx or .xlsm)")
+    parser.add_argument("--no-sync", action="store_true", help="Skip reading/syncing decisions from Queue_Review sheet")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging (DEBUG level)")
     parser.add_argument("--log", help="Path to log file (in addition to console output)")
-    parser.add_argument("--dry-run", action="store_true", help="Process data but don't write to Excel")
+    parser.add_argument("--dry-run", action="store_true", help="Process data but do not write to Excel")
     parser.add_argument("--queue-sheet", default="Queue_Review", 
                         help="Name of the sheet containing decisions (default: Queue_Review)")
     args = parser.parse_args()
     
-    # Set up logging (MUST be done early)
+    # --- Setup Logging ---
+    # Must happen before any significant logging calls
     setup_logging(args.log, args.verbose)
-    log.info("Starting BALANCE-pyexcel CLI process...") # First log after setup
+    log.info("="*50)
+    log.info("Starting BALANCE-pyexcel CLI process...") 
+    log.debug(f"Arguments received: {args}")
     
-    # Convert paths to Path objects and resolve them
+    # --- Path Validation and Resolution ---
     try:
-        inbox = Path(args.inbox).expanduser().resolve(strict=True) # strict=True ensures it exists
-        workbook = Path(args.workbook).expanduser().resolve() # Resolve but allow non-existent for creation
+        inbox = Path(args.inbox).expanduser().resolve(strict=True) # strict=True ensures inbox exists
+        workbook = Path(args.workbook).expanduser().resolve() # Allow workbook to not exist yet
+        log.debug(f"Resolved Inbox Path: {inbox}")
+        log.debug(f"Resolved Workbook Path: {workbook}")
     except FileNotFoundError as e:
-         log.error(f"Input path error: {e}")
+         log.error(f"Input path error: Inbox folder not found at '{args.inbox}'. Details: {e}")
          sys.exit(1)
     except Exception as e:
          log.error(f"Error resolving paths: {e}")
          sys.exit(1)
 
-    log.debug(f"Resolved Inbox Path: {inbox}")
-    log.debug(f"Resolved Workbook Path: {workbook}")
-
     # Validate Excel file extension
     if not workbook.name.lower().endswith((".xlsx", ".xlsm")):
-        log.error(f"Invalid workbook file extension: {workbook}. Must be .xlsx or .xlsm")
+        log.error(f"Invalid workbook file extension: '{workbook.suffix}'. Must be .xlsx or .xlsm.")
         sys.exit(1)
     
-    # Check inbox path validity again (resolve might not catch non-dir)
+    # Check inbox path is actually a directory
     if not inbox.is_dir():
-        log.error(f"Inbox path is not a valid directory: {inbox}")
+        log.error(f"Inbox path provided is not a valid directory: {inbox}")
         sys.exit(1)
     
     if not workbook.exists() and not args.dry_run:
-        log.warning(f"Workbook does not exist: {workbook}. Will attempt to create new workbook.")
+        log.warning(f"Target workbook does not exist: {workbook}. Will attempt to create it.")
     
     # --- Lock File Handling ---
-    lock_file = workbook.with_suffix(workbook.suffix + ".lock") # e.g., file.xlsm.lock
+    lock_file = workbook.with_suffix(workbook.suffix + ".lock") 
     lock_file_created = False
     if not args.dry_run:
         if lock_file.exists():
             try:
                 locktime = time.time() - lock_file.stat().st_mtime
-                log.warning(f"Lock file exists for {workbook.name} (created {locktime:.1f} seconds ago).")
+                log.warning(f"Lock file exists for '{workbook.name}' (created {locktime:.1f} seconds ago).")
                 if locktime < 300: # 5 minutes tolerance
                     log.warning("Another process may be accessing this file. Waiting up to 30 seconds...")
-                    for i in range(30):
-                        if not lock_file.exists():
-                            log.info("Lock file released.")
-                            break
+                    wait_start = time.time()
+                    while lock_file.exists() and (time.time() - wait_start < 30):
                         time.sleep(1)
                     if lock_file.exists():
                         log.error("Lock file still exists after 30 seconds. Aborting.")
                         log.error(f"If you are sure no other process is running, delete the lock file manually: {lock_file}")
                         sys.exit(1)
+                    else:
+                        log.info("Lock file was released.")
                 else:
-                    log.warning("Lock file is older than 5 minutes. Assuming stale lock and proceeding...")
+                    log.warning("Lock file is older than 5 minutes. Assuming stale lock and attempting removal...")
                     try:
-                        lock_file.unlink() # Attempt to remove stale lock
+                        lock_file.unlink() 
                         log.info("Removed stale lock file.")
-                    except Exception as e:
-                        log.error(f"Could not remove stale lock file {lock_file}: {e}. Aborting.")
+                    except Exception as e_unlink_stale:
+                        log.error(f"Could not remove stale lock file {lock_file}: {e_unlink_stale}. Aborting.")
                         sys.exit(1)
 
-            except Exception as e:
-                 log.error(f"Error checking lock file {lock_file}: {e}. Aborting.")
+            except Exception as e_lock_check:
+                 log.error(f"Error checking lock file {lock_file}: {e_lock_check}. Aborting.")
                  sys.exit(1)
         
         # Attempt to create lock file
         try:
-            lock_file.touch()
+            lock_file.touch(exist_ok=False) # exist_ok=False raises error if file exists (race condition check)
             lock_file_created = True
             log.debug(f"Created lock file: {lock_file}")
-        except Exception as e:
-            log.warning(f"Could not create lock file {lock_file}: {e}. Proceeding without lock.")
-            lock_file_created = False # Ensure flag is False if creation failed
+        except FileExistsError:
+             log.error(f"Lock file {lock_file} appeared unexpectedly after check. Another process likely started. Aborting.")
+             sys.exit(1)
+        except Exception as e_lock_create:
+            log.warning(f"Could not create lock file {lock_file}: {e_lock_create}. Proceeding without lock (potential risk).")
+            lock_file_created = False 
     # --- End Lock File Handling ---
 
     try:
         # Step 1: Run ETL pipeline
         df = etl_main(inbox)
-        
-        # Step 2: Read Queue_Review sheet (if it exists and sync not disabled)
-        queue_df = pd.DataFrame()  # Default empty DataFrame
+        if df.empty and inbox.exists(): 
+             log.warning("ETL process resulted in an empty DataFrame. Check source CSVs and logs.")
+             # Continue to ensure sheets are created/cleared if needed.
+
+        # Step 2: Read Queue_Review sheet
+        queue_df = pd.DataFrame() 
         if not args.no_sync:
             if workbook.exists():
                 log.info(f"Reading '{args.queue_sheet}' sheet from {workbook}")
                 try:
-                    # Use openpyxl engine explicitly for better .xlsm compatibility if needed
                     with pd.ExcelFile(workbook, engine='openpyxl') as xls: 
                         if args.queue_sheet in xls.sheet_names:
-                            queue_df = pd.read_excel(xls, sheet_name=args.queue_sheet, dtype=str)
+                            queue_df = pd.read_excel(xls, sheet_name=args.queue_sheet, dtype=str).fillna('') 
                             log.info(f"Read {len(queue_df)} rows from '{args.queue_sheet}'")
                             
-                            # Filter to only required columns
                             required_cols = ["TxnID", "Set Shared? (Y/N/S for Split)", "Set Split % (0-100)"]
                             missing_cols = [col for col in required_cols if col not in queue_df.columns]
                             if missing_cols:
                                 log.warning(f"'{args.queue_sheet}' sheet missing required columns: {', '.join(missing_cols)}. Skipping sync.")
-                                queue_df = pd.DataFrame() # Reset to empty if columns missing
+                                queue_df = pd.DataFrame() 
                             else:
-                                queue_df = queue_df[required_cols].copy() # Explicit copy to avoid SettingWithCopyWarning
-                                log.info(f"Filtered '{args.queue_sheet}' to required columns.")
+                                queue_df = queue_df[required_cols].copy() 
+                                queue_df["Set Shared? (Y/N/S for Split)"] = queue_df["Set Shared? (Y/N/S for Split)"].astype(str).str.strip().str.upper()
+                                queue_df["Set Split % (0-100)"] = pd.to_numeric(queue_df["Set Split % (0-100)"], errors='coerce').fillna(0) 
+                                log.info(f"Filtered and cleaned '{args.queue_sheet}' data.")
                         else:
                             log.warning(f"'{args.queue_sheet}' sheet not found in workbook. Skipping sync.")
                 except Exception as e:
@@ -296,13 +306,13 @@ Examples:
         else:
              log.info("Sync from Queue_Review disabled via --no-sync flag.")
 
-        # Step 3: Sync decisions if we have a non-empty Queue_Review DataFrame
+        # Step 3: Sync decisions
         if not queue_df.empty and not args.no_sync:
             log.info("Syncing decisions from Queue_Review...")
-            df = sync_review_decisions(df, queue_df) # Assumes sync function handles logging
+            df = sync_review_decisions(df, queue_df) 
             log.info("Decisions synced.")
         
-        # Step 4: Write results back to workbook (if not dry-run)
+        # Step 4: Write results
         if args.dry_run:
             log.info(f"DRY RUN: Would write {len(df)} rows to Transactions sheet in {workbook}")
             temp_csv = workbook.with_suffix(".dry-run.csv")
@@ -312,113 +322,98 @@ Examples:
             except Exception as e:
                  log.error(f"Error saving dry run CSV: {e}")
         else:
+            # --- Write to Excel (handling .xlsm) ---
             is_macro_workbook = workbook.name.lower().endswith(".xlsm")
-            if is_macro_workbook:
-                log.warning("Working with macro-enabled workbook (.xlsm). Using temporary file workaround.")
-                temp_xlsx = workbook.with_suffix(".temp.xlsx")
-                try:
-                    sheets_to_preserve = []
-                    if workbook.exists():
-                        try:
-                            # Use openpyxl directly to read sheet names without loading data
-                            import openpyxl
-                            wb_check = openpyxl.load_workbook(workbook, read_only=True, keep_vba=True)
-                            sheets_to_preserve = [
-                                sheet for sheet in wb_check.sheetnames 
-                                if sheet not in ["Transactions", args.queue_sheet]
-                            ]
-                            wb_check.close()
-                            log.debug(f"Sheets to preserve from original XLSM: {sheets_to_preserve}")
-                        except Exception as e:
-                            log.error(f"Error reading original workbook sheets for preservation: {e}")
-                    
-                    log.info(f"Writing {len(df)} rows and template to temporary file: {temp_xlsx}")
-                    with pd.ExcelWriter(temp_xlsx, engine="openpyxl") as writer:
-                        df.to_excel(writer, sheet_name="Transactions", index=False)
-                        if not args.no_sync: # Only create queue sheet if sync is enabled
-                             _create_queue_review_template(df, writer, args.queue_sheet)
-                            
-                        # Copy other sheets from original XLSM if they exist
-                        if workbook.exists() and sheets_to_preserve:
-                             log.info(f"Attempting to preserve sheets: {sheets_to_preserve}")
-                             try:
-                                 # Re-open source workbook with pandas to read data
-                                 source_wb = pd.ExcelFile(workbook, engine='openpyxl') 
-                                 for sheet_name in sheets_to_preserve:
-                                     try:
-                                         preserve_df = pd.read_excel(source_wb, sheet_name=sheet_name)
-                                         preserve_df.to_excel(writer, sheet_name=sheet_name, index=False)
-                                         log.debug(f"Preserved sheet: {sheet_name}")
-                                     except Exception as e_sheet:
-                                         log.warning(f"Could not preserve sheet '{sheet_name}': {e_sheet}")
-                                 source_wb.close()
-                             except Exception as e_preserve:
-                                 log.error(f"Error during sheet preservation: {e_preserve}")
+            target_file_path = workbook.with_suffix(".temp.xlsx") if is_macro_workbook else workbook
+            write_mode = 'w' # Always overwrite/create the temp file or the target xlsx
 
-                    log.info("✅ Wrote data to temporary XLSX file") # Use plain checkmark if emoji fails
+            if is_macro_workbook:
+                 log.warning("Working with macro-enabled workbook (.xlsm). Using temporary file workaround.")
+            
+            log.info(f"Preparing to write output to: {target_file_path}")
+            
+            try:
+                sheets_to_preserve = []
+                # If XLSM and original exists, identify sheets to copy to temp file
+                if is_macro_workbook and workbook.exists():
+                    try:
+                        import openpyxl
+                        wb_check = openpyxl.load_workbook(workbook, read_only=True, keep_vba=True)
+                        sheets_to_preserve = [
+                            sheet for sheet in wb_check.sheetnames 
+                            if sheet not in ["Transactions", args.queue_sheet]
+                        ]
+                        wb_check.close()
+                        log.debug(f"Sheets to preserve from original XLSM: {sheets_to_preserve}")
+                    except Exception as e:
+                        log.error(f"Error reading original workbook sheets for preservation: {e}")
+
+                # Write main data and Queue_Review template to target/temp file
+                with pd.ExcelWriter(target_file_path, engine="openpyxl", mode=write_mode) as writer:
+                    log.info(f"Writing {len(df)} rows to 'Transactions' sheet...")
+                    df.to_excel(writer, sheet_name="Transactions", index=False)
                     
-                    # Instructions for user
+                    if not args.no_sync: 
+                         _create_queue_review_template(df, writer, args.queue_sheet)
+                    
+                    # If XLSM and preserving sheets, copy them now to the temp file
+                    if is_macro_workbook and workbook.exists() and sheets_to_preserve:
+                         log.info(f"Attempting to preserve sheets in temp file: {sheets_to_preserve}")
+                         try:
+                             source_wb = pd.ExcelFile(workbook, engine='openpyxl') 
+                             for sheet_name in sheets_to_preserve:
+                                 try:
+                                     preserve_df = pd.read_excel(source_wb, sheet_name=sheet_name)
+                                     preserve_df.to_excel(writer, sheet_name=sheet_name, index=False)
+                                     log.debug(f"Preserved sheet: {sheet_name}")
+                                 except Exception as e_sheet:
+                                     log.warning(f"Could not preserve sheet '{sheet_name}': {e_sheet}")
+                             source_wb.close()
+                         except Exception as e_preserve:
+                             log.error(f"Error during sheet preservation: {e_preserve}")
+
+                # Log success message 
+                success_msg = "✅ Wrote data" # Using emoji again now that encoding is fixed
+                if is_macro_workbook:
+                    success_msg += f" to temporary XLSX file: {target_file_path.name}"
+                else:
+                     success_msg += f" directly to workbook: {target_file_path.name}"
+                log.info(success_msg)
+
+                # Provide XLSM instructions if needed
+                if is_macro_workbook:
                     log.info("\n==================================================================")
                     log.info("IMPORTANT: To update your macro-enabled workbook:")
                     log.info(f"1. Ensure your main workbook is CLOSED: {workbook}")
-                    log.info(f"2. Open the temporary file: {temp_xlsx}")
-                    log.info("3. Open your main workbook: {workbook}")
+                    log.info(f"2. Open the temporary file: {target_file_path}")
+                    log.info(f"3. Open your main workbook: {workbook}")
                     log.info("4. In the temporary file, right-click the 'Transactions' sheet tab -> Move or Copy...")
                     log.info(f"5. In the dialog, select '{workbook.name}' in 'To book:', check 'Create a copy', click OK.")
                     log.info(f"6. Repeat steps 4-5 for the '{args.queue_sheet}' sheet.")
                     log.info("7. Close the temporary file WITHOUT saving.")
                     log.info("8. Save your main workbook.")
-                    log.info("9. You can now delete the temporary file: {temp_xlsx}")
+                    log.info(f"9. You can now delete the temporary file: {target_file_path}")
                     log.info("   (Or use the 'ImportFromTempFile' macro in Excel if available)")
                     log.info("==================================================================\n")
-                    
-                except PermissionError as pe:
-                    log.error(f"PERMISSION ERROR writing temporary file {temp_xlsx}. Check file permissions or if it's open elsewhere.")
-                    raise # Re-raise to trigger finally block cleanup
-                except Exception as e:
-                    log.error(f"Error writing temporary file {temp_xlsx}: {e}")
-                    raise # Re-raise
-            else:
-                # Standard XLSX file - write directly
-                log.info(f"Writing {len(df)} rows to Transactions sheet in {workbook}")
-                try:
-                    mode = "a" if workbook.exists() else "w"
-                    # Use openpyxl engine and handle sheet replacement
-                    with pd.ExcelWriter(workbook, engine="openpyxl", mode=mode, if_sheet_exists="replace") as writer:
-                        df.to_excel(writer, sheet_name="Transactions", index=False)
-                        if not args.no_sync: # Only create queue sheet if sync is enabled
-                            # Check if sheet exists before creating template
-                            # Need to access workbook object if in append mode
-                            if mode == 'a': 
-                                book_sheets = writer.book.sheetnames
-                            else: # In write mode, sheets list isn't populated yet this way
-                                book_sheets = [] 
-                                
-                            if args.queue_sheet not in book_sheets:
-                                _create_queue_review_template(df, writer, args.queue_sheet)
-                            else:
-                                log.info(f"'{args.queue_sheet}' already exists, not creating template.")
-                                
-                    log.info("✅ Wrote data directly to workbook") # Use plain checkmark if emoji fails
-                except PermissionError:
-                    log.error(f"PERMISSION ERROR: Could not write to workbook {workbook}. File may be open in Excel.")
-                    log.error("Please close the workbook and try again.")
-                    raise # Re-raise to trigger finally block cleanup
-                except Exception as e:
-                    log.error(f"Error writing directly to workbook {workbook}: {e}")
-                    raise # Re-raise
-        
-        log.info("✅ Process completed successfully") # Use plain checkmark if emoji fails
+
+            except PermissionError as pe:
+                log.error(f"PERMISSION ERROR writing output file {target_file_path}. Check file permissions or if it's open elsewhere.")
+                raise 
+            except Exception as e:
+                log.error(f"Error writing output file {target_file_path}: {e}")
+                raise 
+            # --- End Write to Excel ---
+
+        log.info("✅ Process completed successfully") 
         
     except Exception as e:
         log.error(f"An unexpected error occurred during processing: {e}", exc_info=True)
-        # Optionally: Add more specific error handling or user messages here
-        sys.exit(1) # Exit with a non-zero code to indicate failure
+        sys.exit(1) 
     finally:
         # Clean up lock file if we created it
         if lock_file_created and lock_file.exists():
             try:
-                lock_file.unlink(missing_ok=True) # missing_ok=True handles race condition if already deleted
+                lock_file.unlink(missing_ok=True) 
                 log.debug(f"Removed lock file: {lock_file}")
             except Exception as e:
                 log.warning(f"Could not remove lock file {lock_file}: {e}")
