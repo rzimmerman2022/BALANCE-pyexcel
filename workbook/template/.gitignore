@@ -1,0 +1,4 @@
+# Ignore temporary files created by Excel
+~$*.xlsx
+~$*.xlsm
+~$*.xls
