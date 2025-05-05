@@ -22,7 +22,7 @@ import os
 import time
 import io # <<< Added import for io module
 from typing import Optional, Any
-from .config import LOG_LEVEL  # Import project-wide log level
+from balance_pipeline.config import LOG_LEVEL  # Import project-wide log level
 
 # Import the pipeline modules
 from balance_pipeline.ingest import load_folder
@@ -315,15 +315,16 @@ Examples:
             df = sync_review_decisions(df, queue_df) 
             log.info("Decisions synced.")
 
-        # Step 4: Save final DataFrame to Parquet for DuckDB integration
-        parquet_output_path = workbook.parent / "Final_Output.parquet"
-        try:
-            log.info(f"Saving final processed data ({len(df)} rows) to Parquet: {parquet_output_path}")
-            df.to_parquet(parquet_output_path, index=False)
-            log.info(f"Successfully saved Parquet file.")
-        except Exception as e_parquet:
-            log.error(f"Error saving Parquet file {parquet_output_path}: {e_parquet}")
-            # Decide if this should be fatal? For now, log error and continue.
+        # Step 4: Save final DataFrame to Parquet for DuckDB integration (TEMPORARILY DISABLED)
+        # parquet_output_path = workbook.parent / "Final_Output.parquet"
+        # try:
+        #     log.info(f"Saving final processed data ({len(df)} rows) to Parquet: {parquet_output_path}")
+        #     df.to_parquet(parquet_output_path, index=False)
+        #     log.info(f"Successfully saved Parquet file.")
+        # except Exception as e_parquet:
+        #     log.error(f"Error saving Parquet file {parquet_output_path}: {e_parquet}")
+        #     # Decide if this should be fatal? For now, log error and continue.
+        log.warning("Parquet saving is temporarily disabled.")
 
         # Step 5: Write results to Excel (or dry run CSV)
         if args.dry_run:

@@ -21,21 +21,8 @@ from functools import lru_cache
 
 # Import config for path settings
 from . import config
-
-# Import the cleaning function - assuming it's in normalize for now
-# If refactored to utils, change this import path.
-try:
-    from .normalize import _clean_desc
-except ImportError:
-    # Fallback if structure changes or for direct script testing (less ideal)
-    try:
-        from normalize import _clean_desc
-    except ImportError:
-        logging.error("Could not import _clean_desc function. Ensure it exists in normalize.py or utils.py.")
-        # Define a dummy function to allow module loading, but it won't work correctly
-        def _clean_desc(text: str) -> str:
-            logging.warning("Using dummy _clean_desc - merchant normalization may be incorrect.")
-            return str(text or '').strip().upper()
+# Import the cleaning function from the new utils module
+from .utils import _clean_desc
 
 
 # --- Setup Logger ---

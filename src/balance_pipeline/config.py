@@ -20,6 +20,7 @@ Author: Your Name / AI Assistant
 from __future__ import annotations # Allows using Path hint before full definition
 from pathlib import Path         # For object-oriented path manipulation
 import os                        # For accessing environment variables
+import sys                       # For checking if running as frozen executable
 import logging                   # For configuring application logging
 from dotenv import load_dotenv   # For loading .env files
 
@@ -34,24 +35,36 @@ load_dotenv()
 logging.info(".env file loaded if present.")
 
 # ==============================================================================
-# 2. CORE CONSTANTS & PROJECT ROOT
+# 2. CORE CONSTANTS & RESOURCE PATH HELPER
 # ==============================================================================
 
-# --- Project Root Directory ---
-# Calculate the absolute path to the root directory of the project.
-# Assumes this config.py file is located at: <PROJECT_ROOT>/src/balance_pipeline/config.py
-# Path(__file__) gets the path to this current file.
-# .resolve() makes it an absolute path.
-# .parents[2] goes up two levels (from config.py to balance_pipeline, then to src, then to project root).
+def get_resource_path(relative_path: str | Path) -> Path:
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = Path(sys._MEIPASS)
+        logging.debug(f"Running frozen (PyInstaller), base path: {base_path}")
+    except AttributeError:
+        # Not frozen, running in normal Python environment
+        # Calculate PROJECT_ROOT relative to this file's location
+        base_path = Path(__file__).resolve().parents[2]
+        logging.debug(f"Running from source, base path: {base_path}")
+
+    return base_path / relative_path
+
+# --- Project Root Directory (for reference when not frozen) ---
+# This is mainly for logging or non-frozen context now.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-logging.info(f"Project Root determined as: {PROJECT_ROOT}")
+logging.info(f"Project Root (source context) determined as: {PROJECT_ROOT}")
+
 
 # ==============================================================================
 # 3. FILE PATHS CONFIGURATION
 # ==============================================================================
 
 # --- CSV Input Folder ---
-# Defines the path where the application should look for input CSV files.
+# Defines the *default* path where the application might look for input CSV files
+# if not overridden by CLI arguments or other runtime configurations.
 # It first checks if an environment variable 'CSV_INBOX' is set.
 # If not, it defaults to a folder named 'csv_inbox' inside the PROJECT_ROOT.
 # .expanduser() handles '~' notation (e.g., ~/Documents) if used in the path.
@@ -68,24 +81,25 @@ logging.info(f"Default CSV Inbox Path configured to: {CSV_INBOX_DEFAULT}")
 
 # --- Schema Registry File Path ---
 # Defines the location of the YAML file containing the rules for parsing CSVs.
-# Checks for 'SCHEMA_REGISTRY' environment variable, otherwise defaults to
-# 'rules/schema_registry.yml' within the PROJECT_ROOT.
+# Uses get_resource_path to find it correctly whether frozen or not.
+# Checks for 'SCHEMA_REGISTRY' environment variable first.
 SCHEMA_REGISTRY_PATH = Path(
-    os.getenv("SCHEMA_REGISTRY", PROJECT_ROOT / "rules" / "schema_registry.yml")
+    os.getenv("SCHEMA_REGISTRY", get_resource_path("rules/schema_registry.yml"))
 )
 logging.info(f"Schema Registry Path configured to: {SCHEMA_REGISTRY_PATH}")
 
 # --- Merchant Lookup File Path ---
 # Defines the location of the CSV file used for merchant normalization rules.
-# Checks for 'MERCHANT_LOOKUP' environment variable, otherwise defaults to
-# 'rules/merchant_lookup.csv' within the PROJECT_ROOT.
+# Uses get_resource_path to find it correctly whether frozen or not.
+# Checks for 'MERCHANT_LOOKUP' environment variable first.
 MERCHANT_LOOKUP_PATH = Path(
-    os.getenv("MERCHANT_LOOKUP", PROJECT_ROOT / "rules" / "merchant_lookup.csv")
+    os.getenv("MERCHANT_LOOKUP", get_resource_path("rules/merchant_lookup.csv"))
 )
 logging.info(f"Merchant Lookup Path configured to: {MERCHANT_LOOKUP_PATH}")
 
 
 # Add other paths here as needed (e.g., output paths, database paths)
+# OUTPUT_DIR = get_resource_path(os.getenv("OUTPUT_DIR", "output"))
 # OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", PROJECT_ROOT / "output")).expanduser()
 
 # ==============================================================================

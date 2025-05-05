@@ -90,13 +90,85 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
         combined_df = pd.concat(valid_tables_df, ignore_index=True)
         log.info(f"Concatenated {len(valid_tables_df)} valid table(s) into a single DataFrame with shape {combined_df.shape}.")
 
+        # --- Filter out non-transaction rows (Simplified Approach) ---
+        # Assume transaction data has a valid date-like string in index 10 (MM/DD)
+        # and a valid numeric amount in index 14.
+        initial_rows = len(combined_df)
+        if combined_df.shape[1] >= 15:
+            try:
+                # Check for MM/DD format (allows 1/1, 01/01, 12/31 etc.)
+                date_col_idx = 10
+                amount_col_idx = 14
+                date_pattern = r'^\d{1,2}/\d{1,2}$'
+                # Keep rows where column 10 matches the date pattern AND column 14 is numeric
+                # Convert amount column to numeric, coercing errors to NaN
+                numeric_amount = pd.to_numeric(combined_df.iloc[:, amount_col_idx], errors='coerce')
+                # Check date pattern
+                is_valid_date_format = combined_df.iloc[:, date_col_idx].astype(str).str.match(date_pattern, na=False)
+
+                # Keep rows that satisfy both conditions
+                combined_df = combined_df[is_valid_date_format & numeric_amount.notna()]
+
+                rows_after_filter = len(combined_df)
+                log.info(f"Filtered rows based on date (col {date_col_idx}) and amount (col {amount_col_idx}). Kept {rows_after_filter}/{initial_rows} rows.")
+
+            except IndexError:
+                 log.warning(f"DataFrame for {pdf_path.name} has less than 15 columns. Skipping row filtering.")
+            except Exception as e_filter:
+                 log.warning(f"Error during row filtering for {pdf_path.name}: {e_filter}. Proceeding with unfiltered data.")
+        else:
+             log.warning(f"DataFrame for {pdf_path.name} has only {combined_df.shape[1]} columns. Skipping row filtering.")
+
+        if combined_df.empty:
+            log.warning(f"DataFrame became empty after filtering for {pdf_path.name}. Skipping file.")
+            return False
+
+        # --- Rename Columns by Index (Post-Filtering) ---
         # Define the output CSV path using the new naming convention
         output_csv_name = f"BALANCE - {owner_name} PDF - {pdf_path.stem}.csv"
         output_csv_path = owner_output_dir / output_csv_name
 
-        # Save the combined DataFrame
+        # Define expected column names based on schema registry assumptions
+        expected_columns = {
+            9: "AccountLast4",    # Index 9 (10th col)
+            10: "TransDate",      # Index 10 (11th col)
+            11: "PostDate",       # Index 11 (12th col)
+            12: "ReferenceNumber",# Index 12 (13th col)
+            13: "RawMerchant",    # Index 13 (14th col)
+            14: "Amount"          # Index 14 (15th col) - Assuming this is the correct index
+        }
+        # Check if the DataFrame still has enough columns after filtering
+        if combined_df.shape[1] >= 15:
+            log.debug(f"Renaming columns based on index for {pdf_path.name} after filtering.")
+            try:
+                # Create rename map using original column names at specific indices
+                rename_map = {combined_df.columns[idx]: new_name
+                              for idx, new_name in expected_columns.items()
+                              if idx < combined_df.shape[1]} # Ensure index is within bounds
+                combined_df.rename(columns=rename_map, inplace=True)
+                log.debug(f"Columns after rename by index: {combined_df.columns.tolist()}")
+
+                # Select only the renamed columns in the desired order
+                final_cols_order = ["TransDate", "PostDate", "ReferenceNumber", "RawMerchant", "Amount", "AccountLast4"]
+                # Keep only columns that actually exist after renaming
+                final_cols_present = [col for col in final_cols_order if col in combined_df.columns]
+                combined_df = combined_df[final_cols_present]
+                log.debug(f"Selected and reordered final columns: {final_cols_present}")
+
+            except IndexError:
+                 log.warning(f"IndexError during column renaming for {pdf_path.name}. Columns might be incorrect.")
+                 # Fallback: Keep original columns if renaming fails
+            except Exception as e_rename:
+                 log.warning(f"Error during column renaming for {pdf_path.name}: {e_rename}. Columns might be incorrect.")
+                 # Fallback: Keep original columns
+
+        else:
+            log.warning(f"DataFrame for {pdf_path.name} has only {combined_df.shape[1]} columns after filtering. Cannot rename by index. Columns might be incorrect.")
+            # Keep the columns we have, hoping they are somewhat correct
+
+
+        # Save the potentially cleaned DataFrame
         try:
-            # Optional: Add more cleaning here if needed before saving
             combined_df.to_csv(output_csv_path, index=False)
             log.info(f"Successfully saved combined data to {output_csv_path.name}")
             return True # Indicate success

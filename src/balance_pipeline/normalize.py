@@ -20,13 +20,12 @@ Author: Your Name / AI Assistant
 # 0. IMPORTS
 # ==============================================================================
 import pandas as pd
-import re                  # For regular expression operations (used in _clean_desc)
-import unicodedata         # For handling Unicode normalization (removing accents)
 import hashlib             # For generating SHA-256 hashes for TxnID
 import logging             # For logging messages
 
 # Local application imports
 from .merchant import normalize_merchant # Import the new merchant normalization function
+from .utils import _clean_desc           # Import cleaning function from utils
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP & CONSTANTS
@@ -58,51 +57,7 @@ FINAL_COLS = [
 # 2. HELPER FUNCTIONS (Internal Use Only)
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
-# Function: _strip_accents
-# ------------------------------------------------------------------------------
-def _strip_accents(txt: str | None) -> str:
-    """Removes accent marks from characters in a string."""
-    if pd.isna(txt):
-        # Handle missing or NaN input gracefully.
-        return ""
-    try:
-        # Normalize Unicode text into 'NFD' form (Canonical Decomposition),
-        # which separates base characters from their accent marks.
-        # Then, filter out characters in the 'Mn' (Mark, Nonspacing) category.
-        txt = str(txt) # Ensure input is string
-        return "".join(
-            ch for ch in unicodedata.normalize("NFD", txt)
-            if unicodedata.category(ch) != "Mn"
-        )
-    except TypeError: # Catch potential errors if input isn't string-like
-        log.warning(f"Could not strip accents from non-string input: {type(txt)}. Returning empty string.")
-        return ""
-
-# ------------------------------------------------------------------------------
-# Function: _clean_desc
-# ------------------------------------------------------------------------------
-def _clean_desc(desc: str | None) -> str:
-    """Cleans description text for easier matching and analysis."""
-    if pd.isna(desc):
-        # Handle missing or NaN input.
-        return ""
-
-    try:
-        # 1. Remove accents (using helper function above).
-        # 2. Convert to uppercase for case-insensitive matching later.
-        desc = _strip_accents(str(desc)).upper()
-        # 3. Replace sequences of non-alphanumeric characters (excluding space) with a single space.
-        #    This helps remove punctuation and symbols while preserving word separation.
-        desc = re.sub(r"[^A-Z0-9 ]+", " ", desc)
-        # 4. Replace multiple consecutive spaces with a single space.
-        desc = re.sub(r"\s+", " ", desc)
-        # 5. Remove leading/trailing whitespace.
-        return desc.strip()
-    except Exception as e:
-        log.warning(f"Error cleaning description: '{desc}'. Error: {e}. Returning original.")
-        return str(desc or '') # Return original string or empty if error
-
+# _strip_accents and _clean_desc moved to utils.py
 
 # ------------------------------------------------------------------------------
 # Function: _txn_id
