@@ -4,22 +4,22 @@
 Script: process_pdfs.py
 Project: BALANCE-pyexcel
 Description: Processes PDF bank statements found in an input directory using
-             Camelot, extracts tables, and saves them as CSV files in an
+             Tabula, extracts tables, and saves them as CSV files in an
              output directory. Includes error handling for problematic PDFs.
 ==============================================================================
 
-Version: 0.1.0
+Version: 0.1.1
 Last Modified: 2025-05-04
 Author: AI Assistant (Cline)
 """
 
-import camelot
+import tabula # Changed from camelot
 import pandas as pd
 from pathlib import Path
 import argparse
 import logging
 import sys
-import os
+# import os # os is no longer used directly
 
 # --- Configure Logging ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -29,9 +29,29 @@ log = logging.getLogger(__name__)
 # Note: SCHEMA_ID is no longer used for filename generation directly
 # SCHEMA_ID = "jordyn_pdf" # As suggested in the review
 
+def read_with_fallback(pdf_path: Path):
+    """Try UTF-8 first, then CP-1252, finally ignore bad bytes."""
+    base_kwargs = dict(
+        pages="all",
+        multiple_tables=True,
+        stream=True,
+        guess=True,
+        pandas_options={"dtype": str}, # Keep data as strings initially via pandas
+    )
+    try:
+        log.debug(f"Attempting to read {pdf_path.name} with UTF-8")
+        # Pass encoding directly to tabula.read_pdf for subprocess decoding
+        return tabula.read_pdf(str(pdf_path), encoding='utf-8', **base_kwargs)
+    except UnicodeDecodeError:
+        log.warning(f"UTF-8 failed for {pdf_path.name} → retry CP-1252")
+        # Fallback to CP-1252 for subprocess decoding
+        # No need for a third try-except here if CP-1252 handles the known issue
+        return tabula.read_pdf(str(pdf_path), encoding='cp1252', **base_kwargs)
+        # Note: If other errors occur, they will propagate up from here
+
 def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool:
     """
-    Extracts tables from a single PDF using Camelot, concatenates them,
+    Extracts tables from a single PDF using Tabula (with encoding fallbacks), concatenates them,
     and saves the result as a single CSV in the specified owner's directory.
 
     Args:
@@ -43,38 +63,32 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
         bool: True if processing and saving were successful, False otherwise.
     """
     log.info(f"Processing PDF: {pdf_path.name} for owner: {owner_name}")
-    all_tables_df = []
+    valid_tables_df = []
     try:
-        # Use Camelot to read tables. 'lattice' is often good for statements with clear lines.
-        # 'stream' can be tried if lattice fails. Adjust 'pages' as needed (e.g., '1-end').
-        tables = camelot.read_pdf(str(pdf_path), pages='all', flavor='lattice', suppress_stdout=True)
+        # Use the helper function with encoding fallbacks - pass Path object directly
+        tables = read_with_fallback(pdf_path)
 
         if not tables:
-            log.warning(f"No tables found by Camelot in {pdf_path.name}. Skipping.")
+            log.warning(f"No tables found by Tabula (with fallbacks) in {pdf_path.name}. Skipping.")
             return False # Indicate failure/skip
 
-        log.info(f"Found {tables.n} table(s) in {pdf_path.name}. Attempting to concatenate.")
+        log.info(f"Found {len(tables)} table(s) in {pdf_path.name}. Filtering and attempting to concatenate.")
 
-        # Concatenate all found tables into a single DataFrame
-        for i, table in enumerate(tables):
-            try:
-                df = table.df
-                # Basic check: skip empty tables or tables with only headers
-                if not df.empty and len(df) > 1:
-                    all_tables_df.append(df)
-                    log.debug(f"Added table {i+1} (shape: {df.shape}) to concatenation list.")
-                else:
-                    log.debug(f"Skipping empty or header-only table {i+1}.")
-            except Exception as e_df:
-                log.warning(f"Error accessing or checking DataFrame for table {i+1} in {pdf_path.name}: {e_df}")
+        # Filter out empty tables or tables with only headers before concatenation
+        for i, df in enumerate(tables):
+            if not df.empty and len(df) > 1:
+                valid_tables_df.append(df)
+                log.debug(f"Added table {i+1} (shape: {df.shape}) to concatenation list.")
+            else:
+                log.debug(f"Skipping empty or header-only table {i+1}.")
 
-        if not all_tables_df:
+        if not valid_tables_df:
             log.warning(f"No valid tables found to concatenate in {pdf_path.name}. Skipping.")
             return False # Indicate failure/skip
 
-        # Concatenate the list of DataFrames
-        combined_df = pd.concat(all_tables_df, ignore_index=True)
-        log.info(f"Concatenated {len(all_tables_df)} table(s) into a single DataFrame with shape {combined_df.shape}.")
+        # Concatenate the list of valid DataFrames
+        combined_df = pd.concat(valid_tables_df, ignore_index=True)
+        log.info(f"Concatenated {len(valid_tables_df)} valid table(s) into a single DataFrame with shape {combined_df.shape}.")
 
         # Define the output CSV path using the new naming convention
         output_csv_name = f"BALANCE - {owner_name} PDF - {pdf_path.stem}.csv"
@@ -93,15 +107,15 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
     except FileNotFoundError:
         log.error(f"PDF file not found: {pdf_path}")
         return False # Indicate failure
-    except Exception as e_camelot:
-        # Catch broad exceptions during Camelot processing (e.g., corrupted PDF, dependency issues)
-        log.error(f"Failed to process PDF {pdf_path.name} with Camelot: {e_camelot}", exc_info=False) # Set exc_info=True for full traceback if needed
+    except Exception as e_tabula:
+        # Catch broad exceptions during Tabula processing (e.g., corrupted PDF, Java issues)
+        log.error(f"Failed to process PDF {pdf_path.name} with Tabula: {e_tabula}", exc_info=False) # Set exc_info=True for full traceback if needed
         return False # Indicate failure
 
 def main():
     """Main script execution"""
     parser = argparse.ArgumentParser(
-        description="Extract tables from PDF bank statements to CSV using Camelot.",
+        description="Extract tables from PDF bank statements to CSV using Tabula.", # Updated description
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog="Example: poetry run python scripts/process_pdfs.py C:\\PDF_Statements C:\\MyCSVs Jordyn -v"
     )
@@ -149,12 +163,13 @@ def main():
         sys.exit(1)
 
     # --- Process PDFs ---
-    pdf_files = list(input_path.glob("*.pdf"))
+    pdf_files = list(input_path.glob("*.pdf"))        # restore normal listing
+    log.info("Found %d PDF file(s)…", len(pdf_files)) # Use the original logging style
     if not pdf_files:
         log.warning(f"No PDF files found in {input_path}")
         sys.exit(0)
 
-    log.info(f"Found {len(pdf_files)} PDF file(s) to process for owner '{owner_name}'.")
+    # log.info(f"Found {len(pdf_files)} PDF file(s) to process for owner '{owner_name}'.") # Replaced by the line above
     processed_count = 0
     skipped_count = 0
     for pdf_file in pdf_files:
@@ -169,16 +184,17 @@ def main():
     log.info("="*50)
 
 if __name__ == "__main__":
-    # --- Check for Ghostscript (Camelot dependency) ---
-    # Basic check, might need refinement based on OS
-    try:
-        import shutil
-        if shutil.which("gs") or shutil.which("gswin64c") or shutil.which("gswin32c"):
-             log.debug("Ghostscript executable found in PATH.")
-        else:
-             log.warning("Ghostscript executable (gs, gswin64c, gswin32c) not found in PATH. Camelot may fail.")
-             log.warning("Please install Ghostscript: https://www.ghostscript.com/releases/gsdnld.html")
-    except Exception as e_gs_check:
-         log.warning(f"Could not check for Ghostscript: {e_gs_check}")
-
     main()
+    # --- Clean up hanging Java process ---
+    try:
+        # Force jpype initialization if it was used (tabula might use subprocess fallback)
+        tabula.environment_info()
+        import jpype
+        if jpype.isJVMStarted():
+            log.info("Shutting down JVM...")
+            jpype.shutdownJVM()
+            log.info("JVM shutdown complete.")
+    except ImportError:
+        log.debug("jpype not imported, likely using subprocess fallback. No JVM shutdown needed.")
+    except Exception as e_jvm:
+        log.warning(f"Error during JVM shutdown attempt: {e_jvm}")

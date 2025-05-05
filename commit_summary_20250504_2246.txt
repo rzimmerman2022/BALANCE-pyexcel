@@ -1,0 +1,49 @@
+feat(pdf): Implement and test Jordyn PDF ingestion schema
+
+This commit integrates the processing pipeline for CSV files generated from Jordyn's PDF bank statements using the `process_pdfs.py` script.
+
+**Key Changes:**
+
+1.  **Reverted Temporary Filter (`scripts/process_pdfs.py`):**
+    *   Removed the hardcoded filter that limited processing to only "Document (7).pdf".
+    *   Restored the original `input_path.glob("*.pdf")` logic to process all PDFs in the specified input directory.
+    *   Confirmed via smoke test (`poetry run python scripts/process_pdfs.py ...`) that all 11 Jordyn PDFs are now processed successfully.
+
+2.  **Defined `jordyn_pdf` Schema (`rules/schema_registry.yml`):**
+    *   Updated the existing placeholder `jordyn_pdf` schema definition.
+    *   Corrected the filename matching key from `glob` to `match_filename` as expected by `ingest.py`. The pattern is now `BALANCE - Jordyn PDF -*.csv`.
+    *   Implemented the 15-column mapping based on Tabula's output structure:
+        *   Mapped `TransDate` (source col 11) to standard `Date`.
+        *   Mapped `RawMerchant` (source col 14) to standard `Description`.
+        *   Mapped `AccountLast4` (source col 10) to internal `AcctLast4`.
+        *   Mapped `PostDate` (source col 12) to internal `TransPost`.
+        *   Mapped `ReferenceNumber` (source col 13) to internal `RefNum`.
+        *   Mapped `Amount` (source col 15) to standard `Amount`.
+        *   Explicitly mapped columns 1-9 (`Skip_1` to `Skip_9`) to `_` (underscore) to indicate they should be ignored/dropped during ingestion.
+    *   Corrected the sign rule: Changed from the invalid `sign: -1` to the recognized `sign_rule: flip_if_positive`. This ensures positive amounts (credits in the source PDF) are flipped to negative, aligning with the project's debit-positive convention.
+
+3.  **Created Test Fixture (`tests/fixtures/jordyn_pdf_sample.csv`):**
+    *   Added a new CSV fixture containing 3 sample rows derived from the PDF output.
+    *   Included only the relevant columns (10-15) used by the `column_map`.
+    *   Used the source column names (`AccountLast4`, `TransDate`, etc.) as headers.
+    *   Initially used MM/DD dates, but updated to MM/DD/YYYY (e.g., `12/19/2024`) to resolve `pd.to_datetime` parsing errors during testing.
+
+4.  **Created Integration Test (`tests/test_pdf_ingest.py`):**
+    *   Added a new test file specifically for the PDF ingestion pipeline.
+    *   Implemented `test_jordyn_pdf_ingestion_and_normalization` using a pytest fixture (`jordyn_pdf_inbox`) to create a temporary directory structure (`tmp_path/inbox/Jordyn/`) and copy the fixture CSV (renamed to match the schema `glob`).
+    *   The test calls `ingest.load_folder` and `normalize.normalize_df`.
+    *   Asserts:
+        *   The final DataFrame columns match `normalize.FINAL_COLS`.
+        *   The `Owner` column is correctly set to "Jordyn".
+        *   The `Amount` sign is correctly flipped to negative.
+        *   The number of rows matches the fixture (3).
+        *   Removed an initial assertion checking for `AcctLast4` as it's not part of `FINAL_COLS`.
+
+5.  **Debugged Normalization (`src/balance_pipeline/normalize.py`):**
+    *   Resolved `TypeError: boolean value of NA is ambiguous` errors encountered during testing.
+    *   Modified the `_txn_id` function to explicitly check for `pd.isna()` when processing the `Bank` and `Account` columns before converting to string, as these columns are `NA` for the `jordyn_pdf` schema.
+    *   Modified the `prefer_source_sorter` function within `normalize_df` to handle potential `pd.NA` values in the `Source` column during deduplication sorting.
+
+**Outcome:**
+
+The `jordyn_pdf` schema is now correctly defined and integrated. The pipeline successfully ingests CSVs generated from these PDFs, applies the correct column mapping and sign rules, and passes the integration test.

@@ -1,0 +1,37 @@
+feat: Address P0/P1 issues - Config, CI, Docs, PDF Script
+
+This commit addresses several priority issues identified in the project gaps list.
+
+**P0 Fixes:**
+
+1.  **Merchant Lookup Path Configuration:**
+    *   Added `MERCHANT_LOOKUP_PATH` variable to `src/balance_pipeline/config.py` to centralize path management.
+    *   Modified `src/balance_pipeline/merchant.py` to import `config` and utilize `MERCHANT_LOOKUP_PATH`, removing the hardcoded relative path. This improves robustness for packaging.
+    *   Corrected indentation errors introduced during previous edits in `merchant.py`.
+
+2.  **Queue_Review Template Enhancement:**
+    *   Updated the `_create_queue_review_template` function in `src/balance_pipeline/cli.py` to include the `CanonMerchant` column in the generated Excel template, providing reviewers with the canonical merchant name for context.
+
+3.  **CI Ghostscript Dependency (Windows):**
+    *   Added a conditional step to `workflows/ci.yml` to install Ghostscript using `choco install ghostscript -y` specifically for the `windows-latest` runner in the `test` job matrix. This ensures PDF processing dependencies are available for future tests on Windows runners.
+
+**P1 Fixes:**
+
+1.  **Executable Artifact Documentation & Spec File:**
+    *   Added a build status badge to `README.md`.
+    *   Included instructions in `README.md` on how to download the pre-built Windows executable (`.exe`) from GitHub Actions artifacts.
+    *   Generated the `balance-pyexcel.spec` file locally using PyInstaller (matching the CI build command) and added it to the repository. This allows developers to easily inspect and modify build configurations if needed.
+
+2.  **PDF Processing Script (`process_pdfs.py`):**
+    *   Modified script arguments to accept the main CSV inbox path and the specific owner's name, rather than a generic output directory.
+    *   Updated the `process_pdf` function to concatenate all tables extracted from a single PDF into one DataFrame.
+    *   Changed the output logic to save the combined DataFrame as a single CSV file directly into the specified owner's subfolder within the main CSV inbox.
+    *   Implemented the deterministic naming convention: `BALANCE - <OwnerName> PDF - <OriginalPDFName>.csv`.
+    *   Corrected indentation errors introduced during previous edits.
+
+3.  **DuckDB Connectivity Documentation:**
+    *   Created a sample ODBC connection file (`samples/Connect_DuckDB_Parquet.odc`) to facilitate easy connection from Excel.
+    *   Updated the "Using DuckDB for Analysis (Optional)" section in `README.md` to include:
+        *   Clear instructions on installing the DuckDB ODBC driver (MSI recommended).
+        *   Guidance on using the provided `.odc` file or configuring a DSN for Excel.
+        *   An example connection string for connecting directly from Power BI without a DSN.

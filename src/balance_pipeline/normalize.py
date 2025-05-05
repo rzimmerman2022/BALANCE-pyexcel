@@ -137,11 +137,13 @@ def _txn_id(row: pd.Series) -> str | None:
         # Description: Use the *original* Description for stability before cleaning. Handle None/NA.
         desc_str = str(row.get("Description", "") or "")
 
-        # Bank: Convert to string, handle None/NA.
-        bank_str = str(row.get("Bank", "") or "").lower()
+        # Bank: Convert to string, handle None/NA and pd.NA explicitly.
+        bank_val = row.get("Bank", "")
+        bank_str = "" if pd.isna(bank_val) else str(bank_val).lower()
 
-        # Account: Convert to string, handle None/NA.
-        acct_str = str(row.get("Account", "") or "")
+        # Account: Convert to string, handle None/NA and pd.NA explicitly.
+        acct_val = row.get("Account", "")
+        acct_str = "" if pd.isna(acct_val) else str(acct_val)
 
         # --- Combine into a single string ---
         # Use a clear separator (e.g., '|') to prevent ambiguity.
@@ -284,10 +286,11 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
             # Sort to prioritize the preferred source first
             log.info(f"Using preferred source '{prefer_source}' for deduplication")
             
-            # Custom sorting logic that puts the preferred source first in the sort order
+            # Custom sorting logic that puts the preferred source first and handles NA
             def prefer_source_sorter(source_series):
-                return [0 if s == prefer_source else 1 for s in source_series]
-                
+                # Treat NA as non-preferred (assign 1)
+                return [0 if pd.notna(s) and s == prefer_source else 1 for s in source_series]
+
             # Use the custom sorter to prioritize the preferred source
             out = out.sort_values("Source", key=prefer_source_sorter)
             
