@@ -26,6 +26,9 @@ import yaml
 import re
 import logging
 
+# Local application imports
+from . import config # Import config module to access constants
+
 # ==============================================================================
 # 1. CONFIGURATION & GLOBAL SETUP
 # ==============================================================================
@@ -43,8 +46,8 @@ STANDARD_COLS = ["Owner", "Date", "Description", "Amount", "Account", "Category"
 
 # --- Load Schema Registry from YAML ---
 # The schema registry defines the rules for processing each different CSV format.
-# It's loaded once when this module is imported.
-_SCHEMA_REGISTRY_PATH = Path("rules/schema_registry.yml")
+# It's loaded once when this module is imported using the path from config.
+_SCHEMA_REGISTRY_PATH = config.SCHEMA_REGISTRY_PATH # Use path from config
 _SCHEMAS: list[dict] = [] # Initialize as empty list
 
 try:
@@ -410,7 +413,8 @@ def load_folder(folder: Path) -> pd.DataFrame:
                 continue
 
             # Normalize core data types (errors='coerce' turns failures into NaT/NaN).
-            df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
+            # Use dayfirst=False to prioritize month-first formats (e.g., MM/DD/YY) common in US data.
+            df["Date"] = pd.to_datetime(df["Date"], errors='coerce', dayfirst=False)
             df["Amount"] = pd.to_numeric(df["Amount"], errors='coerce')
 
             # Drop rows where Date or Amount conversion failed, as they are critical.

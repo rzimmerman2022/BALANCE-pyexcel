@@ -25,6 +25,9 @@ import unicodedata         # For handling Unicode normalization (removing accent
 import hashlib             # For generating SHA-256 hashes for TxnID
 import logging             # For logging messages
 
+# Local application imports
+from .merchant import normalize_merchant # Import the new merchant normalization function
+
 # ==============================================================================
 # 1. MODULE LEVEL SETUP & CONSTANTS
 # ==============================================================================
@@ -44,10 +47,10 @@ _ID_COLS_FOR_HASH = ["Date", "Amount", "Description", "Bank", "Account"]
 
 # Defines the exact list and order of columns for the final output DataFrame.
 # This ensures consistency regardless of intermediate processing steps.
-# Added 'Bank', 'Source', 'Category', and 'SplitPercent' based on recent updates.
+# Added 'Bank', 'Source', 'Category', 'SplitPercent', and 'CanonMerchant'.
 FINAL_COLS = [
-    "TxnID", "Owner", "Date", "Account", "Bank", 
-    "Description", "CleanDesc", "Category",
+    "TxnID", "Owner", "Date", "Account", "Bank",
+    "Description", "CleanDesc", "CanonMerchant", "Category", # Added CanonMerchant
     "Amount", "SharedFlag", "SplitPercent", "Source"
 ]
 
@@ -204,11 +207,19 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
     # Apply the text cleaning function to the 'Description' column.
     # Ensure 'Description' exists first for safety.
     if "Description" in out.columns:
+        # --- Clean Description ---
         out["CleanDesc"] = out["Description"].apply(_clean_desc)
         log.info("Generated 'CleanDesc' column.")
+        # --- Generate Canonical Merchant Name ---
+        # Apply the merchant normalization function using the lookup table.
+        out["CanonMerchant"] = out["Description"].apply(normalize_merchant)
+        log.info("Generated 'CanonMerchant' column using lookup table.")
     else:
+        # --- Handle Missing Description ---
         log.warning("'Description' column not found, cannot generate 'CleanDesc'. Adding empty column.")
-        out["CleanDesc"] = "" # Add empty column if source missing
+        out["CleanDesc"] = ""
+        log.warning("'Description' column not found, cannot generate 'CanonMerchant'. Adding empty column.")
+        out["CanonMerchant"] = ""
 
     # --- Generate Transaction ID ---
     # Check if all columns needed for hashing are present.
@@ -238,6 +249,10 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
     # This column will be updated later by classification rules or manual tagging.
     out["SharedFlag"] = "?"
     log.info("Added default 'SharedFlag' column.")
+
+    # Initialize 'SplitPercent' with NA (null) as it's populated during sync.
+    out["SplitPercent"] = pd.NA
+    log.info("Added default 'SplitPercent' column with NA.")
 
     # --- Final Column Selection and Sorting ---
     log.info(f"Selecting and ordering final columns: {FINAL_COLS}")

@@ -1,0 +1,4 @@
+pattern,canonical
+"SQ \*MY COFFEE SHOP","My Coffee Shop"
+"STARBUCKS [0-9]+","Starbucks"
+"WAL[- ]?MART","Walmart"

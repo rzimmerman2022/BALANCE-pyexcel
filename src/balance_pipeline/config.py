@@ -75,6 +75,16 @@ SCHEMA_REGISTRY_PATH = Path(
 )
 logging.info(f"Schema Registry Path configured to: {SCHEMA_REGISTRY_PATH}")
 
+# --- Merchant Lookup File Path ---
+# Defines the location of the CSV file used for merchant normalization rules.
+# Checks for 'MERCHANT_LOOKUP' environment variable, otherwise defaults to
+# 'rules/merchant_lookup.csv' within the PROJECT_ROOT.
+MERCHANT_LOOKUP_PATH = Path(
+    os.getenv("MERCHANT_LOOKUP", PROJECT_ROOT / "rules" / "merchant_lookup.csv")
+)
+logging.info(f"Merchant Lookup Path configured to: {MERCHANT_LOOKUP_PATH}")
+
+
 # Add other paths here as needed (e.g., output paths, database paths)
 # OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", PROJECT_ROOT / "output")).expanduser()
 

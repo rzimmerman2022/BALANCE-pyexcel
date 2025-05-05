@@ -1,5 +1,7 @@
 # BALANCE-pyexcel
 
+[![CI Build Status](https://github.com/[YOUR_GITHUB_USERNAME]/[YOUR_REPOSITORY_NAME]/actions/workflows/ci.yml/badge.svg)](https://github.com/[YOUR_GITHUB_USERNAME]/[YOUR_REPOSITORY_NAME]/actions/workflows/ci.yml)
+
 **An Excel-based shared expense tracker powered by Python. Uses a configurable YAML registry to automatically ingest, normalize, and owner-tag diverse bank/card CSV formats.**
 
 ## Overview
@@ -29,6 +31,7 @@ Its key feature is a schema-driven ingestion engine: using rules defined in `rul
 * **Git:** For cloning/managing the repository ([Download Git](https://git-scm.com/downloads)).
 * **Python:** Version 3.11+ installed locally ([Download Python](https://www.python.org/downloads/)). Needed for development tools (Poetry, pytest).
 * **Poetry:** For Python package management ([Install Poetry](https://python-poetry.org/docs/#installation)).
+* **Ghostscript:** Required by `camelot-py` for PDF processing. Download and install from [ghostscript.com](https://www.ghostscript.com/releases/gsdnld.html) and ensure the executable (`gs` or `gswin64c`/`gswin32c`) is in your system's PATH.
 
 ### Installation & Setup
 
@@ -48,11 +51,95 @@ Its key feature is a schema-driven ingestion engine: using rules defined in `rul
     * Place these sample files inside the corresponding subfolders within the `sample_data_multi/` directory (e.g., `sample_data_multi/jordyn/chase_sample.csv`, `sample_data_multi/ryan/monarch_sample.csv`). This folder *is* tracked by Git.
 7.  **Enable Python in Excel:** Ensure Python is enabled (`File > Options > Formulas > Enable Python`) and trust prompts if necessary when running Python code for the first time.
 
+### Using the Standalone Executable (Alternative)
+
+For users who don't need the full development environment (Poetry, Git), a standalone executable can be built or downloaded. This packages the Python script and its dependencies into a single `.exe` file (on Windows).
+
+**Download Pre-built Executable:**
+
+You can download the latest Windows executable directly from the GitHub Actions build artifacts:
+
+1.  Go to the [latest successful CI run on the main branch](https://github.com/[YOUR_GITHUB_USERNAME]/[YOUR_REPOSITORY_NAME]/actions/workflows/ci.yml/runs?query=branch%3Amain+status%3Asuccess).
+2.  Click on the latest run listed.
+3.  Scroll down to the "Artifacts" section.
+4.  Download the `balance-pyexcel-windows-...` artifact (it will be a zip file containing the `.exe`).
+5.  Extract the `.exe` file to a location of your choice.
+
+**Build Manually:**
+
+1.  **Install PyInstaller:** If you don't have it, open a terminal/PowerShell and run:
+    ```bash
+    pip install pyinstaller
+    ```
+2.  **Navigate to Project Root:** Open your terminal in the `BALANCE-pyexcel` directory (where `pyproject.toml` is located).
+3.  **Build the Executable:** Run the following command. This tells PyInstaller to create a single executable file named `balance-pyexcel.exe`, find the main script (`cli.py`), and importantly, include the necessary `schema_registry.yml` file in the package.
+    ```bash
+    # On Windows (note the semicolon ';' in --add-data)
+    pyinstaller --onefile --name balance-pyexcel src/balance_pipeline/cli.py --add-data "rules/schema_registry.yml;rules"
+
+    # On macOS/Linux (note the colon ':' in --add-data)
+    # pyinstaller --onefile --name balance-pyexcel src/balance_pipeline/cli.py --add-data "rules/schema_registry.yml:rules"
+    ```
+4.  **Find the Executable:** PyInstaller will create a `dist` folder. Inside `dist`, you'll find `balance-pyexcel.exe`.
+5.  **Run the Executable:** You can now run the pipeline from any terminal by providing the path to the executable, followed by the inbox path and workbook path:
+    ```bash
+    # Example from the 'dist' folder
+    .\balance-pyexcel.exe "C:\MyCSVs" "C:\Path\To\MyWorkbook.xlsx"
+
+    # Example from elsewhere (using full path to executable)
+    C:\path\to\BALANCE-pyexcel\dist\balance-pyexcel.exe "C:\MyCSVs" "C:\Path\To\MyWorkbook.xlsx"
+    ```
+    *   Remember to replace `"C:\MyCSVs"` and `"C:\Path\To\MyWorkbook.xlsx"` with your actual paths.
+    *   You can add other command-line options like `--log`, `--no-sync`, etc., just like with the `poetry run` command.
+
+### Using DuckDB for Analysis (Optional)
+
+After running the pipeline (either via `poetry run balance-pyexcel ...` or the standalone executable), a file named `Final_Output.parquet` will be created in the same directory as your Excel workbook. This file contains the complete, processed transaction data in the efficient Parquet format.
+
+You can use DuckDB to query this data directly for more advanced analysis or connect it to tools like Power Query:
+
+1.  **Install DuckDB CLI:** Follow instructions at [duckdb.org/docs/installation](https://duckdb.org/docs/installation/).
+2.  **Query the Parquet File:** Open the DuckDB CLI and run SQL queries directly against the Parquet file:
+    ```sql
+    -- Example: Load and view the first 10 rows
+    SELECT * FROM read_parquet('C:/Path/To/Your/Workbook/Directory/Final_Output.parquet') LIMIT 10;
+
+    -- Example: Create a persistent DuckDB database file and import the data
+    CREATE DATABASE 'my_finance_db.duckdb';
+    USE 'my_finance_db.duckdb';
+    CREATE TABLE transactions AS SELECT * FROM read_parquet('C:/Path/To/Your/Workbook/Directory/Final_Output.parquet');
+    SELECT COUNT(*) FROM transactions;
+    ```
+    (Replace the path with the actual location of your `Final_Output.parquet` file).
+3.  **Connect via Power Query/ODBC:**
+    *   **Install Driver:** First, download and install the **DuckDB ODBC driver** from [duckdb.org/docs/api/odbc](https://duckdb.org/docs/api/odbc). The MSI installer is recommended for Windows.
+    *   **Excel Connection:**
+        *   You can use the sample `.odc` file provided in the `samples/` directory (`Connect_DuckDB_Parquet.odc`). Place it next to your `Final_Output.parquet` file and try opening it via `Data > Existing Connections` in Excel.
+        *   Alternatively, configure an ODBC Data Source (DSN) using the "ODBC Data Sources (x64)" administrator tool in Windows. Point the DSN to your `.parquet` file (e.g., `Database=C:\Path\To\Final_Output.parquet`). Then, in Excel, use `Data > Get Data > From Other Sources > From ODBC` and select your DSN.
+    *   **Power BI Connection:**
+        *   Use the `ODBC` connector (`Get data > ODBC`).
+        *   Select `None` for the Data Source Name (DSN) if you haven't configured one.
+        *   Expand "Advanced options". In the "Connection string" field, enter the following (replace the path):
+            ```
+            Driver={DuckDB Driver};Database=C:\Path\To\Your\Workbook\Directory\Final_Output.parquet;
+            ```
+        *   Click OK. You should be able to connect and see the data. You can leave the SQL statement blank initially to browse.
+
 ## Usage Workflow
 
-1.  **Download & Place CSVs:** Download new transaction CSV files from your banks/cards. Place each file into the correct owner's subfolder within your designated external CSV Inbox folder (e.g., put Jordyn's Chase CSV into `C:\MyCSVs\Jordyn\`).
-2.  **Open Workbook:** Open `workbook/BALANCE-pyexcel.xlsm` in Excel.
-3.  **Refresh Python ETL:** Trigger the main Python calculation. This is typically done by:
+1.  **(Optional) Process PDFs to CSVs:** If you have bank statements as PDFs (e.g., for Jordyn):
+    *   Create a temporary folder to hold the PDFs (e.g., `C:\PDF_Inbox`).
+    *   Create a temporary folder for the output CSVs (e.g., `C:\PDF_Output`).
+    *   Open your terminal in the `BALANCE-pyexcel` project directory.
+    *   Run the PDF processing script:
+        ```bash
+        poetry run python scripts/process_pdfs.py "C:\PDF_Inbox" "C:\PDF_Output"
+        ```
+        (Replace paths with your actual temporary folders).
+    *   Move the generated CSV files (e.g., `jordyn_pdf_*.csv`) from `C:\PDF_Output` into the *main* CSV inbox folder under the correct owner (e.g., `C:\MyCSVs\Jordyn\`).
+2.  **Download & Place CSVs:** Download any *direct* transaction CSV files from your banks/cards. Place each file into the correct owner's subfolder within your designated external CSV Inbox folder (e.g., put Ryan's Monarch CSV into `C:\MyCSVs\Ryan\`).
+3.  **Open Workbook:** Open `workbook/BALANCE-pyexcel.xlsm` in Excel.
+4.  **Refresh Python ETL:** Trigger the main Python calculation. This is typically done by:
     * Finding the cell containing the `=PY(etl_main(...))` formula (likely on a sheet like `PythonRuntime`).
     * Recalculating that cell (e.g., selecting it, pressing F2, then Enter) or using Excel's `Data > Refresh All` (may require specific setup).
 4.  **Check Results:** View the processed, normalized, and owner-tagged data on the `Transactions` sheet.

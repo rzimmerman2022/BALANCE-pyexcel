@@ -314,8 +314,18 @@ Examples:
             log.info("Syncing decisions from Queue_Review...")
             df = sync_review_decisions(df, queue_df) 
             log.info("Decisions synced.")
-        
-        # Step 4: Write results
+
+        # Step 4: Save final DataFrame to Parquet for DuckDB integration
+        parquet_output_path = workbook.parent / "Final_Output.parquet"
+        try:
+            log.info(f"Saving final processed data ({len(df)} rows) to Parquet: {parquet_output_path}")
+            df.to_parquet(parquet_output_path, index=False)
+            log.info(f"Successfully saved Parquet file.")
+        except Exception as e_parquet:
+            log.error(f"Error saving Parquet file {parquet_output_path}: {e_parquet}")
+            # Decide if this should be fatal? For now, log error and continue.
+
+        # Step 5: Write results to Excel (or dry run CSV)
         if args.dry_run:
             log.info(f"DRY RUN: Would write {len(df)} rows to Transactions sheet in {workbook}")
             temp_csv = workbook.with_suffix(".dry-run.csv")
@@ -439,8 +449,9 @@ def _create_queue_review_template(df: pd.DataFrame, writer: Any, sheet_name: str
         # Add context columns for easier review
         "Date",
         "Description",
+        "CanonMerchant", # Added Canonical Merchant
         "Amount",
-        "Owner" 
+        "Owner"
     ])
     
     # Find sample rows from transactions that have the default '?' SharedFlag
@@ -452,7 +463,7 @@ def _create_queue_review_template(df: pd.DataFrame, writer: Any, sheet_name: str
             template_rows = []
             for _, row in need_review.iterrows():
                 # Ensure all context columns exist in the row before appending
-                context_cols = ["Date", "Description", "Amount", "Owner"]
+                context_cols = ["Date", "Description", "CanonMerchant", "Amount", "Owner"] # Added CanonMerchant
                 if all(col in row for col in context_cols):
                      template_rows.append({
                          "TxnID": row.get("TxnID", "MISSING_ID"), # Use .get for safety
@@ -460,6 +471,7 @@ def _create_queue_review_template(df: pd.DataFrame, writer: Any, sheet_name: str
                          "Set Split % (0-100)": None,        # Blank for user input
                          "Date": row.get("Date"),
                          "Description": row.get("Description"),
+                         "CanonMerchant": row.get("CanonMerchant"), # Added CanonMerchant
                          "Amount": row.get("Amount"),
                          "Owner": row.get("Owner")
                      })
