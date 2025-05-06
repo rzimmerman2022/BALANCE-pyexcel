@@ -49,7 +49,8 @@ try:
                     try:
                         # Compile regex with case-insensitivity (re.I)
                         pattern = re.compile(row["pattern"], re.IGNORECASE)
-                        canonical = row["canonical"]
+                        # Strip potential inline comments starting with '#' from canonical name
+                        canonical = row["canonical"].split('#')[0].strip()
                         _LOOKUP.append((pattern, canonical))
                         count += 1
                     except re.error as e_re:

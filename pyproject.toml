@@ -18,9 +18,17 @@ python-dotenv = "^1.1.0"
 PyYAML = "^6.0.1" # Assumes latest stable version, adjust if needed
 # Added openpyxl for Excel file reading/writing in CLI
 openpyxl = "^3.1"   # <<< Make sure this line looks like this
-tabula-py = "^2.10.0"
+# Optional fallback writer for Parquet if pyarrow isn't available/compatible
+fastparquet = { version = "^2024.5", optional = true }
+# Removed tabula-py, replaced by camelot and pdfplumber
+# tabula-py = "^2.10.0"
+camelot-py = "^0.11.0" # For PDF table extraction (removed 'cv' extra)
+pdfplumber = { version = "^0.11", extras = ["no-image"] } # Use no-image extra to avoid pdftopng
 duckdb = "^1.2.2"
-pyarrow = "^16.1.0" # Added for Parquet support
+# Only install pyarrow on versions that already have wheels (<3.13 for now)
+
+[tool.poetry.extras]
+parquet = ["pyarrow"] # Allows users to explicitly request pyarrow if compatible
 
 [tool.poetry.group.dev.dependencies]
 # Define development-only dependencies under a SINGLE group header

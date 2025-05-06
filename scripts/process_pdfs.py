@@ -4,55 +4,84 @@
 Script: process_pdfs.py
 Project: BALANCE-pyexcel
 Description: Processes PDF bank statements found in an input directory using
-             Tabula, extracts tables, and saves them as CSV files in an
-             output directory. Includes error handling for problematic PDFs.
+             Camelot (dual-pass: lattice then stream) and pdfplumber to
+             extract tables and statement year, cleans the data, and saves
+             results as CSV files.
 ==============================================================================
 
-Version: 0.1.1
-Last Modified: 2025-05-04
+Version: 0.2.0
+Last Modified: 2025-05-05
 Author: AI Assistant (Cline)
 """
 
-import tabula # Changed from camelot
+import camelot # Changed from tabula
+import pdfplumber
+import re
 import pandas as pd
 from pathlib import Path
 import argparse
 import logging
 import sys
-# import os # os is no longer used directly
 
 # --- Configure Logging ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
 
 # --- Define Schema ID ---
-# Note: SCHEMA_ID is no longer used for filename generation directly
-# SCHEMA_ID = "jordyn_pdf" # As suggested in the review
-
-def read_with_fallback(pdf_path: Path):
-    """Try UTF-8 first, then CP-1252, finally ignore bad bytes."""
-    base_kwargs = dict(
-        pages="all",
-        multiple_tables=True,
-        stream=True,
-        guess=True,
-        pandas_options={"dtype": str}, # Keep data as strings initially via pandas
-    )
+def extract_year_from_header(pdf_path: Path) -> str | None:
+    """Extracts the statement year from the PDF header using pdfplumber."""
     try:
-        log.debug(f"Attempting to read {pdf_path.name} with UTF-8")
-        # Pass encoding directly to tabula.read_pdf for subprocess decoding
-        return tabula.read_pdf(str(pdf_path), encoding='utf-8', **base_kwargs)
-    except UnicodeDecodeError:
-        log.warning(f"UTF-8 failed for {pdf_path.name} → retry CP-1252")
-        # Fallback to CP-1252 for subprocess decoding
-        # No need for a third try-except here if CP-1252 handles the known issue
-        return tabula.read_pdf(str(pdf_path), encoding='cp1252', **base_kwargs)
-        # Note: If other errors occur, they will propagate up from here
+        with pdfplumber.open(pdf_path) as pdf:
+            # Check if there are any pages
+            if not pdf.pages:
+                log.warning(f"PDF {pdf_path.name} has no pages.")
+                return None
+            first_page = pdf.pages[0]
+            # Extract text with layout preservation if possible, adjust tolerances
+            text = first_page.extract_text(x_tolerance=2, y_tolerance=2, layout=True)
+            if not text:
+                # Fallback to simpler text extraction if layout fails
+                text = first_page.extract_text(x_tolerance=2, y_tolerance=2)
+            if not text:
+                log.warning(f"Could not extract text from first page of {pdf_path.name}")
+                return None
+
+            # Regex to find "MM/DD/YYYY - MM/DD/YYYY" pattern (more robust)
+            # Allows for different separators and spacing
+            match = re.search(r'(\d{1,2}/\d{1,2}/(\d{4}))\s*[-–—to]+\s*(\d{1,2}/\d{1,2}/\d{4})', text, re.IGNORECASE)
+            if match:
+                # Year is typically consistent, take the first one found
+                year = match.group(2)
+                log.debug(f"Extracted year '{year}' from header pattern in {pdf_path.name}")
+                return year
+            else:
+                # Fallback: Look for "Statement Period MM/DD/YY - MM/DD/YY" and infer century
+                match_short_year = re.search(r'(\d{1,2}/\d{1,2}/(\d{2}))\s*[-–—to]+\s*(\d{1,2}/\d{1,2}/\d{2})', text, re.IGNORECASE)
+                if match_short_year:
+                    short_year = match_short_year.group(2)
+                    # Basic assumption: 'YY' >= 70 means 19YY, else 20YY (adjust if needed)
+                    year = f"20{short_year}" if int(short_year) < 70 else f"19{short_year}"
+                    log.warning(f"Extracted year '{year}' using short year fallback in {pdf_path.name}")
+                    return year
+                else:
+                    # Fallback: Look for just a 4-digit year near the top
+                    match_year_only = re.search(r'\b(20\d{2})\b', text[:500]) # Search near top
+                    if match_year_only:
+                        year = match_year_only.group(1)
+                        log.warning(f"Found year '{year}' using generic year fallback in {pdf_path.name}")
+                        return year
+                    else:
+                        log.warning(f"Could not find statement period year in header of {pdf_path.name}")
+                        return None
+    except Exception as e:
+        log.error(f"Error reading PDF header with pdfplumber for {pdf_path.name}: {e}", exc_info=True)
+        return None
 
 def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool:
     """
-    Extracts tables from a single PDF using Tabula (with encoding fallbacks), concatenates them,
-    and saves the result as a single CSV in the specified owner's directory.
+    Extracts tables from a single PDF using Camelot (dual-pass), injects the
+    statement year using pdfplumber, cleans data, renames columns, validates,
+    and saves the result as a CSV.
 
     Args:
         pdf_path (Path): Path to the input PDF file.
@@ -63,170 +92,278 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
         bool: True if processing and saving were successful, False otherwise.
     """
     log.info(f"Processing PDF: {pdf_path.name} for owner: {owner_name}")
-    valid_tables_df = []
+
+    # --- 1. Extract Statement Year ---
+    statement_year = extract_year_from_header(pdf_path)
+    if not statement_year:
+        log.error(f"Could not determine statement year for {pdf_path.name}. Skipping.")
+        return False
+
+    # --- 2. Extract Tables with Camelot (Dual-Pass) ---
+    tables = []
     try:
-        # Use the helper function with encoding fallbacks - pass Path object directly
-        tables = read_with_fallback(pdf_path)
+        log.debug(f"Attempting Camelot lattice extraction for {pdf_path.name}")
+        tables = camelot.read_pdf(str(pdf_path), pages="1-end", flavor="lattice", suppress_stdout=True, line_scale=40)
+        log.info(f"Lattice found {tables.n} table(s). Checking validity...")
 
-        if not tables:
-            log.warning(f"No tables found by Tabula (with fallbacks) in {pdf_path.name}. Skipping.")
-            return False # Indicate failure/skip
+        # Basic validity check: are there tables and do they have rows?
+        # Wells Fargo statements often have multiple small tables before the main one.
+        # A simple row count check might be too strict. Let's check total rows across tables.
+        total_rows = sum(t.df.shape[0] for t in tables if hasattr(t, 'df'))
+        if tables.n == 0 or total_rows < 5: # Heuristic: need at least a few rows total
+            log.warning(f"Lattice extraction yielded too few rows ({total_rows}) or tables ({tables.n}). Falling back to stream mode.")
+            tables = [] # Reset tables before trying stream
 
-        log.info(f"Found {len(tables)} table(s) in {pdf_path.name}. Filtering and attempting to concatenate.")
+    except Exception as e_lattice:
+        log.warning(f"Camelot lattice extraction failed for {pdf_path.name}: {e_lattice}. Falling back to stream mode.")
+        tables = [] # Ensure tables is empty
 
-        # Filter out empty tables or tables with only headers before concatenation
-        for i, df in enumerate(tables):
-            if not df.empty and len(df) > 1:
-                valid_tables_df.append(df)
-                log.debug(f"Added table {i+1} (shape: {df.shape}) to concatenation list.")
-            else:
-                log.debug(f"Skipping empty or header-only table {i+1}.")
-
-        if not valid_tables_df:
-            log.warning(f"No valid tables found to concatenate in {pdf_path.name}. Skipping.")
-            return False # Indicate failure/skip
-
-        # Concatenate the list of valid DataFrames
-        combined_df = pd.concat(valid_tables_df, ignore_index=True)
-        log.info(f"Concatenated {len(valid_tables_df)} valid table(s) into a single DataFrame with shape {combined_df.shape}.")
-
-        # --- Filter out non-transaction rows (Simplified Approach) ---
-        # Assume transaction data has a valid date-like string in index 10 (MM/DD)
-        # and a valid numeric amount in index 14.
-        initial_rows = len(combined_df)
-        if combined_df.shape[1] >= 15:
-            try:
-                # Check for MM/DD format (allows 1/1, 01/01, 12/31 etc.)
-                date_col_idx = 10
-                amount_col_idx = 14
-                date_pattern = r'^\d{1,2}/\d{1,2}$'
-                # Keep rows where column 10 matches the date pattern AND column 14 is numeric
-                # Convert amount column to numeric, coercing errors to NaN
-                numeric_amount = pd.to_numeric(combined_df.iloc[:, amount_col_idx], errors='coerce')
-                # Check date pattern
-                is_valid_date_format = combined_df.iloc[:, date_col_idx].astype(str).str.match(date_pattern, na=False)
-
-                # Keep rows that satisfy both conditions
-                combined_df = combined_df[is_valid_date_format & numeric_amount.notna()]
-
-                rows_after_filter = len(combined_df)
-                log.info(f"Filtered rows based on date (col {date_col_idx}) and amount (col {amount_col_idx}). Kept {rows_after_filter}/{initial_rows} rows.")
-
-            except IndexError:
-                 log.warning(f"DataFrame for {pdf_path.name} has less than 15 columns. Skipping row filtering.")
-            except Exception as e_filter:
-                 log.warning(f"Error during row filtering for {pdf_path.name}: {e_filter}. Proceeding with unfiltered data.")
-        else:
-             log.warning(f"DataFrame for {pdf_path.name} has only {combined_df.shape[1]} columns. Skipping row filtering.")
-
-        if combined_df.empty:
-            log.warning(f"DataFrame became empty after filtering for {pdf_path.name}. Skipping file.")
+    # Fallback to stream if lattice failed or produced insufficient results
+    if not tables:
+        try:
+            log.debug(f"Attempting Camelot stream extraction for {pdf_path.name}")
+            # Stream often needs more tuning (edge_tol, row_tol)
+            tables = camelot.read_pdf(str(pdf_path), pages="1-end", flavor="stream", suppress_stdout=True, edge_tol=500, row_tol=10)
+            log.info(f"Stream found {tables.n} table(s).")
+            total_rows = sum(t.df.shape[0] for t in tables if hasattr(t, 'df'))
+            if tables.n == 0 or total_rows < 5:
+                 log.error(f"Stream extraction also yielded insufficient results ({total_rows} rows, {tables.n} tables) for {pdf_path.name}. Skipping.")
+                 return False
+        except Exception as e_stream:
+            log.error(f"Camelot stream extraction failed for {pdf_path.name}: {e_stream}. Skipping.")
             return False
 
-        # --- Rename Columns by Index (Post-Filtering) ---
-        # Define the output CSV path using the new naming convention
-        output_csv_name = f"BALANCE - {owner_name} PDF - {pdf_path.stem}.csv"
-        output_csv_path = owner_output_dir / output_csv_name
+    # --- 3. Concatenate and Basic Cleanup ---
+    all_dfs = [table.df for table in tables if hasattr(table, 'df') and not table.df.empty]
+    if not all_dfs:
+        log.warning(f"No valid DataFrames found after Camelot extraction in {pdf_path.name}. Skipping.")
+        return False
 
-        # Define expected column names based on schema registry assumptions
-        expected_columns = {
-            9: "AccountLast4",    # Index 9 (10th col)
-            10: "TransDate",      # Index 10 (11th col)
-            11: "PostDate",       # Index 11 (12th col)
-            12: "ReferenceNumber",# Index 12 (13th col)
-            13: "RawMerchant",    # Index 13 (14th col)
-            14: "Amount"          # Index 14 (15th col) - Assuming this is the correct index
-        }
-        # Check if the DataFrame still has enough columns after filtering
-        if combined_df.shape[1] >= 15:
-            log.debug(f"Renaming columns based on index for {pdf_path.name} after filtering.")
-            try:
-                # Create rename map using original column names at specific indices
-                rename_map = {combined_df.columns[idx]: new_name
-                              for idx, new_name in expected_columns.items()
-                              if idx < combined_df.shape[1]} # Ensure index is within bounds
-                combined_df.rename(columns=rename_map, inplace=True)
-                log.debug(f"Columns after rename by index: {combined_df.columns.tolist()}")
+    combined_df = pd.concat(all_dfs, ignore_index=True)
+    log.info(f"Concatenated {len(all_dfs)} table(s) into DataFrame shape {combined_df.shape}.")
 
-                # Select only the renamed columns in the desired order
-                final_cols_order = ["TransDate", "PostDate", "ReferenceNumber", "RawMerchant", "Amount", "AccountLast4"]
-                # Keep only columns that actually exist after renaming
-                final_cols_present = [col for col in final_cols_order if col in combined_df.columns]
-                combined_df = combined_df[final_cols_present]
-                log.debug(f"Selected and reordered final columns: {final_cols_present}")
+    # Drop fully empty rows
+    combined_df.dropna(how='all', inplace=True)
+    # Reset index after dropping rows
+    combined_df.reset_index(drop=True, inplace=True)
 
-            except IndexError:
-                 log.warning(f"IndexError during column renaming for {pdf_path.name}. Columns might be incorrect.")
-                 # Fallback: Keep original columns if renaming fails
-            except Exception as e_rename:
-                 log.warning(f"Error during column renaming for {pdf_path.name}: {e_rename}. Columns might be incorrect.")
-                 # Fallback: Keep original columns
+    if combined_df.empty:
+        log.warning(f"DataFrame empty after initial cleanup for {pdf_path.name}. Skipping.")
+        return False
 
-        else:
-            log.warning(f"DataFrame for {pdf_path.name} has only {combined_df.shape[1]} columns after filtering. Cannot rename by index. Columns might be incorrect.")
-            # Keep the columns we have, hoping they are somewhat correct
+    # --- 4. Identify and Rename Columns ---
+    # This is heuristic-based for typical Wells Fargo statements. May need adjustment.
+    # Assumes: Col 0/1: Trans Date (MM/DD), Col 1/2: Post Date (MM/DD or junk), Col ~Mid: Description, Last Col: Amount
+    num_cols = combined_df.shape[1]
+    rename_map = {}
+
+    # Try to find columns based on content patterns
+    potential_trans_date_col = -1
+    potential_post_date_col = -1
+    potential_amount_col = -1
+
+    for i in range(num_cols):
+        col_series = combined_df.iloc[:, i].astype(str)
+        # Date pattern (MM/DD) - check a sample
+        if col_series.str.match(r'^\d{1,2}/\d{1,2}$').sum() > len(combined_df) * 0.5: # If >50% match MM/DD
+             if potential_trans_date_col == -1:
+                 potential_trans_date_col = i
+             elif potential_post_date_col == -1:
+                 potential_post_date_col = i # Assume second date-like col is PostDate
+        # Amount pattern (contains digits, possibly $, ., -) - check last few columns
+        if i >= num_cols - 2: # Check last 2 columns
+            # More robust check: contains digits and possibly currency symbols/decimal
+             if col_series.str.contains(r'[\d.,$]+', na=False).sum() > len(combined_df) * 0.3: # If >30% look like numbers/currency
+                 potential_amount_col = i
+                 break # Assume rightmost numeric-like column is Amount
+
+    # Assign based on findings or fall back to positional defaults
+    if potential_trans_date_col != -1:
+        rename_map[combined_df.columns[potential_trans_date_col]] = "TransDate"
+    else:
+        log.warning(f"Could not reliably detect TransDate column for {pdf_path.name}. Assuming column 0 or 1.")
+        # Default assumption if detection fails (might be col 0 or 1)
+        rename_map[combined_df.columns[min(1, num_cols-1)]] = "TransDate" # Use col 1 if possible, else 0
+
+    if potential_post_date_col != -1:
+        rename_map[combined_df.columns[potential_post_date_col]] = "PostDate"
+    else:
+        # Often PostDate is less critical or noisy, don't assume default if not found
+        log.debug(f"PostDate column not detected for {pdf_path.name}.")
+        pass # Don't rename if not found
+
+    if potential_amount_col != -1:
+        rename_map[combined_df.columns[potential_amount_col]] = "Amount"
+    else:
+        log.warning(f"Could not reliably detect Amount column for {pdf_path.name}. Assuming last column.")
+        rename_map[combined_df.columns[num_cols - 1]] = "Amount" # Default to last column
+
+    # Description: Assume it's the column before Amount, or a prominent middle column if Amount is last
+    potential_desc_col = -1
+    amount_col_idx = potential_amount_col if potential_amount_col != -1 else num_cols - 1
+    if amount_col_idx > 0:
+         # Check column right before amount
+         potential_desc_col = amount_col_idx - 1
+         # Simple check: is it mostly non-numeric?
+         desc_col_series = combined_df.iloc[:, potential_desc_col].astype(str)
+         if desc_col_series.str.contains(r'\d', na=False).sum() < len(combined_df) * 0.3: # If <30% contain digits
+             rename_map[combined_df.columns[potential_desc_col]] = "Description"
+         else:
+             potential_desc_col = -1 # Reset if it looks too numeric
+
+    if potential_desc_col == -1:
+         # Fallback: find the column with the longest average string length (heuristic)
+         avg_lengths = {i: combined_df.iloc[:, i].astype(str).str.len().mean() for i in range(num_cols) if i not in [potential_trans_date_col, potential_post_date_col, amount_col_idx]}
+         if avg_lengths:
+             desc_col_idx = max(avg_lengths, key=avg_lengths.get)
+             rename_map[combined_df.columns[desc_col_idx]] = "Description"
+             log.debug(f"Using column {desc_col_idx} (longest avg length) as Description fallback.")
+         else:
+             log.warning(f"Could not determine Description column for {pdf_path.name}.")
 
 
-        # Save the potentially cleaned DataFrame
-        try:
-            combined_df.to_csv(output_csv_path, index=False)
-            log.info(f"Successfully saved combined data to {output_csv_path.name}")
-            return True # Indicate success
-        except Exception as e_save:
-            log.error(f"Error saving combined CSV for {pdf_path.name} to {output_csv_path.name}: {e_save}")
-            return False # Indicate failure
+    log.debug(f"Attempting to rename columns using map: {rename_map}")
+    combined_df.rename(columns=rename_map, inplace=True)
 
-    except FileNotFoundError:
-        log.error(f"PDF file not found: {pdf_path}")
+    # Check if essential columns were renamed
+    required_cols = ["TransDate", "Description", "Amount"]
+    if not all(col in combined_df.columns for col in required_cols):
+        log.error(f"Essential columns ({required_cols}) not found after renaming for {pdf_path.name}. Columns found: {combined_df.columns.tolist()}. Skipping.")
+        return False
+
+    # --- 5. Clean Amount Column ---
+    log.debug("Cleaning Amount column...")
+    combined_df["Amount"] = combined_df["Amount"].astype(str).str.replace(r'[$,]', '', regex=True).str.strip()
+    # Handle credits represented like '100.00-' or '(100.00)'
+    combined_df["Amount"] = combined_df["Amount"].str.replace(r'\((\d+\.?\d*)\)', r'-\1', regex=True) # (100.00) -> -100.00
+    combined_df["Amount"] = combined_df["Amount"].str.replace(r'(\d+\.?\d*)-$', r'-\1', regex=True) # 100.00- -> -100.00
+    combined_df["Amount"] = pd.to_numeric(combined_df["Amount"], errors='coerce')
+
+    # --- 6. Validate Amount Column ---
+    if combined_df["Amount"].notna().sum() == 0:
+        log.error(f"No valid numeric values found in Amount column after cleaning for {pdf_path.name}. Skipping write.")
+        return False
+    else:
+        # Drop rows where Amount *is* NA after cleaning
+        initial_rows = len(combined_df)
+        combined_df.dropna(subset=["Amount"], inplace=True)
+        if len(combined_df) < initial_rows:
+            log.debug(f"Dropped {initial_rows - len(combined_df)} rows with invalid Amount.")
+
+    if combined_df.empty:
+        log.warning(f"DataFrame became empty after dropping rows with invalid Amount for {pdf_path.name}. Skipping.")
+        return False
+
+    # --- 7. Inject Year into TransDate ---
+    log.debug(f"Injecting year '{statement_year}' into TransDate...")
+    # Ensure TransDate is string, handle potential NaNs introduced earlier if any step failed partially
+    combined_df["TransDate"] = combined_df["TransDate"].astype(str).str.strip()
+    # Append year only if it looks like MM/DD
+    date_pattern = r'^\d{1,2}/\d{1,2}$'
+    needs_year = combined_df["TransDate"].str.match(date_pattern, na=False)
+    combined_df.loc[needs_year, "TransDate"] = combined_df.loc[needs_year, "TransDate"] + f"/{statement_year}"
+
+    # Convert to datetime
+    combined_df["TransDate"] = pd.to_datetime(combined_df["TransDate"], format='%m/%d/%Y', errors='coerce')
+
+    # Validate TransDate conversion
+    if combined_df["TransDate"].isna().any():
+        num_failed = combined_df["TransDate"].isna().sum()
+        log.warning(f"{num_failed} rows failed TransDate conversion for {pdf_path.name}. Dropping these rows.")
+        combined_df.dropna(subset=["TransDate"], inplace=True)
+
+    if combined_df.empty:
+        log.warning(f"DataFrame became empty after dropping rows with invalid TransDate for {pdf_path.name}. Skipping.")
+        return False
+
+    # --- 8. Final Column Selection and Save ---
+    final_columns = ["TransDate", "PostDate", "Description", "Amount"]
+    # Keep only columns that exist in the DataFrame
+    final_columns_present = [col for col in final_columns if col in combined_df.columns]
+    # Ensure required columns are still present
+    if not all(col in final_columns_present for col in required_cols):
+         log.error(f"Required columns missing before save for {pdf_path.name}. Columns: {final_columns_present}. Skipping.")
+         return False
+
+    final_df = combined_df[final_columns_present]
+    log.debug(f"Final DataFrame shape {final_df.shape} with columns {final_columns_present}")
+
+    # Define output path (using year and month from TransDate for better sorting, if possible)
+    try:
+        # Get month from the first valid TransDate for filename
+        first_valid_date = final_df["TransDate"].iloc[0]
+        output_month = f"{first_valid_date.month:02d}"
+        output_csv_name = f"BALANCE - {owner_name} PDF - {statement_year}-{output_month}.csv"
+    except (IndexError, AttributeError):
+        log.warning(f"Could not determine month from TransDate for {pdf_path.name}. Using original PDF stem name.")
+        output_csv_name = f"BALANCE - {owner_name} PDF - {pdf_path.stem}.csv" # Fallback name
+
+    output_csv_path = owner_output_dir / output_csv_name
+
+    try:
+        final_df.to_csv(output_csv_path, index=False, date_format='%Y-%m-%d') # Use ISO date format
+        log.info(f"Successfully saved cleaned data to {output_csv_path.name}")
+        return True # Indicate success
+    except Exception as e_save:
+        log.error(f"Error saving final CSV for {pdf_path.name} to {output_csv_path.name}: {e_save}")
         return False # Indicate failure
-    except Exception as e_tabula:
-        # Catch broad exceptions during Tabula processing (e.g., corrupted PDF, Java issues)
-        log.error(f"Failed to process PDF {pdf_path.name} with Tabula: {e_tabula}", exc_info=False) # Set exc_info=True for full traceback if needed
+
+    # Removed FileNotFoundError catch as Path object checks should handle it earlier
+    # Catch broad exceptions during Camelot/pdfplumber processing
+    except Exception as e_process:
+        log.error(f"Failed to process PDF {pdf_path.name}: {e_process}", exc_info=True)
         return False # Indicate failure
+
 
 def main():
     """Main script execution"""
     parser = argparse.ArgumentParser(
-        description="Extract tables from PDF bank statements to CSV using Tabula.", # Updated description
+        description="Extract tables from PDF bank statements to CSV using Camelot and pdfplumber.", # Updated description
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog="Example: poetry run python scripts/process_pdfs.py C:\\PDF_Statements C:\\MyCSVs Jordyn -v"
     )
-    parser.add_argument("input_dir", help="Directory containing PDF files to process.")
-    parser.add_argument("main_inbox_dir", help="Path to the main CSV inbox directory (e.g., C:\\MyCSVs).")
-    parser.add_argument("owner_name", help="Name of the owner (e.g., Jordyn) - determines the subfolder in the inbox.")
+    parser.add_argument("input_dir", help="Directory containing PDF files to process (e.g., 'csv_inbox_real/Jordyn').")
+    parser.add_argument("main_inbox_dir", help="Path to the main CSV inbox directory (e.g., 'CSVs'). Owner subfolder will be created here.")
+    parser.add_argument("owner_name", help="Name of the owner (e.g., Jordyn) - used for subfolder name and output filename.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging (DEBUG level).")
 
     args = parser.parse_args()
 
     # --- Setup Logging Level ---
     log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.getLogger().setLevel(log_level) # Adjust root logger level
+    # Configure root logger AND specific logger for this script
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Ensure our script's logger also adheres to the level
+    logging.getLogger(__name__).setLevel(log_level)
 
-    log.info("="*50)
-    log.info("Starting PDF Processing Script...")
-    log.debug(f"Arguments: {args}")
+    log.info("="*60)
+    log.info("Starting PDF Processing Script (Camelot + pdfplumber)")
+    log.info(f"Input Dir: {args.input_dir}")
+    log.info(f"Output Base Dir: {args.main_inbox_dir}")
+    log.info(f"Owner: {args.owner_name}")
+    log.info(f"Verbose: {args.verbose}")
+    log.info("="*60)
+
 
     # --- Path Validation ---
+    # Input dir is specific to owner's PDFs, e.g., csv_inbox_real/Jordyn
     input_path = Path(args.input_dir).resolve()
+    # Output dir is the base CSVs dir, e.g., CSVs
     main_inbox_path = Path(args.main_inbox_dir).resolve()
     owner_name = args.owner_name
+    # Owner's final output dir, e.g., CSVs/Jordyn
     owner_output_path = main_inbox_path / owner_name
 
     if not input_path.is_dir():
-        log.error(f"Input directory not found or is not a directory: {input_path}")
+        log.error(f"Input PDF directory not found: {input_path}")
         sys.exit(1)
 
+    # Ensure the main output directory exists
     if not main_inbox_path.is_dir():
-        # Check if the parent exists, maybe the user provided the owner path directly
-        if main_inbox_path.parent.is_dir() and main_inbox_path.name == owner_name:
-            log.warning(f"Provided main inbox path '{args.main_inbox_dir}' seems to include the owner name. Using parent '{main_inbox_path.parent}' as main inbox.")
-            main_inbox_path = main_inbox_path.parent
-            owner_output_path = main_inbox_path / owner_name # Recalculate
-        else:
-            log.error(f"Main CSV inbox directory not found or is not a directory: {main_inbox_path}")
-            sys.exit(1)
+         log.error(f"Main CSV output directory not found: {main_inbox_path}")
+         sys.exit(1) # Changed from trying to correct path
 
-    # Create the specific owner's output directory within the main inbox if it doesn't exist
+    # Create the specific owner's output directory within the main inbox
     try:
         owner_output_path.mkdir(parents=True, exist_ok=True)
         log.info(f"Ensured owner output directory exists: {owner_output_path}")
@@ -235,38 +372,29 @@ def main():
         sys.exit(1)
 
     # --- Process PDFs ---
-    pdf_files = list(input_path.glob("*.pdf"))        # restore normal listing
-    log.info("Found %d PDF file(s)…", len(pdf_files)) # Use the original logging style
+    pdf_files = sorted(list(input_path.glob("*.pdf"))) # Sort for deterministic processing
+    log.info(f"Found {len(pdf_files)} PDF file(s) in {input_path}")
     if not pdf_files:
-        log.warning(f"No PDF files found in {input_path}")
+        log.warning("No PDF files found to process.")
         sys.exit(0)
 
-    # log.info(f"Found {len(pdf_files)} PDF file(s) to process for owner '{owner_name}'.") # Replaced by the line above
     processed_count = 0
     skipped_count = 0
     for pdf_file in pdf_files:
-        # Pass owner_output_path and owner_name to the processing function
         success = process_pdf(pdf_file, owner_output_path, owner_name)
         if success:
             processed_count += 1
         else:
             skipped_count += 1
+            log.warning(f"Skipped or failed processing for: {pdf_file.name}") # Add specific skip message
 
-    log.info(f"Finished processing. Successfully processed: {processed_count}, Skipped/Failed: {skipped_count}.")
-    log.info("="*50)
+    log.info("-" * 60)
+    log.info(f"Processing Summary:")
+    log.info(f"  Total PDFs Found: {len(pdf_files)}")
+    log.info(f"  Successfully Processed & Saved: {processed_count}")
+    log.info(f"  Skipped / Failed: {skipped_count}")
+    log.info("="*60)
 
 if __name__ == "__main__":
     main()
-    # --- Clean up hanging Java process ---
-    try:
-        # Force jpype initialization if it was used (tabula might use subprocess fallback)
-        tabula.environment_info()
-        import jpype
-        if jpype.isJVMStarted():
-            log.info("Shutting down JVM...")
-            jpype.shutdownJVM()
-            log.info("JVM shutdown complete.")
-    except ImportError:
-        log.debug("jpype not imported, likely using subprocess fallback. No JVM shutdown needed.")
-    except Exception as e_jvm:
-        log.warning(f"Error during JVM shutdown attempt: {e_jvm}")
+    # No JVM shutdown needed for Camelot/pdfplumber

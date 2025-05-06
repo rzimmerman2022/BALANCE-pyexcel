@@ -393,7 +393,7 @@ def load_folder(folder: Path) -> pd.DataFrame:
             # Apply column renaming based on the schema's 'column_map'.
             column_map = schema.get("column_map", {})
             df = df.rename(columns=column_map)
-            
+
             # Add any static columns specified in the schema (e.g., Source for aggregator sources)
             extra_static_cols = schema.get("extra_static_cols", {})
             for col_name, col_value in extra_static_cols.items():
@@ -415,44 +415,24 @@ def load_folder(folder: Path) -> pd.DataFrame:
             # Normalize core data types (errors='coerce' turns failures into NaT/NaN).
             date_format = schema.get("date_format") # Get format from schema if specified
 
+            # REMOVED: Redundant jordyn_pdf specific date handling block.
+
+            # --- Date Parsing ---
+            # Apply specific format after hotfix for jordyn_pdf, or use schema/default for others.
             if schema_id == 'jordyn_pdf':
-                # Special handling for jordyn_pdf: MM/DD format, infer year
-                logging.debug(f"Applying MM/DD date parsing with year inference for schema '{schema_id}'.")
-                try:
-                    # Parse as MM/DD, coercing errors
-                    parsed_dates = pd.to_datetime(df["Date"], format='%m/%d', errors='coerce')
-                    valid_mask = parsed_dates.notna() # Track successfully parsed dates
-
-                    # Infer year
-                    current_year = pd.Timestamp.now().year
-                    inferred_dates = parsed_dates[valid_mask].apply(
-                        lambda dt: dt.replace(year=current_year)
-                    )
-                    # Check if inferred date is in the future
-                    future_mask = inferred_dates > pd.Timestamp.now()
-                    # If in the future, assume previous year
-                    inferred_dates.loc[future_mask] = inferred_dates.loc[future_mask].apply(
-                        lambda dt: dt.replace(year=current_year - 1)
-                    )
-                    # Assign back the inferred dates
-                    df.loc[valid_mask, "Date"] = inferred_dates
-                    # Keep original invalid strings as NaT (already handled by errors='coerce')
-                    df.loc[~valid_mask, "Date"] = pd.NaT
-                    logging.debug(f"Successfully inferred year for {valid_mask.sum()} MM/DD dates.")
-                except Exception as e_date_infer:
-                    logging.error(f"Error during MM/DD year inference for schema '{schema_id}': {e_date_infer}. Dates might be incorrect.", exc_info=True)
-                    # Fallback: coerce to NaT if inference failed badly
-                    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
-
+                 # After hotfix, expect MM/DD/YYYY for jordyn_pdf
+                 logging.debug(f"Applying explicit '%m/%d/%Y' date parsing for schema '{schema_id}' after hotfix.")
+                 df["Date"] = pd.to_datetime(df["Date"], format='%m/%d/%Y', errors='coerce')
             elif date_format:
                 # Use specified format for other schemas
                 logging.debug(f"Using specified date format '{date_format}' for schema '{schema_id}'.")
                 df["Date"] = pd.to_datetime(df["Date"], format=date_format, errors='coerce')
             else:
-                # Fallback to default inference (month-first) if no format specified
+                # Fallback to default inference (month-first) for other schemas if no format specified
                 logging.debug(f"No date format specified for schema '{schema_id}'. Using pandas default inference (month-first).")
                 df["Date"] = pd.to_datetime(df["Date"], errors='coerce', dayfirst=False) # Explicitly month-first default
 
+            # --- Amount Parsing ---
             df["Amount"] = pd.to_numeric(df["Amount"], errors='coerce')
 
             # Drop rows where Date or Amount conversion failed, as they are critical.

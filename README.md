@@ -91,10 +91,13 @@ You can download the latest Windows executable directly from the GitHub Actions 
     ```
     *   Remember to replace `"C:\MyCSVs"` and `"C:\Path\To\MyWorkbook.xlsx"` with your actual paths.
     *   You can add other command-line options like `--log`, `--no-sync`, etc., just like with the `poetry run` command.
+    *   **Note on `--dry-run`:** If you use the `--dry-run` flag, the output CSV (`<workbook_name>.dry-run.csv`) will be created in the same directory as the specified *workbook*, not in the CSV inbox directory.
+    *   **Note on Windows Shells:** When running commands, be mindful of your shell. `cmd.exe` typically uses `&&` to chain commands (e.g., `cd C:\Project && poetry run ...`). PowerShell uses `;` or separate lines (e.g., `cd C:\Project; poetry run ...`).
 
 ### Using DuckDB for Analysis (Optional)
 
 After running the pipeline (either via `poetry run balance-pyexcel ...` or the standalone executable), a file named `Final_Output.parquet` will be created in the same directory as your Excel workbook. This file contains the complete, processed transaction data in the efficient Parquet format.
+> **Note:** Parquet is written via DuckDB COPY; no PyArrow wheels needed.
 
 You can use DuckDB to query this data directly for more advanced analysis or connect it to tools like Power Query:
 

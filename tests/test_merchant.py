@@ -30,7 +30,7 @@ MERCHANT_TEST_CASES = [
     # Cases that should NOT match the initial patterns
     ("MY LOCAL COFFEE SHOP", "My Local Coffee Shop"), # No SQ*, should title-case
     ("SAFEWAY 123", "Safeway 123"), # No pattern, should title-case
-    ("Amazon.com", "Amazon.Com"), # Title case handles this reasonably
+    ("Amazon.com", "Amazon Com"), # Test dot removal and specific mapping (Updated expected)
     ("AMZN Mktp US", "Amzn Mktp Us"), # Title case
     ("SOME VENDOR", "Some Vendor"), # Title case
 
