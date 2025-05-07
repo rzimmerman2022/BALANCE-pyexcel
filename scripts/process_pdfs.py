@@ -19,6 +19,7 @@ import pdfplumber
 import re
 import pandas as pd
 from pathlib import Path
+import duckdb # Added for Parquet output
 import argparse
 import logging
 import sys
@@ -167,6 +168,97 @@ def extract_year_from_header(pdf_path: Path) -> str | None:
     except Exception as e:
         log.error(f"Error reading PDF header with pdfplumber for {pdf_path.name}: {e}", exc_info=True)
         return None
+
+def append_to_master(df_input: pd.DataFrame, owner_name: str):
+   """
+   Appends a DataFrame to the master Parquet file (data/processed/combined_transactions.parquet).
+   Ensures schema consistency and handles file/table creation.
+   """
+   from pathlib import Path # Keep internal for clarity, though already imported globally
+   import pandas as pd # Keep internal for clarity
+   # duckdb is imported globally, but can be re-imported if preferred for strict encapsulation
+
+   df = df_input.copy() # Work on a copy
+   df["Owner"] = owner_name # Add Owner column
+
+   # Define the target schema columns
+   master_cols = ["TransDate", "PostDate", "RawMerchant", "Amount",
+                  "AccountLast4", "ReferenceNumber", "Owner"]
+
+   # Ensure all master columns exist, fill with pd.NA if not
+   for c in master_cols:
+       if c not in df.columns:
+           df[c] = pd.NA
+   
+   # Select and reorder columns to match the master schema
+   df = df[master_cols]
+
+   # Coerce dtypes for key columns
+   if "TransDate" in df.columns:
+       df["TransDate"] = pd.to_datetime(df["TransDate"], errors='coerce')
+   if "PostDate" in df.columns: # Assuming PostDate should also be datetime if present
+       df["PostDate"] = pd.to_datetime(df["PostDate"], errors='coerce', infer_datetime_format=True)
+   if "Amount" in df.columns:
+       df["Amount"] = pd.to_numeric(df["Amount"], errors='coerce')
+
+   out_path = Path("data/processed/combined_transactions.parquet")
+   try:
+       out_path.parent.mkdir(parents=True, exist_ok=True)
+   except Exception as e_mkdir:
+       log.error(f"append_to_master: Could not create directory {out_path.parent}: {e_mkdir}", exc_info=True)
+       return # Cannot proceed if directory cannot be made
+
+   db_file_path = str(out_path)
+   con = None # Initialize for finally block
+   try:
+       con = duckdb.connect(database=db_file_path, read_only=False)
+       
+       # Check if the 'master' table exists in the Parquet file
+       table_exists = False
+       try:
+           # Attempt a simple query. If it fails with CatalogException, table doesn't exist.
+           # IOException might occur if the file is not a valid Parquet or doesn't exist.
+           con.execute("SELECT COUNT(*) FROM master LIMIT 1;")
+           table_exists = True
+       except duckdb.CatalogException:
+           log.debug(f"append_to_master: 'master' table not found in {db_file_path}. Will create.")
+           table_exists = False
+       except duckdb.IOException: # Covers file not found or not a valid DB/Parquet
+           log.debug(f"append_to_master: Parquet file {db_file_path} not found or invalid. Will create.")
+           table_exists = False
+       # Catch other duckdb errors during check
+       except duckdb.Error as e_check:
+            log.warning(f"append_to_master: DuckDB error checking for 'master' table: {e_check}. Assuming table needs creation.", exc_info=True)
+            table_exists = False
+
+
+       if not table_exists:
+           if df.empty:
+               log.warning("append_to_master: DataFrame is empty. Skipping Parquet table creation.")
+           else:
+               con.execute("CREATE TABLE master AS SELECT * FROM df") # df is the local, processed DataFrame
+               log.info(f"append_to_master: Created 'master' table in {db_file_path} from DataFrame.")
+       else: # Table exists, so append
+           if df.empty:
+               log.warning("append_to_master: DataFrame is empty. Skipping Parquet append operation.")
+           else:
+               # Register DataFrame as a view and insert.
+               # This is robust for various data types and NA handling.
+               con.register('df_view_to_insert', df) # df is the local, processed DataFrame
+               con.execute("INSERT INTO master SELECT * FROM df_view_to_insert")
+               con.unregister('df_view_to_insert') # Clean up the registered view
+               log.info(f"append_to_master: Appended data to 'master' table in {db_file_path}.")
+   
+   except duckdb.Error as e_duckdb: # Catch DuckDB specific errors
+       log.error(f"append_to_master: A DuckDB error occurred: {e_duckdb}", exc_info=True)
+   except Exception as e_general: # Catch any other unexpected errors
+       log.error(f"append_to_master: An unexpected error occurred: {e_general}", exc_info=True)
+   finally:
+       if con:
+           try:
+               con.close()
+           except Exception as e_close:
+               log.error(f"append_to_master: Error closing DuckDB connection: {e_close}", exc_info=True)
 
 def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool:
     """
@@ -549,7 +641,21 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
         try:
             final_df.to_csv(output_csv_path, index=False, date_format='%Y-%m-%d') # Use ISO date format
             log.info(f"Successfully saved cleaned data to {output_csv_path.name}")
-            return True # Indicate success
+
+            # --- Append to Master Parquet ---
+            # This operation is considered an add-on. Errors here should be logged
+            # but not cause the primary PDF-to-CSV processing to be marked as failed.
+            try:
+                log.info(f"Attempting to append data from {pdf_path.name} to master Parquet file.")
+                append_to_master(final_df, owner_name) # Pass original final_df and owner_name
+            except Exception as e_parquet_append:
+                # Log the error from appending to Parquet.
+                # This does not change the return status of process_pdf,
+                # as CSV creation was successful.
+                log.error(f"Error during master Parquet append for {pdf_path.name}: {e_parquet_append}", exc_info=True)
+            # --- End Append to Master Parquet ---
+
+            return True # Indicate success of CSV processing primarily
         except Exception as e_save:
             log.error(f"Error saving final CSV for {pdf_path.name} to {output_csv_path.name}: {e_save}")
             # Let the outer except block handle this by returning False directly

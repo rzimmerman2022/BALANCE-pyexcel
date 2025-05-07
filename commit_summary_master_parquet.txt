@@ -1,0 +1,18 @@
+feat: add combined_transactions.parquet master file
+
+WHAT: Added a unified typed Parquet output for all transaction data.
+
+WHY: Enable direct Power BI connection to a single source of truth with
+     consistent schema and types, eliminating the need for multiple CSV imports.
+
+HOW:
+- Added append_to_master() function in process_pdfs.py that guarantees schema
+- Process creates data/processed/ directory on-the-fly as needed
+- Added data/processed/ to .gitignore to keep repo clean
+- Fixed failing test_txnid_unique_real_file with a checked-in fixture
+- Added comprehensive unit tests in test_master_parquet.py
+- All tests pass with the new implementation (31 tests)
+
+SCHEMA: ["TransDate", "PostDate", "RawMerchant", "Amount", 
+         "AccountLast4", "ReferenceNumber", "Owner"]
+with proper type coercion (dates and numeric values)
