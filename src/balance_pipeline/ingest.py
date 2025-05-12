@@ -42,7 +42,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # This list defines the exact columns (and their order) we want in the
 # final DataFrame produced by the load_folder function. All input CSVs
 # will be transformed to match this structure.
-STANDARD_COLS = ["Owner", "Date", "Description", "Amount", "Account", "Category", "Bank", "Source"]
+# Added PostDate for TxnID hashing
+STANDARD_COLS = ["Owner", "Date", "PostDate", "Description", "Amount", "Account", "Category", "Bank", "Source"]
 
 # --- Load Schema Registry from YAML ---
 # The schema registry defines the rules for processing each different CSV format.
@@ -313,7 +314,7 @@ def _derive_columns(df: pd.DataFrame, derived_cfg: dict[str, str] | None) -> pd.
 # ------------------------------------------------------------------------------
 # Function: load_folder
 # ------------------------------------------------------------------------------
-def load_folder(folder: Path) -> pd.DataFrame:
+def load_folder(folder: Path, *_, **kwargs) -> pd.DataFrame: # Added *_, **kwargs
     """
     Loads, processes, and combines all valid CSV transaction files found
     recursively within the specified base folder. It expects subdirectories
@@ -347,6 +348,7 @@ def load_folder(folder: Path) -> pd.DataFrame:
         ValueError: If the schema registry (_SCHEMAS) failed to load.
     """
     # --- Initial Checks ---
+    kwargs.pop("owner_hint", None)   # Gracefully ignore legacy owner_hint
     if not folder.is_dir():
         logging.error(f"Specified inbox path is not a valid directory: {folder}")
         raise FileNotFoundError(f"CSV inbox path not found or not a directory: {folder}")
@@ -418,15 +420,17 @@ def load_folder(folder: Path) -> pd.DataFrame:
             # REMOVED: Redundant jordyn_pdf specific date handling block.
 
             # --- Date Parsing ---
-            # Apply specific format after hotfix for jordyn_pdf, or use schema/default for others.
-            if schema_id == 'jordyn_pdf':
-                 # After hotfix, expect MM/DD/YYYY for jordyn_pdf
-                 logging.debug(f"Applying explicit '%m/%d/%Y' date parsing for schema '{schema_id}' after hotfix.")
-                 df["Date"] = pd.to_datetime(df["Date"], format='%m/%d/%Y', errors='coerce')
-            elif date_format:
-                # Use specified format for other schemas
+            # Use the date_format specified in the schema, handle MM/DD case, or fall back to pandas default inference.
+            if date_format:
+                # Use specified format from schema
                 logging.debug(f"Using specified date format '{date_format}' for schema '{schema_id}'.")
                 df["Date"] = pd.to_datetime(df["Date"], format=date_format, errors='coerce')
+            elif schema_id == 'jordyn_pdf_document':
+                 # Handle MM/DD format specifically for these files if no format is in YAML
+                 logging.debug(f"Applying explicit '%m/%d' date parsing for schema '{schema_id}'. Year will be inferred by pandas (likely current year).")
+                 # Pandas often infers the current year when format doesn't include year.
+                 # This might need refinement if statements span year boundaries or are from past years.
+                 df["Date"] = pd.to_datetime(df["Date"], format='%m/%d', errors='coerce')
             else:
                 # Fallback to default inference (month-first) for other schemas if no format specified
                 logging.debug(f"No date format specified for schema '{schema_id}'. Using pandas default inference (month-first).")

@@ -36,6 +36,7 @@
   column_map:
     Transaction Date: Date       # Source 'Transaction Date' maps to our 'Date'
     Description: Description    # Source 'Description' maps to our 'Description'
+    Post Date: PostDate         # NEW - Map "Post Date" to "PostDate"
     Amount: Amount              # Source 'Amount' maps to our 'Amount'
     Category: Category          # Source 'Category' maps to our 'Category' (Chase provides this)
     Account Type: Account       # Map Account Type to our standard Account column
@@ -57,6 +58,7 @@
   # Column mapping: Source CSV column -> Standard internal column name.
   column_map:
     Date: Date
+    Post Date: PostDate         # NEW - Map "Post Date" to "PostDate"
     Description: Description
     Amount: Amount
     Category: Category          # Discover sample includes Category
@@ -78,6 +80,7 @@
   # Column mapping: Source CSV column -> Standard internal column name.
   column_map:
     Date: Date
+    Post Date: PostDate         # NEW - Map "Post Date" to "PostDate"
     Description: Description
     Amount: Amount              # <<< FIX: Added direct Amount mapping (sample confirmed it exists)
     Category: Category          # <<< FIX: Added direct Category mapping (sample confirmed it exists)
@@ -141,6 +144,28 @@
   sign_rule: flip_if_positive
 
 # ------------------------------------------------------------------------------
+# Schema ID: jordyn_pdf_document
+# Description: Rules for CSVs generated from Jordyn's PDFs (Document*.csv files)
+#              These files have MM/DD date format and need year inference.
+# ------------------------------------------------------------------------------
+- id: jordyn_pdf_document
+  match_filename: "BALANCE - Jordyn PDF - Document*.csv"
+  header_signature: ["TransDate", "RawMerchant", "Amount", "AccountLast4"]
+  extra_static_cols:
+    Bank: "Wells Fargo"
+  column_map:
+    TransDate:   Date
+    RawMerchant: Description
+    Amount:      Amount
+    AccountLast4: Account
+    PostDate: PostDate # Assuming PostDate might exist or be added
+    ReferenceNumber: ReferenceNumber # Assuming ReferenceNumber might exist
+  # No date_format specified initially, to let pandas infer MM/DD.
+  # Year will need to be inferred or added, potentially in ingest.py if parsing fails.
+  amount_regex: '-?\$?([\d,]+\.\d{2})'
+  sign_rule: flip_if_positive
+
+# ------------------------------------------------------------------------------
 # Schema ID: jordyn_pdf
 # Description: Rules for CSVs generated from Jordyn's PDFs via process_pdfs.py script.
 # NOTE: Header signature and column map are initial guesses based on typical PDF
@@ -161,11 +186,20 @@
     RawMerchant: Description # Map CSV 'RawMerchant' to standard 'Description'
     Amount:      Amount      # Map CSV 'Amount' (cleaned) to standard 'Amount'
     AccountLast4: Account    # Map AccountLast4 to standard Account
-    # PostDate and ReferenceNumber are ignored if present
-  # Date format is now YYYY-MM-DD in the CSV, handled by pandas default parsing.
+    PostDate: PostDate
+    ReferenceNumber: ReferenceNumber      # (leave Comment above)
+  # Date format expected in the CSV after PDF processing.
+  date_format: '%Y-%m-%d' # Added based on expected PDF extractor output format
+  # Regex to clean the Amount column before converting to numeric.
+  # Strips optional leading hyphen, optional dollar sign, and commas.
+  amount_regex: '-?\$?([\d,]+\.\d{2})' # Added to handle potential formatting issues
   # Sign rule: Fixture shows positive amounts, so flip them.
   sign_rule: flip_if_positive # Changed from as_is to match fixture data
 
+# ------------------------------------------------------------------------------
+# Schema ID: jordyn_pdf_document
+# Description: Rules for CSVs generated from Jordyn's PDFs (Document*.csv files)
+#              These files have MM/DD date format and need year inference.
 # ==============================================================================
 # End of Schema Registry File
 # ==============================================================================
