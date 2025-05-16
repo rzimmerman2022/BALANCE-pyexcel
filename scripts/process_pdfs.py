@@ -19,7 +19,7 @@ import pdfplumber
 import re
 import pandas as pd
 from pathlib import Path
-import duckdb # Added for Parquet output
+# import duckdb # No longer directly writing Parquet from this script
 import argparse
 import logging
 import sys
@@ -174,91 +174,15 @@ def append_to_master(df_input: pd.DataFrame, owner_name: str):
    Appends a DataFrame to the master Parquet file (data/processed/combined_transactions.parquet).
    Ensures schema consistency and handles file/table creation.
    """
-   from pathlib import Path # Keep internal for clarity, though already imported globally
-   import pandas as pd # Keep internal for clarity
-   # duckdb is imported globally, but can be re-imported if preferred for strict encapsulation
-
-   df = df_input.copy() # Work on a copy
-   df["Owner"] = owner_name # Add Owner column
-
-   # Define the target schema columns
-   master_cols = ["TransDate", "PostDate", "RawMerchant", "Amount",
-                  "AccountLast4", "ReferenceNumber", "Owner"]
-
-   # Ensure all master columns exist, fill with pd.NA if not
-   for c in master_cols:
-       if c not in df.columns:
-           df[c] = pd.NA
-   
-   # Select and reorder columns to match the master schema
-   df = df[master_cols]
-
-   # Coerce dtypes for key columns
-   if "TransDate" in df.columns:
-       df["TransDate"] = pd.to_datetime(df["TransDate"], errors='coerce')
-   if "PostDate" in df.columns: # Assuming PostDate should also be datetime if present
-       df["PostDate"] = pd.to_datetime(df["PostDate"], errors='coerce', infer_datetime_format=True)
-   if "Amount" in df.columns:
-       df["Amount"] = pd.to_numeric(df["Amount"], errors='coerce')
-
-   out_path = Path("data/processed/combined_transactions.parquet")
-   try:
-       out_path.parent.mkdir(parents=True, exist_ok=True)
-   except Exception as e_mkdir:
-       log.error(f"append_to_master: Could not create directory {out_path.parent}: {e_mkdir}", exc_info=True)
-       return # Cannot proceed if directory cannot be made
-
-   db_file_path = str(out_path)
-   con = None # Initialize for finally block
-   try:
-       con = duckdb.connect(database=db_file_path, read_only=False)
-       
-       # Check if the 'master' table exists in the Parquet file
-       table_exists = False
-       try:
-           # Attempt a simple query. If it fails with CatalogException, table doesn't exist.
-           # IOException might occur if the file is not a valid Parquet or doesn't exist.
-           con.execute("SELECT COUNT(*) FROM master LIMIT 1;")
-           table_exists = True
-       except duckdb.CatalogException:
-           log.debug(f"append_to_master: 'master' table not found in {db_file_path}. Will create.")
-           table_exists = False
-       except duckdb.IOException: # Covers file not found or not a valid DB/Parquet
-           log.debug(f"append_to_master: Parquet file {db_file_path} not found or invalid. Will create.")
-           table_exists = False
-       # Catch other duckdb errors during check
-       except duckdb.Error as e_check:
-            log.warning(f"append_to_master: DuckDB error checking for 'master' table: {e_check}. Assuming table needs creation.", exc_info=True)
-            table_exists = False
-
-
-       if not table_exists:
-           if df.empty:
-               log.warning("append_to_master: DataFrame is empty. Skipping Parquet table creation.")
-           else:
-               con.execute("CREATE TABLE master AS SELECT * FROM df") # df is the local, processed DataFrame
-               log.info(f"append_to_master: Created 'master' table in {db_file_path} from DataFrame.")
-       else: # Table exists, so append
-           if df.empty:
-               log.warning("append_to_master: DataFrame is empty. Skipping Parquet append operation.")
-           else:
-               # Register DataFrame as a view and insert.
-               # This is robust for various data types and NA handling.
-               con.register('df_view_to_insert', df) # df is the local, processed DataFrame
-               con.execute("INSERT INTO master SELECT * FROM df_view_to_insert")
-               con.unregister('df_view_to_insert') # Clean up the registered view
-               log.info(f"append_to_master: Appended data to 'master' table in {db_file_path}.")
-   
-   except duckdb.Error as e_duckdb: # Catch DuckDB specific errors
-       log.error(f"append_to_master: A DuckDB error occurred: {e_duckdb}", exc_info=True)
-   except Exception as e_general: # Catch any other unexpected errors
-       log.error(f"append_to_master: An unexpected error occurred: {e_general}", exc_info=True)
-   finally:
-       if con:
-           try:
-               con.close()
-           except Exception as e_close:
-               log.error(f"append_to_master: Error closing DuckDB connection: {e_close}", exc_info=True)
+   # Stage 1: This function no longer writes to a Parquet file.
+   # The df_input and owner_name are passed but not used for file output here.
+   # Future stages might reintroduce staging logic if needed.
+   log.info(f"append_to_master called for owner {owner_name} with {len(df_input)} rows. Parquet writing is disabled in Stage 1.")
+   # To prevent breaking the call site, the function still exists but does nothing.
+   # If df_input manipulation (like adding Owner column or schema alignment)
+   # was critical for other non-Parquet purposes, it could be kept.
+   # For Stage 1, the primary goal is to stop Parquet output from this script.
+   pass # Explicitly do nothing
 
 def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool:
     """

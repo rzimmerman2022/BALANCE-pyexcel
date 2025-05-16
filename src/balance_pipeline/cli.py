@@ -18,17 +18,17 @@ import argparse
 import pandas as pd
 import logging
 import sys
-import os
+# import os # os was not used directly, sys.executable and os.getcwd() are in dev_main
 import time
-import io # <<< Added import for io module
+# import io # io module is no longer used
 from typing import Optional, Any
-from balance_pipeline.config import LOG_LEVEL  # Import project-wide log level
+from balance_pipeline import config # Import full config module
 
 # Import the pipeline modules
 from balance_pipeline.ingest import load_folder
 from balance_pipeline.normalize import normalize_df
 from balance_pipeline.sync import sync_review_decisions
-from balance_pipeline.export import write_parquet_duckdb # Added for DuckDB Parquet export
+# Removed: from balance_pipeline.export import write_parquet_duckdb
 
 # --- Force UTF-8 Encoding for stdout/stderr ---
 # This helps ensure emojis (like ✅) and other Unicode characters print correctly,
@@ -60,8 +60,8 @@ def setup_logging(log_file: Optional[str] = None, verbose: bool = False) -> None
     Uses force=True to ensure configuration is applied even if other modules have 
     already configured logging. Includes workaround for UTF-8 encoding on stdout.
     """
-    # Use project-wide log level if defined, otherwise use INFO (or DEBUG if verbose)
-    log_level_name = LOG_LEVEL if isinstance(LOG_LEVEL, str) else 'INFO' # Default to INFO
+    # Use log level from config module
+    log_level_name = config.LOG_LEVEL if isinstance(config.LOG_LEVEL, str) else 'INFO' # Default to INFO
     log_level = getattr(logging, log_level_name.upper(), logging.INFO)
     if verbose:
         log_level = logging.DEBUG # Override to DEBUG if verbose flag is set
@@ -135,20 +135,23 @@ def setup_logging(log_file: Optional[str] = None, verbose: bool = False) -> None
     log.debug(f"Logging configured. Level: {logging.getLevelName(log_level)}. Handlers: {[h.name for h in handlers if hasattr(h, 'name')]}")
 
 
-def etl_main(inbox_path: Path, prefer_source: str = "Rocket") -> pd.DataFrame:
+def etl_main(inbox_path: Path, prefer_source: str = "Rocket", exclude_patterns: list[str] = None, only_patterns: list[str] = None) -> pd.DataFrame:
     """
     Main ETL function that loads CSVs, normalizes data, and returns a DataFrame.
     
     Args:
         inbox_path: Path to the folder containing CSV files to process
         prefer_source: Preferred source for deduplication (default: "Rocket")
+        exclude_patterns: List of glob patterns to exclude.
+        only_patterns: List of glob patterns to exclusively include.
         
     Returns:
         pd.DataFrame: Processed and normalized transaction data
     """
     # Load data from CSVs using the schema registry
     log.info(f"Loading CSVs from {inbox_path}")
-    df = load_folder(inbox_path) # Assumes load_folder handles internal logging
+    # Pass exclude and only patterns to load_folder
+    df = load_folder(inbox_path, exclude_patterns=exclude_patterns or [], only_patterns=only_patterns or [])
     log.info(f"Loaded {len(df)} rows from CSVs")
     
     # Normalize the data
@@ -193,6 +196,10 @@ Examples:
                         help="Name of the sheet containing decisions (default: Queue_Review)")
     parser.add_argument("--prefer-source", default="Rocket", 
                         help="Preferred source when deduplicating transactions (default: Rocket)")
+    parser.add_argument("--exclude", nargs="*", default=[],
+                        help="Glob patterns for files/directories to exclude (e.g., '_Archive/*' 'Document*')")
+    parser.add_argument("--only", nargs="*", default=[],
+                        help="Glob patterns for files/directories to include exclusively (e.g., 'BankStatement*.csv')")
     args = parser.parse_args()
     
     # --- Setup Logging ---
@@ -275,7 +282,7 @@ Examples:
 
     try:
         # Step 1: Run ETL pipeline
-        df = etl_main(inbox, prefer_source=args.prefer_source)
+        df = etl_main(inbox, prefer_source=args.prefer_source, exclude_patterns=args.exclude, only_patterns=args.only)
         if df.empty and inbox.exists(): 
              log.warning("ETL process resulted in an empty DataFrame. Check source CSVs and logs.")
              # Continue to ensure sheets are created/cleared if needed.
@@ -316,10 +323,16 @@ Examples:
             df = sync_review_decisions(df, queue_df) 
             log.info("Decisions synced.")
 
-        # --- Parquet snapshot (DuckDB) ---
-        # Step 4: Save final DataFrame to Parquet via DuckDB for integration
-        parquet_path = workbook.with_suffix(".parquet")
-        write_parquet_duckdb(df, parquet_path) # Use the new helper function
+        # Step 4: Save final DataFrame to the canonical Parquet file
+        # Path is sibling to the workbook, using filename from config
+        parquet_path = workbook.parent / config.BALANCE_FINAL_PARQUET_FILENAME
+        try:
+            log.info(f"Writing final DataFrame to Parquet: {parquet_path} (Engine: pyarrow, Compression: zstd)")
+            df.to_parquet(parquet_path, engine='pyarrow', compression='zstd', index=False)
+            log.info(f"Successfully wrote {len(df)} rows to {parquet_path.name}")
+        except Exception as e_parquet:
+            log.error(f"Error writing Parquet file {parquet_path}: {e_parquet}", exc_info=True)
+            # Decide if this should be a fatal error or a warning
 
         # Step 5: Write results to Excel (or dry run CSV)
         if args.dry_run:
@@ -476,6 +489,8 @@ def _create_queue_review_template(df: pd.DataFrame, writer: Any, sheet_name: str
 
             # Only concat if we have valid rows
             if template_rows:
+                 # Convert dtypes before concat to avoid FutureWarning with all-NA columns
+                 template_df = template_df.convert_dtypes() 
                  template_df = pd.concat([template_df, pd.DataFrame(template_rows)], ignore_index=True)
         else:
              log.debug("No transactions found with SharedFlag='?' to populate template.")

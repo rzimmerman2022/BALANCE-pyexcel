@@ -20,15 +20,13 @@ PyYAML = "^6.0.1" # Assumes latest stable version, adjust if needed
 openpyxl = "^3.1"   # <<< Make sure this line looks like this
 # Optional fallback writer for Parquet if pyarrow isn't available/compatible
 fastparquet = { version = "^2024.5", optional = true }
-# Removed tabula-py, replaced by camelot and pdfplumber
-# tabula-py = "^2.10.0"
 camelot-py = "^0.11.0" # For PDF table extraction (removed 'cv' extra)
 pdfplumber = { version = "^0.11", extras = ["no-image"] } # Use no-image extra to avoid pdftopng
 duckdb = "^1.2.2"
-# Only install pyarrow on versions that already have wheels (<3.13 for now)
+pyarrow = "^16.0.0" # Explicit dependency for Parquet engine
 
-[tool.poetry.extras]
-parquet = ["pyarrow"] # Allows users to explicitly request pyarrow if compatible
+[tool.poetry.extras] # Keep extras section if other optional dependencies exist or might be added
+# parquet = ["pyarrow"] # pyarrow is now a direct dependency
 
 [tool.poetry.group.dev.dependencies]
 # Define development-only dependencies under a SINGLE group header

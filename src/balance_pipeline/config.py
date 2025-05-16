@@ -97,6 +97,11 @@ MERCHANT_LOOKUP_PATH = Path(
 )
 logging.info(f"Merchant Lookup Path configured to: {MERCHANT_LOOKUP_PATH}")
 
+# --- Output Parquet Filename ---
+# Defines the canonical name for the final Parquet output.
+BALANCE_FINAL_PARQUET_FILENAME = os.getenv("BALANCE_FINAL_PARQUET_FILENAME", "balance_final.parquet")
+logging.info(f"Final Parquet Filename configured to: {BALANCE_FINAL_PARQUET_FILENAME}")
+
 
 # Add other paths here as needed (e.g., output paths, database paths)
 # OUTPUT_DIR = get_resource_path(os.getenv("OUTPUT_DIR", "output"))
