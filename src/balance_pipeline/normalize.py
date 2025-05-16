@@ -20,12 +20,15 @@ Author: Your Name / AI Assistant
 # 0. IMPORTS
 # ==============================================================================
 import pandas as pd
-import hashlib             # For generating SHA-256 hashes for TxnID
+import hashlib             # For generating hashes for TxnID
 import logging             # For logging messages
+from typing import Any, List, Tuple, Optional     # Added for type hint
+import re                  # Added for regex operations
+import csv                 # For reading merchant lookup CSV
 
 # Local application imports
-from .merchant import normalize_merchant # Import the new merchant normalization function
 from .utils import _clean_desc           # Import cleaning function from utils
+from .config import MERCHANT_LOOKUP_PATH # Import merchant lookup file path
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP & CONSTANTS
@@ -35,6 +38,89 @@ from .utils import _clean_desc           # Import cleaning function from utils
 # Get a logger specific to this module for targeted logging.
 log = logging.getLogger(__name__)
 
+# --- Merchant Lookup Cache ---
+_merchant_lookup_data: Optional[List[Tuple[re.Pattern, str]]] = None
+
+def _load_merchant_lookup() -> List[Tuple[re.Pattern, str]]:
+    """
+    Loads merchant cleaning rules from a CSV file.
+    Validates regex patterns at load time.
+    Caches the loaded rules.
+    """
+    global _merchant_lookup_data
+    if _merchant_lookup_data is not None:
+        return _merchant_lookup_data
+
+    loaded_rules = []
+    try:
+        with open(MERCHANT_LOOKUP_PATH, mode='r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            header = next(reader) # Skip header row
+            if header != ['pattern', 'canonical']:
+                log.error(
+                    f"Invalid header in {MERCHANT_LOOKUP_PATH}. "
+                    f"Expected ['pattern', 'canonical'], got {header}"
+                )
+                raise ValueError(f"Invalid header in merchant lookup file: {MERCHANT_LOOKUP_PATH}")
+
+            for i, row in enumerate(reader, start=2): # start=2 for 1-based indexing + header
+                if not row or len(row) != 2:
+                    log.warning(f"Skipping malformed row {i} in {MERCHANT_LOOKUP_PATH}: {row}")
+                    continue
+                pattern_str, canonical_name = row
+                try:
+                    compiled_regex = re.compile(pattern_str, re.IGNORECASE)
+                    loaded_rules.append((compiled_regex, canonical_name))
+                except re.error as e:
+                    err_msg = (
+                        f"Invalid regex pattern found in {MERCHANT_LOOKUP_PATH} at row {i}: "
+                        f"'{pattern_str}'. Error: {e}"
+                    )
+                    log.error(err_msg)
+                    raise ValueError(err_msg) from e
+        _merchant_lookup_data = loaded_rules
+        log.info(f"Successfully loaded and compiled {len(_merchant_lookup_data)} merchant lookup rules from {MERCHANT_LOOKUP_PATH}.")
+    except FileNotFoundError:
+        log.error(f"Merchant lookup file not found: {MERCHANT_LOOKUP_PATH}. Proceeding without merchant cleaning rules.")
+        _merchant_lookup_data = [] # Ensure it's an empty list so subsequent calls don't try to reload
+    except Exception as e: # Catch other potential errors like permission issues
+        log.error(f"Failed to load merchant lookup file {MERCHANT_LOOKUP_PATH}: {e}")
+        # Raise the error to halt execution if loading fails critically,
+        # unless it's a FileNotFoundError which is handled by returning empty rules.
+        if not isinstance(e, ValueError): # ValueError is already specific
+             raise RuntimeError(f"Critical error loading merchant lookup from {MERCHANT_LOOKUP_PATH}: {e}") from e
+        _merchant_lookup_data = [] # Fallback to empty list on other errors too
+
+    return _merchant_lookup_data
+
+# Attempt to load rules at import time to fail fast if there are errors
+try:
+    _load_merchant_lookup()
+except ValueError:
+    # ValueError is raised by _load_merchant_lookup for bad regex or header.
+    # This ensures the application fails at startup if the rules are invalid.
+    log.critical("Failed to initialize merchant lookup due to invalid regex or CSV format. Application will exit.")
+    raise # Re-raise the ValueError to stop the application
+
+def clean_merchant(description: str) -> str:
+    """
+    Cleans the merchant description using rules from merchant_lookup.csv.
+    Falls back to a generic cleaning if no rule matches.
+    """
+    if not isinstance(description, str): # Handle potential non-string inputs
+        return str(description)
+
+    rules = _load_merchant_lookup() # Get cached/loaded rules
+
+    for pattern, canonical_name in rules:
+        match = pattern.search(description)
+        if match:
+            return canonical_name # Return the canonical name from the CSV
+
+    # Fallback if no pattern matched: apply _clean_desc and title-case
+    cleaned_desc = _clean_desc(description)
+    return cleaned_desc.title()
+
 # --- Constants ---
 
 # Columns used to generate the deterministic Transaction ID (TxnID).
@@ -42,7 +128,14 @@ log = logging.getLogger(__name__)
 #            within normalize_df might alter them (e.g., cleaning description).
 #            Now includes 'Bank' and 'Source' to handle deduplication of aggregator data.
 # REVIEW: Confirm these columns are reliably populated by the updated ingest.py
-_ID_COLS_FOR_HASH = ["Date", "Amount", "Description", "Bank", "Account"]
+_ID_COLS_FOR_HASH = [ # Changed back to list to fix concatenation error in logging
+    "Date",
+    "PostDate",          # NEW
+    "Amount",
+    "Description",
+    "Bank",
+    "Account",
+]
 
 # Defines the exact list and order of columns for the final output DataFrame.
 # This ensures consistency regardless of intermediate processing steps.
@@ -62,65 +155,21 @@ FINAL_COLS = [
 # ------------------------------------------------------------------------------
 # Function: _txn_id
 # ------------------------------------------------------------------------------
-def _txn_id(row: pd.Series) -> str | None:
-    """
-    Generates a unique and deterministic Transaction ID (TxnID) using SHA-256 hashing.
+def _txn_id(row: dict[str, Any]) -> str: # Changed input type to dict for apply lambda
+    """Stable 16-char hex id using MD5."""
+    # Extract values based on _ID_COLS_FOR_HASH, convert to string, strip whitespace, handle missing keys
+    hash_cols_local = _ID_COLS_FOR_HASH.copy() # Use a local copy to potentially modify
+    source = row.get('Source')
+    # Conditionally add 'Source' to the hash components for specific sources
+    if source in ('Rocket', 'Monarch'):
+        hash_cols_local.append('Source')
+        log.debug(f"Adding 'Source' ({source}) to hash components for TxnID.") # Optional: debug log
 
-    Combines values from predefined stable columns (_ID_COLS_FOR_HASH)
-    into a single string, hashes it, and returns a truncated hexadecimal representation.
-    Includes 'Owner' to prevent collisions between users.
-
-    Args:
-        row (pd.Series): A row representing a transaction. Must contain columns
-                         specified in _ID_COLS_FOR_HASH.
-
-    Returns:
-        str | None: The truncated SHA-256 hash (16 characters), or None if an error occurs.
-    """
-    try:
-        # --- Prepare components for hashing ---
-        # Ensure consistent string formatting for reliable hashing.
-
-        # Date: Format as YYYY-MM-DD, handle NaT (Not a Time).
-        date_obj = pd.to_datetime(row.get("Date"), errors='coerce')
-        date_str = date_obj.strftime('%Y-%m-%d') if pd.notna(date_obj) else ''
-
-        # Amount: Format to exactly 2 decimal places, handle NaN.
-        amount_val = pd.to_numeric(row.get("Amount"), errors='coerce')
-        amount_str = f"{amount_val:.2f}" if pd.notna(amount_val) else ''
-
-        # Description: Use the *original* Description for stability before cleaning. Handle None/NA.
-        desc_str = str(row.get("Description", "") or "")
-
-        # Bank: Convert to string, handle None/NA and pd.NA explicitly.
-        bank_val = row.get("Bank", "")
-        bank_str = "" if pd.isna(bank_val) else str(bank_val).lower()
-
-        # Account: Convert to string, handle None/NA and pd.NA explicitly.
-        acct_val = row.get("Account", "")
-        acct_str = "" if pd.isna(acct_val) else str(acct_val)
-
-        # --- Combine into a single string ---
-        # Use a clear separator (e.g., '|') to prevent ambiguity.
-        # Order matters: ensure consistent column order based on _ID_COLS_FOR_HASH.
-        base_parts = [date_str, amount_str, desc_str, bank_str, acct_str]
-        base = "|".join(base_parts)
-
-        # --- Generate Hash ---
-        # Encode the string to bytes (UTF-8 standard) as required by hashlib.
-        # Generate SHA-256 hash and get its hexadecimal representation.
-        # Truncate to 16 characters for brevity (increases collision chance slightly, but usually acceptable).
-        # REVIEW: Consider using the full hash if absolute minimum collision risk is paramount.
-        return hashlib.sha256(base.encode('utf-8')).hexdigest()[:16]
-
-    except KeyError as e:
-        # Log if a required column for hashing is missing from the row.
-        log.error(f"Missing column required for TxnID generation: {e}. Row index: {row.name}. Available columns: {row.index.tolist()}")
-        return None
-    except Exception as e:
-        # Log any other unexpected error during hash generation.
-        log.error(f"Unexpected error generating TxnID for row {row.name}: {e}", exc_info=True)
-        return None
+    base_parts = [str(row.get(col, "")).strip() for col in hash_cols_local]
+    # Join parts with a separator
+    hash_input = "|".join(base_parts)
+    # Encode to bytes, generate MD5 hash, get hex digest, truncate
+    return hashlib.md5(hash_input.encode('utf-8')).hexdigest()[:16]
 
 # ==============================================================================
 # 3. PUBLIC API FUNCTION
@@ -168,15 +217,25 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
         out["CleanDesc"] = out["Description"].apply(_clean_desc)
         log.info("Generated 'CleanDesc' column.")
         # --- Generate Canonical Merchant Name ---
-        # Apply the merchant normalization function using the lookup table.
-        out["CanonMerchant"] = out["Description"].apply(normalize_merchant)
-        log.info("Generated 'CanonMerchant' column using lookup table.")
+        # Apply the new local clean_merchant function.
+        out["CanonMerchant"] = out["Description"].apply(clean_merchant)
+        log.info("Generated 'CanonMerchant' column using regex cleaning rules.")
     else:
         # --- Handle Missing Description ---
         log.warning("'Description' column not found, cannot generate 'CleanDesc'. Adding empty column.")
         out["CleanDesc"] = ""
         log.warning("'Description' column not found, cannot generate 'CanonMerchant'. Adding empty column.")
         out["CanonMerchant"] = ""
+
+    # --- Fallback for missing PostDate ---
+    # If PostDate is missing or all null after ingest/mapping, use Date as fallback for hash stability
+    if "PostDate" not in out.columns or out["PostDate"].isna().all():
+        if "Date" in out.columns:
+            log.warning("PostDate column missing or all null. Using Date column as fallback for TxnID generation.")
+            out["PostDate"] = out["Date"]
+        else:
+            log.error("PostDate column missing and Date column also missing. Cannot create PostDate fallback.")
+            # Allow TxnID generation to fail below if Date is also in _ID_COLS_FOR_HASH
 
     # --- Generate Transaction ID ---
     # Check if all columns needed for hashing are present.
@@ -186,9 +245,14 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
         log.error(f"Cannot generate TxnID. Missing required columns from input DataFrame: {missing_id_cols}. Adding 'TxnID' column with None.")
         out["TxnID"] = None
     else:
-        # Apply the _txn_id function row by row. axis=1 passes each row as a Series.
+        # Apply the _txn_id function row by row using a lambda to pass row as dict
         log.info(f"Generating TxnID using columns: {_ID_COLS_FOR_HASH}")
-        out["TxnID"] = out.apply(_txn_id, axis=1)
+        try:
+            # Use apply with lambda to pass row as dictionary
+            out["TxnID"] = out.apply(lambda r: _txn_id(r.to_dict()), axis=1)
+        except Exception as e:
+            log.error(f"Error applying _txn_id function: {e}", exc_info=True)
+            out["TxnID"] = None # Set to None on error
 
         # --- Validate TxnID ---
         if out["TxnID"].isnull().any():
@@ -196,12 +260,14 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
         # Check uniqueness (important!)
         if out["TxnID"].notna().any() and not out.loc[out["TxnID"].notna(), "TxnID"].is_unique:
             duplicates = out[out.duplicated(subset=['TxnID'], keep=False) & out["TxnID"].notna()]
-            log.critical(f"CRITICAL: TxnID collision detected! {len(duplicates)} rows affected. "
-                         f"Review ID generation logic and columns: {_ID_COLS_FOR_HASH}. "
-                         f"Duplicate examples:\n{duplicates[['TxnID'] + _ID_COLS_FOR_HASH].head()}")
-            # REVIEW: Decide how to handle collisions - raise error? Flag rows?
+            # Changed from critical to warning as deduplication handles this later
+            log.warning(f"TxnID collision detected! {len(duplicates)} rows affected. "
+                        f"This is expected if the same transaction appears in multiple sources (e.g., Monarch/Rocket) "
+                        f"before deduplication. Review columns used if unexpected: {_ID_COLS_FOR_HASH}. "
+                        f"Duplicate examples:\n{duplicates[['TxnID'] + list(_ID_COLS_FOR_HASH)].head()}") # Ensure list for concat
+             # REVIEW: Decide how to handle collisions - raise error? Flag rows?
 
-    # --- Add Default Shared Flag ---
+     # --- Add Default Shared Flag ---
     # Initialize the 'SharedFlag' column with '?' indicating it needs review.
     # This column will be updated later by classification rules or manual tagging.
     out["SharedFlag"] = "?"

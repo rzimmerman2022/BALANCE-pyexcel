@@ -3,7 +3,9 @@ feat: add combined_transactions.parquet master file
 WHAT: Added a unified typed Parquet output for all transaction data.
 
 WHY: Enable direct Power BI connection to a single source of truth with
-     consistent schema and types, eliminating the need for multiple CSV imports.
+     consistent schema and types, el
+     
+     iminating the need for multiple CSV imports.
 
 HOW:
 - Added append_to_master() function in process_pdfs.py that guarantees schema

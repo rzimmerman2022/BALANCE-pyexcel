@@ -1,5 +1,1 @@
 pattern,canonical
-"^SQ MY COFFEE SHOP.*","My Coffee Shop" # Match cleaned version (no '*')
-"^AMAZON( COM)?.*","Amazon Com" # Use 'Amazon Com' as canonical per feedback
-"STARBUCKS [0-9]+","Starbucks"
-"WAL[- ]?MART","Walmart"

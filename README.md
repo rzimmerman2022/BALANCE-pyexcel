@@ -1,6 +1,6 @@
 # BALANCE-pyexcel
 
-[![CI Build Status](https://github.com/[YOUR_GITHUB_USERNAME]/[YOUR_REPOSITORY_NAME]/actions/workflows/ci.yml/badge.svg)](https://github.com/[YOUR_GITHUB_USERNAME]/[YOUR_REPOSITORY_NAME]/actions/workflows/ci.yml)
+[![Python CI](https://github.com/your-github-org-or-username/BALANCE-pyexcel/actions/workflows/ci.yml/badge.svg)](https://github.com/your-github-org-or-username/BALANCE-pyexcel/actions/workflows/ci.yml)
 
 **An Excel-based shared expense tracker powered by Python. Uses a configurable YAML registry to automatically ingest, normalize, and owner-tag diverse bank/card CSV formats.**
 
@@ -59,7 +59,7 @@ For users who don't need the full development environment (Poetry, Git), a stand
 
 You can download the latest Windows executable directly from the GitHub Actions build artifacts:
 
-1.  Go to the [latest successful CI run on the main branch](https://github.com/[YOUR_GITHUB_USERNAME]/[YOUR_REPOSITORY_NAME]/actions/workflows/ci.yml/runs?query=branch%3Amain+status%3Asuccess).
+1.  Go to the [latest successful CI run on the main branch](https://github.com/your-github-org-or-username/BALANCE-pyexcel/actions/workflows/ci.yml/runs?query=branch%3Amain+status%3Asuccess).
 2.  Click on the latest run listed.
 3.  Scroll down to the "Artifacts" section.
 4.  Download the `balance-pyexcel-windows-...` artifact (it will be a zip file containing the `.exe`).

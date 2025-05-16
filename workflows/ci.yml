@@ -30,6 +30,14 @@ jobs:
         run: poetry install --with dev
         # Add shell: bash for Windows compatibility if needed, but Poetry often handles it
 
+      - name: Install Java (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y default-jre
+
+      - name: Install OpenJDK (Windows)
+        if: runner.os == 'Windows'
+        run: choco install openjdk --no-progress -y # Added -y for non-interactive
+
       - name: Install Ghostscript (Windows only)
         if: matrix.os == 'windows-latest'
         run: choco install ghostscript -y

@@ -314,14 +314,20 @@ def _derive_columns(df: pd.DataFrame, derived_cfg: dict[str, str] | None) -> pd.
 # ------------------------------------------------------------------------------
 # Function: load_folder
 # ------------------------------------------------------------------------------
-def load_folder(folder: Path, *_, **kwargs) -> pd.DataFrame: # Added *_, **kwargs
+def load_folder(
+    folder: Path, 
+    *_, 
+    exclude_patterns: list[str] | None = None, 
+    only_patterns: list[str] | None = None, 
+    **kwargs
+) -> pd.DataFrame:
     """
     Loads, processes, and combines all valid CSV transaction files found
     recursively within the specified base folder. It expects subdirectories
     named after the owner (e.g., /Jordyn/, /Ryan/).
 
     Processing Logic:
-    1. Walks subdirectories using rglob('*.csv').
+    1. Walks subdirectories using rglob('*.csv'), applying exclude/only patterns.
     2. Determines Owner from the immediate parent directory name.
     3. Reads CSV headers to identify the file's schema using _find_schema (and YAML).
     4. Reads the full CSV.
@@ -337,6 +343,10 @@ def load_folder(folder: Path, *_, **kwargs) -> pd.DataFrame: # Added *_, **kwarg
     Args:
         folder (Path): The root folder containing owner subfolders (e.g., /Jordyn, /Ryan)
                        which in turn contain the CSV files.
+        exclude_patterns (list[str] | None): Optional list of glob patterns to exclude.
+                                             Paths are relative to the `folder`.
+        only_patterns (list[str] | None): Optional list of glob patterns to exclusively include.
+                                          Paths are relative to the `folder`.
 
     Returns:
         pd.DataFrame: A single, combined DataFrame containing standardized data
@@ -349,6 +359,9 @@ def load_folder(folder: Path, *_, **kwargs) -> pd.DataFrame: # Added *_, **kwarg
     """
     # --- Initial Checks ---
     kwargs.pop("owner_hint", None)   # Gracefully ignore legacy owner_hint
+    exclude_patterns = exclude_patterns or []
+    only_patterns = only_patterns or []
+
     if not folder.is_dir():
         logging.error(f"Specified inbox path is not a valid directory: {folder}")
         raise FileNotFoundError(f"CSV inbox path not found or not a directory: {folder}")
@@ -361,7 +374,41 @@ def load_folder(folder: Path, *_, **kwargs) -> pd.DataFrame: # Added *_, **kwarg
 
     # --- Loop through all CSVs in subfolders ---
     # Use rglob to find *.csv files in the root folder and all subdirectories.
-    for csv_path in folder.rglob("*.csv"):
+    all_csv_files = list(folder.rglob("*.csv"))
+    logging.info(f"Found {len(all_csv_files)} CSV files initially in {folder} and its subdirectories.")
+
+    # Apply filtering based on exclude and only patterns
+    files_to_process = []
+    for csv_path in all_csv_files:
+        # Path relative to the input folder for matching patterns
+        relative_path_str = str(csv_path.relative_to(folder)).replace("\\", "/") # Normalize to forward slashes
+
+        # Check exclusion patterns
+        excluded = False
+        for pattern in exclude_patterns:
+            if csv_path.match(pattern) or Path(relative_path_str).match(pattern):
+                logging.debug(f"Excluding '{csv_path.name}' due to exclude pattern: '{pattern}'")
+                excluded = True
+                break
+        if excluded:
+            continue
+
+        # Check inclusion patterns (if any are specified)
+        if only_patterns:
+            included = False
+            for pattern in only_patterns:
+                if csv_path.match(pattern) or Path(relative_path_str).match(pattern):
+                    included = True
+                    break
+            if not included:
+                logging.debug(f"Skipping '{csv_path.name}' as it does not match any 'only' patterns: {only_patterns}")
+                continue
+        
+        files_to_process.append(csv_path)
+
+    logging.info(f"Processing {len(files_to_process)} CSV files after applying exclude/only filters.")
+
+    for csv_path in files_to_process:
         # Assume the immediate parent directory name is the owner.
         owner = csv_path.parent.name.capitalize()
         logging.info(f"Processing file: {csv_path} for owner: {owner}")

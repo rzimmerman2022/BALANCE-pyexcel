@@ -1,0 +1,26 @@
+Refactor(ETL): Implement Stage 1 for single Parquet output
+
+This commit completes Stage 1 of the BALANCE-pyexcel refactor, focusing on consolidating Parquet output to a single, authoritative file and addressing maintainer feedback.
+
+Key changes include:
+
+1.  **Canonical Parquet Output (`balance_final.parquet`):**
+    *   `src/balance_pipeline/cli.py` (via `etl_main`'s workflow) now exclusively writes a single Parquet file named `balance_final.parquet`.
+    *   This file is saved in the same directory as the Excel workbook, as intended.
+    *   The output explicitly uses the `pyarrow` engine and `zstd` compression as specified (`df.to_parquet(..., engine='pyarrow', compression='zstd')`).
+    *   The filename `balance_final.parquet` is centralized in `src/balance_pipeline/config.py` via the new `BALANCE_FINAL_PARQUET_FILENAME` constant.
+
+2.  **PDF Processing Script (`scripts/process_pdfs.py`):**
+    *   The `append_to_master` function within this script has been modified to no longer write any Parquet files. Specifically, it no longer creates or appends to the legacy `data/processed/combined_transactions.parquet`. This aligns with the goal of `etl_main` being the sole Parquet producer.
+    *   The `duckdb` import was removed from this script as it's no longer used for Parquet operations here.
+
+3.  **Dependency Management (`pyproject.toml`):**
+    *   `pyarrow` has been moved from an optional extra to a direct core dependency in `[tool.poetry.dependencies]` (as `pyarrow = "^16.0.0"`). This ensures the `pyarrow` engine is always available for `pandas.to_parquet()` calls.
+    *   The `parquet = ["pyarrow"]` line under `[tool.poetry.extras]` has been commented out, as `pyarrow` is now a direct dependency.
+
+4.  **Code Cleanup & Minor Adjustments:**
+    *   Removed the unused `import io` from `src/balance_pipeline/cli.py` as per maintainer feedback. The `import os` was already commented out and remains so.
+    *   Adjusted `LOG_LEVEL` import in `cli.py` to import the full `config` module (`from balance_pipeline import config`) and access `config.LOG_LEVEL`, providing clearer namespacing.
+    *   Removed the import of `write_parquet_duckdb` from `balance_pipeline.export` in `cli.py` as it's no longer used.
+
+These changes establish a cleaner data flow with `etl_main` as the single source of truth for the final Parquet data, remove legacy Parquet outputs, and prepare the codebase for subsequent refactoring stages.
