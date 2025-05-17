@@ -24,6 +24,7 @@ camelot-py = "^0.11.0" # For PDF table extraction (removed 'cv' extra)
 pdfplumber = { version = "^0.11", extras = ["no-image"] } # Use no-image extra to avoid pdftopng
 duckdb = "^1.2.2"
 pyarrow = "^16.0.0" # Explicit dependency for Parquet engine
+opencv-python = "^4.11.0.86"
 
 [tool.poetry.extras] # Keep extras section if other optional dependencies exist or might be added
 # parquet = ["pyarrow"] # pyarrow is now a direct dependency
@@ -33,7 +34,7 @@ pyarrow = "^16.0.0" # Explicit dependency for Parquet engine
 pytest = "^8.3.5"
 pytest-cov = "^6.1.1" # Using version from your later block
 black = "^25.1.0" # Using version from your later block
-ruff = "^0.11.6" # Using version from your later block
+ruff = "==0.4.*" # Pinning Ruff version
 # Dependencies from the second block in your paste (excluding redundant python-dotenv)
 mkdocs-material = "^9.5"
 mkdocstrings-python = "^1.9"
@@ -42,6 +43,7 @@ pre-commit = "^3.7"
 [tool.poetry.scripts]
 balance-pyexcel = "balance_pipeline.cli:main"
 balance-pyexcel-dev = "balance_pipeline.cli:dev_main"
+balance-merchant = "balance_pipeline.cli_merchant:main_merchant"
 
 [build-system]
 # Standard build system configuration for Poetry projects

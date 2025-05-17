@@ -36,20 +36,62 @@ def _strip_accents(txt: str | None) -> str:
         return ""
 
 # ------------------------------------------------------------------------------
-# Function: _clean_desc (Moved from normalize.py)
+# Function: _clean_desc (Original, for single string)
 # ------------------------------------------------------------------------------
-def _clean_desc(desc: str | None) -> str:
-    """Cleans description text for easier matching and analysis."""
+def _clean_desc_single(desc: str | None) -> str:
+    """Cleans description text for easier matching and analysis (single string version)."""
     if pd.isna(desc):
         return ""
 
     try:
-        desc = _strip_accents(str(desc)).upper()
-        desc = re.sub(r"[^A-Z0-9 ]+", " ", desc)
-        desc = re.sub(r"\s+", " ", desc)
-        return desc.strip()
+        # Step 1: Strip accents and convert to string (applies to single string)
+        desc_stripped = _strip_accents(str(desc))
+        # Step 2: Convert to uppercase
+        desc_upper = desc_stripped.upper()
+        # Step 3: Replace non-alphanumeric characters (excluding space) with a space
+        desc_alphanum = re.sub(r"[^A-Z0-9 ]+", " ", desc_upper)
+        # Step 4: Replace multiple spaces with a single space
+        desc_single_space = re.sub(r"\s+", " ", desc_alphanum)
+        # Step 5: Strip leading/trailing whitespace
+        return desc_single_space.strip()
     except Exception as e:
         log.warning(f"Error cleaning description: '{desc}'. Error: {e}. Returning original.")
         return str(desc or '') # Return original string or empty if error
+
+# ------------------------------------------------------------------------------
+# Function: clean_desc_vectorized (New, for pandas Series)
+# ------------------------------------------------------------------------------
+def clean_desc_vectorized(desc_series: pd.Series) -> pd.Series:
+    """
+    Cleans a pandas Series of description strings using vectorized operations.
+    """
+    if not isinstance(desc_series, pd.Series):
+        raise TypeError("Input must be a pandas Series.")
+
+    # Handle NaNs by filling with empty string for processing, then can be reverted if needed
+    original_na = desc_series.isna()
+    series_filled_na = desc_series.fillna('')
+
+    # Step 1: Strip accents (still needs .apply for unicodedata, but on the series)
+    # Ensure series is string type before applying _strip_accents
+    stripped_series = series_filled_na.astype(str).apply(_strip_accents)
+    
+    # Step 2: Convert to uppercase
+    upper_series = stripped_series.str.upper()
+    
+    # Step 3: Replace non-alphanumeric characters (excluding space) with a space
+    # Regex is applied per element, but .str.replace is vectorized
+    alphanum_series = upper_series.str.replace(r"[^A-Z0-9 ]+", " ", regex=True)
+    
+    # Step 4: Replace multiple spaces with a single space
+    single_space_series = alphanum_series.str.replace(r"\s+", " ", regex=True)
+    
+    # Step 5: Strip leading/trailing whitespace
+    cleaned_series = single_space_series.str.strip()
+
+    # Restore NaNs if they were originally present
+    cleaned_series.loc[original_na] = pd.NA # Or np.nan if preferred
+    
+    return cleaned_series
 
 # Add other utility functions here as needed.

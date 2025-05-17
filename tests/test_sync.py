@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-import pytest
 import pandas as pd
 import numpy as np
-from pandas.testing import assert_frame_equal, assert_series_equal
+from pandas.testing import assert_frame_equal
 
 from balance_pipeline.sync import (
     sync_review_decisions,
@@ -25,7 +24,8 @@ def sample_transactions_df() -> pd.DataFrame:
     }
     df = pd.DataFrame(data)
     # Ensure correct dtypes, especially for SplitPercent which can be float or object with pd.NA
-    df[TRANS_SPLIT_PERC_COL] = df[TRANS_SPLIT_PERC_COL].astype(float) # Or object if pd.NA is preferred over np.nan
+    # Replace pd.NA with np.nan before converting to float to avoid TypeError
+    df[TRANS_SPLIT_PERC_COL] = df[TRANS_SPLIT_PERC_COL].replace({pd.NA: np.nan}).astype(float)
     return df
 
 # Sample queue review DataFrame

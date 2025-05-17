@@ -3,7 +3,6 @@ from balance_pipeline.ingest import load_folder, STANDARD_COLS
 # If normalize_df is tested here later, uncomment:
 # from balance_pipeline.normalize import normalize_df
 from pathlib import Path
-import pandas as pd
 import pytest # Import pytest for using fixtures and skip functionality
 
 # Define the path to the multi-schema sample data directory

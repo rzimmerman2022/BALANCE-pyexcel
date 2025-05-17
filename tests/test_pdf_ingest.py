@@ -10,7 +10,6 @@ Description: Contains integration tests specifically for validating the ingestio
 """
 
 import pytest
-import pandas as pd
 from pathlib import Path
 import shutil # For copying files in fixture
 

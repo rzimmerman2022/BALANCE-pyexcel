@@ -207,7 +207,7 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
             return False
 
         # --- 2. Extract Tables with Camelot (Stream First) ---
-        tables = []
+        # tables = [] # F841: Local variable `tables` is assigned to but never used
         combined_df = None # Initialize combined_df
         extraction_mode = None
 
@@ -219,7 +219,7 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
             # --- Select the Transaction Table (Stream) ---
             transaction_df_stream = find_transaction_table(stream_tables, pdf_path.name)
             if transaction_df_stream is not None:
-                tables = stream_tables # Keep original table list if needed later
+                # tables = stream_tables # Keep original table list if needed later (F841)
                 combined_df = transaction_df_stream # Use the selected table
                 extraction_mode = "stream"
                 log.info(f"Using transaction table found via stream mode. Shape: {combined_df.shape}")
@@ -238,7 +238,7 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
                 # --- Select the Transaction Table (Lattice) ---
                 transaction_df_lattice = find_transaction_table(lattice_tables, pdf_path.name)
                 if transaction_df_lattice is not None:
-                    tables = lattice_tables # Keep original table list
+                    # tables = lattice_tables # Keep original table list - F841 tables was unused
                     combined_df = transaction_df_lattice # Use the selected table
                     extraction_mode = "lattice"
                     log.info(f"Using transaction table found via lattice mode. Shape: {combined_df.shape}")
@@ -271,7 +271,7 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
         cleaned_columns = combined_df.columns.tolist()
         log.debug(f"Cleaned columns for renaming: {cleaned_columns}")
 
-        num_cols = len(cleaned_columns)
+        # num_cols = len(cleaned_columns) # F841 unused - This was already handled, ensuring it stays commented
         # Find essential columns based on keywords using helper function
         trans_date_col_idx = find_col_index(cleaned_columns, ["trans date", "date"])
         post_date_col_idx = find_col_index(cleaned_columns, ["post date"])
@@ -284,11 +284,16 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
 
         # --- Map to Standard Names ---
         final_col_map = {} # Map standard name -> original cleaned name
-        if trans_date_col_idx is not None: final_col_map["TransDate"] = cleaned_columns[trans_date_col_idx]
-        if post_date_col_idx is not None: final_col_map["PostDate"] = cleaned_columns[post_date_col_idx]
-        if desc_col_idx is not None: final_col_map["RawMerchant"] = cleaned_columns[desc_col_idx]
-        if ref_col_idx is not None: final_col_map["ReferenceNumber"] = cleaned_columns[ref_col_idx]
-        if acct_col_idx is not None: final_col_map["AccountLast4"] = cleaned_columns[acct_col_idx]
+        if trans_date_col_idx is not None:
+            final_col_map["TransDate"] = cleaned_columns[trans_date_col_idx]
+        if post_date_col_idx is not None:
+            final_col_map["PostDate"] = cleaned_columns[post_date_col_idx]
+        if desc_col_idx is not None:
+            final_col_map["RawMerchant"] = cleaned_columns[desc_col_idx]
+        if ref_col_idx is not None:
+            final_col_map["ReferenceNumber"] = cleaned_columns[ref_col_idx]
+        if acct_col_idx is not None:
+            final_col_map["AccountLast4"] = cleaned_columns[acct_col_idx]
 
         # --- Handle Amount (Charges/Credits or Single Column) ---
         has_charges_credits = charges_col_idx is not None and credits_col_idx is not None
@@ -396,22 +401,26 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
             chgs_float = chgs_numeric.fillna(0) if chgs_numeric is not None else 0.0
             combined_df["Amount"] = creds_float - chgs_float # Credits are +, Charges are -
 
-            if creds_series is not None and creds_final_name != "Amount": cols_to_drop_after_calc.append(creds_final_name)
-            if chgs_series is not None and chgs_final_name != "Amount": cols_to_drop_after_calc.append(chgs_final_name)
+            if creds_series is not None and creds_final_name != "Amount":
+                cols_to_drop_after_calc.append(creds_final_name)
+            if chgs_series is not None and chgs_final_name != "Amount":
+                cols_to_drop_after_calc.append(chgs_final_name)
 
             if tot_numeric is not None:
                 log.debug(f"Found existing total column ('{tot_final_name}'), using its values where available.")
                 # Use the cleaned tot_numeric, fillna for the where condition
                 tot_float = tot_numeric # Already numeric
                 combined_df["Amount"] = combined_df["Amount"].where(tot_numeric.isna(), tot_float)
-                if tot_series is not None and tot_final_name != "Amount": cols_to_drop_after_calc.append(tot_final_name)
+                if tot_series is not None and tot_final_name != "Amount":
+                    cols_to_drop_after_calc.append(tot_final_name)
 
         elif tot_numeric is not None:
             log.debug(f"Using existing total column ('{tot_final_name}') as Amount.")
             # Assign the cleaned numeric series directly
             if tot_final_name != "Amount":
-                 combined_df["Amount"] = tot_numeric
-                 if tot_series is not None: cols_to_drop_after_calc.append(tot_final_name)
+                combined_df["Amount"] = tot_numeric
+                if tot_series is not None:
+                    cols_to_drop_after_calc.append(tot_final_name)
             else:
                  # Already named 'Amount', ensure it's the cleaned numeric version
                  combined_df["Amount"] = tot_numeric
@@ -506,7 +515,7 @@ def process_pdf(pdf_path: Path, owner_output_dir: Path, owner_name: str) -> bool
 
         # Check if empty *after* dropping invalid dates (already handled above, but double-check doesn't hurt)
         if combined_df.empty:
-             log.warning(f"DataFrame is empty before final column selection (double-check). Skipping.")
+             log.warning("DataFrame is empty before final column selection (double-check). Skipping.")
              return False # Should have already returned if empty after date drop
 
         # --- 8. Final Column Selection and Save ---

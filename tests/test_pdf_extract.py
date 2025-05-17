@@ -193,18 +193,22 @@ def test_derive_amount_logic(sample_amount_df):
         chgs_float = chgs.fillna(0).astype(float) if chgs is not None else 0.0
         df["Amount"] = creds_float - chgs_float # Credits +, Charges -
 
-        if creds is not None: cols_to_drop_after_calc.append(credits_col_name)
-        if chgs is not None: cols_to_drop_after_calc.append(charges_col_name)
+        if creds is not None:
+            cols_to_drop_after_calc.append(credits_col_name)
+        if chgs is not None:
+            cols_to_drop_after_calc.append(charges_col_name)
 
         if tot is not None:
             # Use the 'tot' series directly, as it was already cleaned and converted in Step 5
             df["Amount"] = df["Amount"].where(tot.isna(), tot)
-            if single_amount_col_name != "Amount": cols_to_drop_after_calc.append(single_amount_col_name)
+            if single_amount_col_name != "Amount":
+                cols_to_drop_after_calc.append(single_amount_col_name)
 
     elif tot is not None:
         # If only 'amount' (tot) exists, use it directly (already cleaned in Step 5)
         df["Amount"] = tot
-        if single_amount_col_name != "Amount": cols_to_drop_after_calc.append(single_amount_col_name)
+        if single_amount_col_name != "Amount":
+            cols_to_drop_after_calc.append(single_amount_col_name)
     else:
         pytest.fail("Test setup error: No amount columns found in fixture?")
 

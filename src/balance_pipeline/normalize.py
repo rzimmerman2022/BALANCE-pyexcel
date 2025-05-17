@@ -27,7 +27,7 @@ import re                  # Added for regex operations
 import csv                 # For reading merchant lookup CSV
 
 # Local application imports
-from .utils import _clean_desc           # Import cleaning function from utils
+from .utils import _clean_desc_single, clean_desc_vectorized # Updated import
 from .config import MERCHANT_LOOKUP_PATH # Import merchant lookup file path
 
 # ==============================================================================
@@ -83,13 +83,13 @@ def _load_merchant_lookup() -> List[Tuple[re.Pattern, str]]:
     except FileNotFoundError:
         log.error(f"Merchant lookup file not found: {MERCHANT_LOOKUP_PATH}. Proceeding without merchant cleaning rules.")
         _merchant_lookup_data = [] # Ensure it's an empty list so subsequent calls don't try to reload
+    except ValueError: # Specifically catch ValueErrors raised by header/regex checks
+        raise # Re-raise these critical ValueErrors to be caught by the module-level try-except
     except Exception as e: # Catch other potential errors like permission issues
-        log.error(f"Failed to load merchant lookup file {MERCHANT_LOOKUP_PATH}: {e}")
-        # Raise the error to halt execution if loading fails critically,
-        # unless it's a FileNotFoundError which is handled by returning empty rules.
-        if not isinstance(e, ValueError): # ValueError is already specific
-             raise RuntimeError(f"Critical error loading merchant lookup from {MERCHANT_LOOKUP_PATH}: {e}") from e
-        _merchant_lookup_data = [] # Fallback to empty list on other errors too
+        log.error(f"Failed to load merchant lookup file {MERCHANT_LOOKUP_PATH} (unexpected error): {e}")
+        _merchant_lookup_data = [] # Fallback to empty list on other errors
+        # Optionally, re-raise as RuntimeError if any other exception is considered critical
+        # raise RuntimeError(f"Critical unexpected error loading merchant lookup from {MERCHANT_LOOKUP_PATH}: {e}") from e
 
     return _merchant_lookup_data
 
@@ -117,8 +117,8 @@ def clean_merchant(description: str) -> str:
         if match:
             return canonical_name # Return the canonical name from the CSV
 
-    # Fallback if no pattern matched: apply _clean_desc and title-case
-    cleaned_desc = _clean_desc(description)
+    # Fallback if no pattern matched: apply _clean_desc_single and title-case
+    cleaned_desc = _clean_desc_single(description)
     return cleaned_desc.title()
 
 # --- Constants ---
@@ -158,14 +158,9 @@ FINAL_COLS = [
 def _txn_id(row: dict[str, Any]) -> str: # Changed input type to dict for apply lambda
     """Stable 16-char hex id using MD5."""
     # Extract values based on _ID_COLS_FOR_HASH, convert to string, strip whitespace, handle missing keys
-    hash_cols_local = _ID_COLS_FOR_HASH.copy() # Use a local copy to potentially modify
-    source = row.get('Source')
-    # Conditionally add 'Source' to the hash components for specific sources
-    if source in ('Rocket', 'Monarch'):
-        hash_cols_local.append('Source')
-        log.debug(f"Adding 'Source' ({source}) to hash components for TxnID.") # Optional: debug log
-
-    base_parts = [str(row.get(col, "")).strip() for col in hash_cols_local]
+    # Source is not included in TxnID hash components to allow for cross-source deduplication.
+    # Deduplication logic will use the 'Source' column and 'prefer_source' to pick the record to keep.
+    base_parts = [str(row.get(col, "")).strip() for col in _ID_COLS_FOR_HASH]
     # Join parts with a separator
     hash_input = "|".join(base_parts)
     # Encode to bytes, generate MD5 hash, get hex digest, truncate
@@ -209,23 +204,18 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
     # Work on a copy to avoid modifying the original DataFrame passed in.
     out = df.copy()
 
-    # --- Clean Description ---
-    # Apply the text cleaning function to the 'Description' column.
-    # Ensure 'Description' exists first for safety.
+    # --- Clean Description (Vectorized) ---
     if "Description" in out.columns:
-        # --- Clean Description ---
-        out["CleanDesc"] = out["Description"].apply(_clean_desc)
-        log.info("Generated 'CleanDesc' column.")
-        # --- Generate Canonical Merchant Name ---
-        # Apply the new local clean_merchant function.
+        out["CleanDesc"] = clean_desc_vectorized(out["Description"])
+        log.info("Generated 'CleanDesc' column using vectorized approach.")
+        # --- Generate Canonical Merchant Name (still uses apply due to regex iteration) ---
         out["CanonMerchant"] = out["Description"].apply(clean_merchant)
-        log.info("Generated 'CanonMerchant' column using regex cleaning rules.")
+        log.info("Generated 'CanonMerchant' column using regex cleaning rules (apply).")
     else:
-        # --- Handle Missing Description ---
-        log.warning("'Description' column not found, cannot generate 'CleanDesc'. Adding empty column.")
-        out["CleanDesc"] = ""
-        log.warning("'Description' column not found, cannot generate 'CanonMerchant'. Adding empty column.")
-        out["CanonMerchant"] = ""
+        log.warning("'Description' column not found. Adding empty 'CleanDesc' and 'CanonMerchant' columns.")
+        out["CleanDesc"] = pd.Series(dtype='object') # Ensure correct dtype for empty series
+        out["CanonMerchant"] = pd.Series(dtype='object')
+
 
     # --- Fallback for missing PostDate ---
     # If PostDate is missing or all null after ingest/mapping, use Date as fallback for hash stability
@@ -241,31 +231,38 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
     # Check if all columns needed for hashing are present.
     missing_id_cols = [col for col in _ID_COLS_FOR_HASH if col not in out.columns]
     if missing_id_cols:
-        # Log a critical error if columns needed for ID generation are missing.
-        log.error(f"Cannot generate TxnID. Missing required columns from input DataFrame: {missing_id_cols}. Adding 'TxnID' column with None.")
+        log.error(f"Cannot generate TxnID. Missing required ID columns: {missing_id_cols}. Adding 'TxnID' as None.")
         out["TxnID"] = None
     else:
-        # Apply the _txn_id function row by row using a lambda to pass row as dict
-        log.info(f"Generating TxnID using columns: {_ID_COLS_FOR_HASH}")
+        log.info(f"Generating TxnID using base columns: {_ID_COLS_FOR_HASH}")
+        # Vectorized approach for TxnID generation
+        
+        # Prepare components for hashing
+        hash_components = []
+        for col in _ID_COLS_FOR_HASH: # Use the original _ID_COLS_FOR_HASH
+            hash_components.append(out[col].astype(str).str.strip())
+        
+        # Base hash input: join components with '|'
+        hash_input_series = pd.Series(['|'.join(elements) for elements in zip(*hash_components)], index=out.index)
+        
+        # Apply MD5 hashing
+        # This part still uses .apply, but operates on already constructed strings
         try:
-            # Use apply with lambda to pass row as dictionary
-            out["TxnID"] = out.apply(lambda r: _txn_id(r.to_dict()), axis=1)
+            out["TxnID"] = hash_input_series.apply(lambda x: hashlib.md5(x.encode('utf-8')).hexdigest()[:16])
+            log.info("Generated 'TxnID' column using vectorized string operations and apply for hash.")
         except Exception as e:
-            log.error(f"Error applying _txn_id function: {e}", exc_info=True)
-            out["TxnID"] = None # Set to None on error
+            log.error(f"Error generating TxnID with vectorized approach: {e}", exc_info=True)
+            out["TxnID"] = None
 
         # --- Validate TxnID ---
         if out["TxnID"].isnull().any():
-             log.warning("Some TxnIDs could not be generated (returned None).")
-        # Check uniqueness (important!)
+            log.warning("Some TxnIDs could not be generated (returned None).")
         if out["TxnID"].notna().any() and not out.loc[out["TxnID"].notna(), "TxnID"].is_unique:
             duplicates = out[out.duplicated(subset=['TxnID'], keep=False) & out["TxnID"].notna()]
-            # Changed from critical to warning as deduplication handles this later
             log.warning(f"TxnID collision detected! {len(duplicates)} rows affected. "
                         f"This is expected if the same transaction appears in multiple sources (e.g., Monarch/Rocket) "
-                        f"before deduplication. Review columns used if unexpected: {_ID_COLS_FOR_HASH}. "
-                        f"Duplicate examples:\n{duplicates[['TxnID'] + list(_ID_COLS_FOR_HASH)].head()}") # Ensure list for concat
-             # REVIEW: Decide how to handle collisions - raise error? Flag rows?
+                        f"before deduplication. Review columns used if unexpected. "
+                        f"Duplicate examples:\n{duplicates[['TxnID'] + _ID_COLS_FOR_HASH].head()}")
 
      # --- Add Default Shared Flag ---
     # Initialize the 'SharedFlag' column with '?' indicating it needs review.
@@ -295,38 +292,32 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
     # multiple aggregator sources
     initial_row_count = len(out)
     
-    # Sort by Source column to prioritize which rows to keep when dropping duplicates
-    # Using the preferred source parameter (default 'Rocket') to control which source wins
-    # Check if there are any duplicated rows by TxnID with Source column
-    if "Source" in out.columns:
-        # Log duplicates for debugging
-        dupes = out[out.duplicated(subset=["TxnID"], keep=False)]
-        if not dupes.empty:
-            log.info(f"Found {len(dupes)} rows with duplicated TxnIDs")
-            
-            # Sort to prioritize the preferred source first
-            log.info(f"Using preferred source '{prefer_source}' for deduplication")
-            
-            # Custom sorting logic that puts the preferred source first and handles NA
-            def prefer_source_sorter(source_series):
-                # Treat NA as non-preferred (assign 1)
-                return [0 if pd.notna(s) and s == prefer_source else 1 for s in source_series]
+    if "Source" in out.columns and "TxnID" in out.columns and out["TxnID"].notna().any():
+        # Create a temporary sort key column for deduplication
+        # Lower number means higher priority (0 for preferred, 1 for others, 2 for NA Source)
+        out['_sort_key_for_dedupe'] = 2 # Default for NA or non-matching
+        out.loc[out['Source'] == prefer_source, '_sort_key_for_dedupe'] = 0
+        out.loc[(out['Source'] != prefer_source) & pd.notna(out['Source']), '_sort_key_for_dedupe'] = 1
+        
+        # Sort by TxnID and the deduplication key.
+        # The original index is not a valid column name for sorting here.
+        # Stability of sort (for items with same TxnID and _sort_key_for_dedupe)
+        # will preserve original relative order if mergesort (default for multiple keys) is used.
+        out = out.sort_values(by=['TxnID', '_sort_key_for_dedupe'], kind='mergesort')
+        
+        num_duplicates_before = out.duplicated(subset=["TxnID"], keep=False).sum()
+        if num_duplicates_before > 0:
+            log.info(f"Found {num_duplicates_before} potential duplicate entries based on TxnID before deduplication by preferred source ('{prefer_source}').")
 
-            # Use the custom sorter to prioritize the preferred source
-            out = out.sort_values("Source", key=prefer_source_sorter)
-            
-            # Count dupes before removal
-            dupe_count_before = out.duplicated(subset=["TxnID"], keep=False).sum()
-            
-            # Remove duplicates, keeping the first occurrence (which will be the preferred source due to sorting)
-            out = out.drop_duplicates(subset=["TxnID"], keep="first")
-            
-            # Calculate how many were removed
-            dupe_count_after = initial_row_count - len(out)
-            
-            if dupe_count_after > 0:
-                log.info(f"Removed {dupe_count_after} duplicate transactions from aggregator sources. Prioritized based on Source.")
-    
+        out = out.drop_duplicates(subset=["TxnID"], keep="first")
+        out = out.drop(columns=['_sort_key_for_dedupe']) # Remove temporary sort key
+        
+        num_removed = initial_row_count - len(out)
+        if num_removed > 0:
+            log.info(f"Removed {num_removed} duplicate transactions from aggregator sources, prioritizing '{prefer_source}'.")
+    else:
+        log.info("Skipping source-based deduplication: 'Source' or 'TxnID' column missing, or no TxnIDs generated.")
+
     log.info("Normalization complete. Returning %s rows.", len(out))
     return out
 

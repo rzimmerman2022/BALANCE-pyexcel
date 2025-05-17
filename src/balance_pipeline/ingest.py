@@ -20,7 +20,6 @@ Author: Your Name / AI Assistant
 # ==============================================================================
 from __future__ import annotations  # Ensures compatibility with type hints like str | Path
 from pathlib import Path
-from typing import Dict  # Used Dict explicitly
 import pandas as pd
 import yaml
 import re
@@ -186,7 +185,7 @@ def _apply_sign_rule(df: pd.DataFrame, rule: str | None) -> pd.DataFrame:
                 withdrawal_mask = df["Category"].notna() & df["Category"].str.contains("Withdrawal|Payment", case=False, na=False, regex=True)
                 # For matched rows, ensure the Amount is negative (take absolute value, then negate).
                 df.loc[withdrawal_mask, "Amount"] = -df.loc[withdrawal_mask, "Amount"].abs()
-                logging.info(f"Applied 'flip_if_withdrawal' sign rule using 'Category' column.")
+                logging.info("Applied 'flip_if_withdrawal' sign rule using 'Category' column.")
             else:
                 # Log a warning if the required Category column is missing for this rule.
                 logging.warning("Sign rule 'flip_if_withdrawal' requires a 'Category' column, which was not found.")

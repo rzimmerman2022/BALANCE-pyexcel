@@ -16,13 +16,12 @@ Author: AI Assistant (Cline)
 import re
 import csv
 import logging
-from pathlib import Path
 from functools import lru_cache
 
 # Import config for path settings
 from . import config
 # Import the cleaning function from the new utils module
-from .utils import _clean_desc
+from .utils import _clean_desc_single
 
 
 # --- Setup Logger ---
@@ -85,7 +84,7 @@ def normalize_merchant(raw_desc: str | None) -> str:
         return ""
 
     # Apply initial cleaning (e.g., accents, extra spaces, uppercase)
-    cleaned_desc = _clean_desc(str(raw_desc))
+    cleaned_desc = _clean_desc_single(str(raw_desc))
 
     # Check against loaded regex patterns
     for regex_pattern, canonical_name in _LOOKUP:

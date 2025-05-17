@@ -8,6 +8,7 @@ import zipfile
 from pathlib import Path
 import pytest
 import pandas as pd
+from pandas.testing import assert_frame_equal # Added for F821
 import openpyxl # For creating more realistic Excel files
 
 # Import constants for column names if needed, or define them
@@ -148,7 +149,8 @@ def test_cli_sync_flow_with_parquet_and_queue(base_cli_command, sample_csv_dir, 
     for col in FINAL_COLS:
         if col not in initial_parquet_data:
             initial_parquet_data[col] = [None] * len(initial_parquet_data["TxnID"])
-            if col == "SplitPercent": initial_parquet_data[col] = [pd.NA] * len(initial_parquet_data["TxnID"])
+            if col == "SplitPercent":
+                initial_parquet_data[col] = [pd.NA] * len(initial_parquet_data["TxnID"])
 
 
     # To get the actual TxnID for "Merchant A TX1", we might need to call normalize_df
@@ -167,11 +169,11 @@ def test_cli_sync_flow_with_parquet_and_queue(base_cli_command, sample_csv_dir, 
     # TX1 (from csv_content1) to be 'S', 30%
     # TX2 (from csv_content1) to be 'N'
     # TX3 (from csv_content2) not in Queue_Review
-    queue_review_data = {
-        QUEUE_TXNID_COL: ["TX1_placeholder", "TX2_placeholder"], # These need to match generated TxnIDs
-        QUEUE_DECISION_COL: ['S', 'N'],
-        QUEUE_SPLIT_COL: ['30', pd.NA]
-    }
+    # queue_review_data = { # F841: Local variable `queue_review_data` is assigned to but never used
+    #     QUEUE_TXNID_COL: ["TX1_placeholder", "TX2_placeholder"], # These need to match generated TxnIDs
+    #     QUEUE_DECISION_COL: ['S', 'N'],
+    #     QUEUE_SPLIT_COL: ['30', pd.NA]
+    # }
     # This test will be more robust if we can predict or pass TxnIDs.
     # For now, we'll rely on the CLI output and check against that.
     # The current sample_csv_dir creates TX1, TX2, TX3.

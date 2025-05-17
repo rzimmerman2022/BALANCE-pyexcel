@@ -141,15 +141,21 @@ You can use DuckDB to query this data directly for more advanced analysis or con
         (Replace paths with your actual temporary folders).
     *   Move the generated CSV files (e.g., `jordyn_pdf_*.csv`) from `C:\PDF_Output` into the *main* CSV inbox folder under the correct owner (e.g., `C:\MyCSVs\Jordyn\`).
 2.  **Download & Place CSVs:** Download any *direct* transaction CSV files from your banks/cards. Place each file into the correct owner's subfolder within your designated external CSV Inbox folder (e.g., put Ryan's Monarch CSV into `C:\MyCSVs\Ryan\`).
-3.  **Open Workbook:** Open `workbook/BALANCE-pyexcel.xlsm` in Excel.
-4.  **Refresh Python ETL:** Trigger the main Python calculation. This is typically done by:
+3.  **(Optional) Add Merchant Rules:** If you know certain transaction descriptions should always map to a specific merchant name, you can add rules via the command line:
+    ```bash
+    poetry run balance-merchant add "<regex_pattern_for_description>" "<Canonical Merchant Name>"
+    # Example: poetry run balance-merchant add "^AMAZON MKTP US\\*AB123" "Amazon Marketplace"
+    ```
+    This appends the rule to `rules/merchant_lookup.csv`.
+4.  **Open Workbook:** Open `workbook/BALANCE-pyexcel.xlsm` in Excel.
+5.  **Refresh Python ETL:** Trigger the main Python calculation. This is typically done by:
     * Finding the cell containing the `=PY(etl_main(...))` formula (likely on a sheet like `PythonRuntime`).
     * Recalculating that cell (e.g., selecting it, pressing F2, then Enter) or using Excel's `Data > Refresh All` (may require specific setup).
-4.  **Check Results:** View the processed, normalized, and owner-tagged data on the `Transactions` sheet.
-5.  **Review Queue:** Go to the `Queue_Review` sheet. Any transactions where `SharedFlag` is `?` (meaning not automatically classified yet) will appear here based on the `FILTER` formula.
-6.  **Classify:** Manually enter `Y` (Shared), `N` (Personal), or `S` (Split) in the `Set Shared?` column on the `Queue_Review` sheet. Add split percentages if needed.
-7.  **(Future)** Sync Decisions: Trigger a (currently unimplemented) Python cell/button to read the decisions from `Queue_Review` and update the `SharedFlag`/`SplitPercent` on the main `Transactions` sheet.
-8.  **(Future)** View Dashboard: Check calculated balances and visualizations on the `Dashboard` sheet.
+6.  **Check Results:** View the processed, normalized, and owner-tagged data on the `Transactions` sheet.
+7.  **Review Queue:** Go to the `Queue_Review` sheet. Any transactions where `SharedFlag` is `?` (meaning not automatically classified yet) will appear here based on the `FILTER` formula.
+8.  **Classify:** Manually enter `Y` (Shared), `N` (Personal), or `S` (Split) in the `Set Shared?` column on the `Queue_Review` sheet. Add split percentages if needed.
+9.  **(Future)** Sync Decisions: Trigger a (currently unimplemented) Python cell/button to read the decisions from `Queue_Review` and update the `SharedFlag`/`SplitPercent` on the main `Transactions` sheet.
+10. **(Future)** View Dashboard: Check calculated balances and visualizations on the `Dashboard` sheet.
 
 ## Project Structure
 

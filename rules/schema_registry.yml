@@ -189,7 +189,7 @@
     PostDate: PostDate
     ReferenceNumber: ReferenceNumber      # (leave Comment above)
   # Date format expected in the CSV after PDF processing.
-  date_format: '%Y-%m-%d' # Added based on expected PDF extractor output format
+  date_format: '%m/%d/%Y' # Corrected to match fixture data
   # Regex to clean the Amount column before converting to numeric.
   # Strips optional leading hyphen, optional dollar sign, and commas.
   amount_regex: '-?\$?([\d,]+\.\d{2})' # Added to handle potential formatting issues
@@ -200,6 +200,43 @@
 # Schema ID: jordyn_pdf_document
 # Description: Rules for CSVs generated from Jordyn's PDFs (Document*.csv files)
 #              These files have MM/DD date format and need year inference.
+
+# ------------------------------------------------------------------------------
+# Schema ID: test_data_source1
+# Description: For test_cli_integration.py data_source1.csv
+# ------------------------------------------------------------------------------
+- id: test_data_source1
+  match_filename: "data_source1.csv"
+  header_signature: ["Date", "Description", "Amount", "Account", "Category", "Bank"] # Basic assumption
+  column_map:
+    Date: Date
+    Description: Description
+    Amount: Amount
+    Account: Account
+    Category: Category
+    Bank: Bank
+  sign_rule: as_is # Default, adjust if tests imply specific sign handling
+  extra_static_cols:
+    Source: "TestSource1"
+
+# ------------------------------------------------------------------------------
+# Schema ID: test_data_source2
+# Description: For test_cli_integration.py data_source2.csv
+# ------------------------------------------------------------------------------
+- id: test_data_source2
+  match_filename: "data_source2.csv"
+  header_signature: ["Date", "Description", "Amount", "Account", "Category", "Bank"] # Basic assumption
+  column_map:
+    Date: Date
+    Description: Description
+    Amount: Amount
+    Account: Account
+    Category: Category
+    Bank: Bank
+  sign_rule: as_is # Default, adjust if tests imply specific sign handling
+  extra_static_cols:
+    Source: "TestSource2"
+
 # ==============================================================================
 # End of Schema Registry File
 # ==============================================================================

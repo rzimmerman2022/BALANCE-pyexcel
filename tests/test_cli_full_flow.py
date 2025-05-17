@@ -4,7 +4,6 @@ Integration tests for the full CLI workflow including Excel workbook interaction
 """
 import os
 import subprocess
-import tempfile
 import zipfile
 from pathlib import Path
 import shutil

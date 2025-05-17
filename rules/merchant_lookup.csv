@@ -1,1 +1,7 @@
 pattern,canonical
+SQ\s*\*?\s*MY COFFEE SHOP.*,My Coffee Shop
+STARBUCKS.*,Starbucks
+WAL\sMART.*,Walmart
+AMAZON\.COM.*,Amazon Com
+SUPER.*MART,SuperMart
+^COFFEE SHOP$,Generic Coffee Place
