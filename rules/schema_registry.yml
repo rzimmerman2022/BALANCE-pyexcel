@@ -34,11 +34,11 @@
   header_signature: ["Name", "Institution", "Account Type", "Transaction Date"]
   # Mapping from the column names found IN THE CSV to our STANDARD column names.
   column_map:
-    Transaction Date: Date       # Source 'Transaction Date' maps to our 'Date'
-    Description: Description    # Source 'Description' maps to our 'Description'
-    Post Date: PostDate         # NEW - Map "Post Date" to "PostDate"
-    Amount: Amount              # Source 'Amount' maps to our 'Amount'
-    Category: Category          # Source 'Category' maps to our 'Category' (Chase provides this)
+    Transaction Date: Date
+    Description: OriginalDescription # Mapped to OriginalDescription
+    Post Date: PostDate
+    Amount: Amount
+    Category: Category
     Account Type: Account       # Map Account Type to our standard Account column
   # Rule for correcting the sign of the 'Amount' column.
   # 'flip_if_withdrawal': Makes 'Amount' negative ONLY IF the 'Category' column
@@ -58,37 +58,15 @@
   # Column mapping: Source CSV column -> Standard internal column name.
   column_map:
     Date: Date
-    Post Date: PostDate         # NEW - Map "Post Date" to "PostDate"
-    Description: Description
+    Post Date: PostDate
+    Description: OriginalDescription # Mapped to OriginalDescription
     Amount: Amount
-    Category: Category          # Discover sample includes Category
-    Card Type: Account         # Map Card Type to our standard Account column
-    # Example: Transaction Type: Transaction Type # Assuming a column named "Transaction Type" exists in some Discover CSVs
+    Category: Category
+    Card Type: Account
+    Transaction Type: AccountType   # Mapped to AccountType
   # Sign rule: How to handle the Amount sign.
-  # This demonstrates the complex sign rule. If 'Transaction Type' column is not present
-  # or doesn't match, amounts might not be flipped as expected by this rule.
-  # The 'as_is' rule was based on a sample where payments were already negative.
-  # This complex rule would override 'as_is' if the conditions are met.
-  sign_rule:
-    type: flip_if_column_value_matches
-    # IMPORTANT: 'column' refers to the column name *after* mapping by 'column_map' if it was mapped,
-    # OR the original column name if it wasn't explicitly mapped but exists in the CSV.
-    # For this example, let's assume "Transaction Type" is a column that might exist in the source
-    # and we want to use its raw name. If it were mapped, e.g. "Details" -> "TransactionTypeMapped",
-    # then 'column' here should be "TransactionTypeMapped".
-    # For simplicity, assuming "Transaction Type" is the raw column name to check.
-    column: "Transaction Type" # Raw name from CSV
-    debit_values: ["debit", "withdrawal", "payment"] # Case-insensitive match
-    # If 'Transaction Type' (normalized) matches one of these, and Amount is positive, flip it.
-    # If 'Transaction Type' matches and Amount is negative, it's kept as is (already a debit).
-    # If 'Transaction Type' does NOT match (e.g., "credit", "refund"), and Amount is negative, flip it to positive.
-    # If 'Transaction Type' does NOT match and Amount is positive, it's kept as is (already a credit/inflow).
-    # This logic implies: flip positive amounts if debit_value matches; flip negative amounts if debit_value does NOT match.
-    # This is a common pattern for credit card statements where debits are positive and credits are negative.
-    # The goal is: outflows are negative, inflows are positive.
-    # So:
-    # 1. If type in debit_values: Amount should be negative. If current Amount > 0, flip.
-    # 2. If type NOT in debit_values (i.e., it's a credit/refund): Amount should be positive. If current Amount < 0, flip.
+  # Changed to flip_if_positive as Transaction Type column is not reliably present.
+  sign_rule: flip_if_positive
 
 # ------------------------------------------------------------------------------
 # Schema ID: wells_fargo_card
@@ -102,19 +80,18 @@
   # Column mapping: Source CSV column -> Standard internal column name.
   column_map:
     Date: Date
-    Post Date: PostDate         # NEW - Map "Post Date" to "PostDate"
-    Description: Description
-    Amount: Amount              # <<< FIX: Added direct Amount mapping (sample confirmed it exists)
-    Category: Category          # <<< FIX: Added direct Category mapping (sample confirmed it exists)
-    Account Description: Account # Map Account Description to our standard Account column
-  # derived_columns:             # <<< FIX: REMOVED derived_columns section (not needed)
+    Post Date: PostDate
+    Description: OriginalDescription # Mapped to OriginalDescription
+    Amount: Amount
+    Category: Category
+    Account Description: Account
   # Sign rule: How to handle the Amount sign.
   # 'flip_if_positive': Makes any positive Amount negative. Assumes credits/payments are negative.
   #                     Chosen because Purchases in sample were positive.
-  sign_rule: flip_if_positive   # <<< FIX: Changed from as_is based on sample data review
+  sign_rule: flip_if_positive
   # Static columns to add to every row from this source
   extra_static_cols:
-    Bank: "Wells Fargo"    # Added to prevent TxnID collisions
+    Institution: "Wells Fargo" # Changed Bank to Institution
 
 # ------------------------------------------------------------------------------
 # Schema ID: monarch_export
@@ -131,10 +108,10 @@
   # Column mapping: Source CSV column -> Standard internal column name.
   column_map:
     Date: Date
-    Merchant: Description       # Use Monarch's 'Merchant' field as our standard 'Description'.
+    Merchant: OriginalDescription # Mapped to OriginalDescription
     Amount: Amount
     Account: Account
-    Institution: Bank           # Map Institution to Bank for consistent naming
+    Institution: Institution      # Mapped to Institution
     Category: Category
   # Sign rule: How to handle the Amount sign.
   # 'as_is': Keep the sign as is. Monarch sample showed outflows were already negative.
@@ -155,10 +132,10 @@
   # Column mapping: Source CSV column -> Standard internal column name.
   column_map:
     Date: Date
-    Description: Description    # Use the existing Description field instead of Name
+    Description: OriginalDescription # Mapped to OriginalDescription
     Amount: Amount
-    Account Name: Account       # Use Rocket Money's 'Account Name' as our standard 'Account'.
-    Institution Name: Bank      # Map Institution Name to Bank for consistent naming
+    Account Name: Account
+    Institution Name: Institution   # Mapped to Institution
     Category: Category
   # Sign rule: How to handle the Amount sign.
   # 'flip_if_positive': Flips positive amounts to negative.
@@ -174,13 +151,13 @@
   match_filename: "BALANCE - Jordyn PDF - Document*.csv"
   header_signature: ["TransDate", "RawMerchant", "Amount", "AccountLast4"]
   extra_static_cols:
-    Bank: "Wells Fargo"
+    Institution: "Wells Fargo" # Changed Bank to Institution
   column_map:
     TransDate:   Date
-    RawMerchant: Description
+    RawMerchant: OriginalDescription # Mapped to OriginalDescription
     Amount:      Amount
     AccountLast4: Account
-    PostDate: PostDate # Assuming PostDate might exist or be added
+    PostDate: PostDate
     ReferenceNumber: ReferenceNumber # Assuming ReferenceNumber might exist
   # No date_format specified initially, to let pandas infer MM/DD.
   # Year will need to be inferred or added, potentially in ingest.py if parsing fails.
@@ -201,13 +178,13 @@
   header_signature: ["TransDate", "RawMerchant", "Amount"] # Corrected header signature
   # Static columns to add
   extra_static_cols:
-    Bank: "Wells Fargo"
+    Institution: "Wells Fargo" # Changed Bank to Institution
   # Column mapping for the CSVs *after* processing by process_pdfs.py
   column_map:
-    TransDate:   Date        # Map CSV 'TransDate' (now with year) to standard 'Date'
-    RawMerchant: Description # Map CSV 'RawMerchant' to standard 'Description'
-    Amount:      Amount      # Map CSV 'Amount' (cleaned) to standard 'Amount'
-    AccountLast4: Account    # Map AccountLast4 to standard Account
+    TransDate:   Date
+    RawMerchant: OriginalDescription # Mapped to OriginalDescription
+    Amount:      Amount
+    AccountLast4: Account
     PostDate: PostDate
     ReferenceNumber: ReferenceNumber      # (leave Comment above)
   # Date format expected in the CSV after PDF processing.
@@ -232,11 +209,11 @@
   header_signature: ["Date", "Description", "Amount", "Account", "Category", "Bank"] # Basic assumption
   column_map:
     Date: Date
-    Description: Description
+    Description: OriginalDescription # Mapped to OriginalDescription
     Amount: Amount
     Account: Account
     Category: Category
-    Bank: Bank
+    Bank: Institution             # Mapped to Institution
   sign_rule: as_is # Default, adjust if tests imply specific sign handling
   extra_static_cols:
     Source: "TestSource1"
@@ -250,11 +227,11 @@
   header_signature: ["Date", "Description", "Amount", "Account", "Category", "Bank"] # Basic assumption
   column_map:
     Date: Date
-    Description: Description
+    Description: OriginalDescription # Mapped to OriginalDescription
     Amount: Amount
     Account: Account
     Category: Category
-    Bank: Bank
+    Bank: Institution             # Mapped to Institution
   sign_rule: as_is # Default, adjust if tests imply specific sign handling
   extra_static_cols:
     Source: "TestSource2"

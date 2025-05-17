@@ -530,16 +530,31 @@ Examples:
                 df.drop(columns=["SplitPercent_canonical"], inplace=True)
             
             # Ensure SharedFlag/SplitPercent have no NaNs from failed merges (new items in df_from_sources)
-            # normalize_df should have already set defaults, but fillna here is a safeguard.
+            # csv_consolidator.py (via process_csv_files) should ensure these columns exist with correct dtypes.
+            # This section is a safeguard, especially after merges which can alter dtypes.
             if "SharedFlag" in df.columns:
-                 df["SharedFlag"] = df["SharedFlag"].fillna("?")
-            else: # Should not happen if normalize_df works
-                 df["SharedFlag"] = "?"
+                # Ensure the column is nullable boolean before filling
+                if not pd.api.types.is_extension_array_dtype(df["SharedFlag"]) or df["SharedFlag"].dtype != pd.BooleanDtype():
+                    log.debug(f"SharedFlag dtype before astype: {df['SharedFlag'].dtype}. Coercing to pd.BooleanDtype().")
+                    # Replace any problematic string placeholders if they somehow got in, before coercing
+                    df["SharedFlag"] = df["SharedFlag"].replace({'?': pd.NA, '': pd.NA})
+                    df["SharedFlag"] = df["SharedFlag"].astype(pd.BooleanDtype())
+                df["SharedFlag"] = df["SharedFlag"].fillna(value=pd.NA)
+            else:
+                 log.warning("SharedFlag column was missing after merge with canonical_df. Creating it with pd.NA and boolean dtype.")
+                 df["SharedFlag"] = pd.NA
+                 df["SharedFlag"] = df["SharedFlag"].astype(pd.BooleanDtype())
             
             if "SplitPercent" in df.columns:
-                 df["SplitPercent"] = df["SplitPercent"].fillna(pd.NA)
-            else: # Should not happen if normalize_df works
+                # Ensure the column is float before filling
+                if df["SplitPercent"].dtype != 'float64' and df["SplitPercent"].dtype != 'float32':
+                     log.debug(f"SplitPercent dtype before astype: {df['SplitPercent'].dtype}. Coercing to float.")
+                     df["SplitPercent"] = pd.to_numeric(df["SplitPercent"], errors='coerce') # Coerce to numeric first
+                df["SplitPercent"] = df["SplitPercent"].fillna(pd.NA)
+            else:
+                 log.warning("SplitPercent column was missing after merge with canonical_df. Creating it with pd.NA and float dtype.")
                  df["SplitPercent"] = pd.NA
+                 df["SplitPercent"] = df["SplitPercent"].astype('float')
 
             log.info("Merged existing classifications. DataFrame now has %s rows.", len(df))
         elif not df_from_sources.empty:
@@ -601,6 +616,12 @@ Examples:
         # Step 4: Save final DataFrame to the canonical Parquet file
         # Path is sibling to the workbook, using filename from config
         parquet_path = workbook.parent / config.BALANCE_FINAL_PARQUET_FILENAME
+
+        # Confirm the DataFrame shape before write
+        if not df.empty:
+            log.info("⚙️  Final DF columns (%d): %s", len(df.columns), list(df.columns))
+        else:
+            log.info("⚙️  Final DF is empty before Parquet write.")
         
         # Stage 2.1 Retry loop for Parquet write
         max_retries = 5
@@ -748,30 +769,36 @@ def _create_queue_review_template(df: pd.DataFrame, writer: Any, sheet_name: str
         "Set Split % (0-100)",
         # Add context columns for easier review
         "Date",
-        "Description",
-        "CanonMerchant", # Added Canonical Merchant
+        "OriginalDescription", # Changed Description to OriginalDescription
+        "Merchant",
         "Amount",
         "Owner"
     ])
     
-    # Find sample rows from transactions that have the default '?' SharedFlag
+    # Find sample rows from transactions that have the default '?' SharedFlag or are pd.NA
     # Ensure 'SharedFlag' column exists before filtering
     if "SharedFlag" in df.columns:
-        need_review = df[df["SharedFlag"] == "?"].head(10) # Take top 10 needing review
+        # Check for pd.NA for items needing review, as '?' should no longer be used at this stage
+        # However, sync_review_decisions might still introduce '?' if not updated.
+        # For now, let's assume '?' is the marker from sync_review_decisions.
+        # If sync_review_decisions is updated to use pd.NA, this check will need to be df["SharedFlag"].isna()
+        needs_review_mask = (df["SharedFlag"] == '?') | df["SharedFlag"].isna()
+        need_review = df[needs_review_mask].head(10) # Take top 10 needing review
+
         if not need_review.empty:
-            log.debug(f"Found {len(need_review)} sample rows needing review for template.")
+            log.debug(f"Found {len(need_review)} sample rows needing review (SharedFlag is '?' or NA) for template.")
             template_rows = []
             for _, row in need_review.iterrows():
                 # Ensure all context columns exist in the row before appending
-                context_cols = ["Date", "Description", "CanonMerchant", "Amount", "Owner"] # Added CanonMerchant
+                context_cols = ["Date", "OriginalDescription", "Merchant", "Amount", "Owner"] # Changed Description to OriginalDescription
                 if all(col in row for col in context_cols):
                      template_rows.append({
                          "TxnID": row.get("TxnID", "MISSING_ID"), # Use .get for safety
                          "Set Shared? (Y/N/S for Split)": "", # Blank for user input
                          "Set Split % (0-100)": None,        # Blank for user input
                          "Date": row.get("Date"),
-                         "Description": row.get("Description"),
-                         "CanonMerchant": row.get("CanonMerchant"), # Added CanonMerchant
+                         "Description": row.get("OriginalDescription"), # Changed Description to OriginalDescription
+                         "Merchant": row.get("Merchant"),
                          "Amount": row.get("Amount"),
                          "Owner": row.get("Owner")
                      })

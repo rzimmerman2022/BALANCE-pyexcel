@@ -1,9 +1,5 @@
-docs: add Power BI, CLI, and Sync guides; update nav
+docs: add Development Notes and update nav
 
-- New pages:
-  * docs/powerbi_integration.md
-  * docs/cli_usage.md
-  * docs/sync_review.md
-- Refreshed quick_start.md and index.md
-- Updated mkdocs.yml to surface new pages
-EOF
+- new file: docs/development_notes.md
+- mkdocs.yml: added "Development Notes" under Developer Guide
+- small copy edits for clarity

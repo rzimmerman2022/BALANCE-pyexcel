@@ -25,6 +25,7 @@ import logging
 import json
 import re
 import hashlib # Added hashlib import
+from collections import Counter # Added for schema matching smoke test
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union # Corrected Union import
@@ -203,7 +204,8 @@ def find_matching_schema(
 # Master schema fields required for TxnID: Date, PostDate, Amount, OriginalDescription (or Merchant if OriginalDescription is not directly mapped), Account, Institution (or Bank if mapped)
 # For simplicity and alignment with existing normalize.py, let's define the cols needed for hashing here.
 # These are the *target* master schema column names after mapping.
-TXN_ID_HASH_COLS = ["Date", "PostDate", "Amount", "OriginalDescription", "Account", "Institution"]
+# Removed PostDate and Institution as they are not reliably available across all sources.
+TXN_ID_HASH_COLS = ["Date", "Amount", "OriginalDescription", "Account"]
 
 
 def _generate_txn_id(row: pd.Series) -> str:
@@ -214,8 +216,19 @@ def _generate_txn_id(row: pd.Series) -> str:
     # Ensure all required columns for hashing are present in the row
     # Use .get(col, '') to handle potentially missing columns gracefully, defaulting to empty string
     # Convert to string and strip whitespace
-    base_parts = [str(row.get(col, "")).strip() for col in TXN_ID_HASH_COLS]
-    hash_input = "|".join(base_parts)
+    parts = []
+    for col in TXN_ID_HASH_COLS:
+        val = row.get(col)
+        if pd.isna(val): # Handles None, pd.NaT, np.nan
+            parts.append("")
+        else:
+            # For datetime objects (like Date, PostDate), convert to ISO format string
+            if isinstance(val, (datetime, pd.Timestamp)):
+                parts.append(val.isoformat()[:10]) # YYYY-MM-DD
+            else:
+                parts.append(str(val).strip())
+    
+    hash_input = "|".join(parts)
     
     # Import hashlib here if not already at module level, or ensure it is.
     # hashlib is now imported at the module level
@@ -384,6 +397,20 @@ def apply_schema_transformations(
         elif sign_rule == 'flip_always':
             transformed_df[amount_col_name] = -transformed_df[amount_col_name]
             log.info(f"Applied sign_rule 'flip_always' to '{amount_col_name}'.")
+        elif sign_rule == 'flip_if_withdrawal':
+            # Specific rule for chase_total_checking
+            if 'Category' in transformed_df.columns:
+                withdrawal_categories = ['withdrawal', 'payment']
+                # Apply to rows where Category matches and Amount is positive
+                mask = (
+                    transformed_df['Category'].astype(str).str.lower().isin(withdrawal_categories) &
+                    (transformed_df[amount_col_name] > 0) &
+                    pd.notna(transformed_df[amount_col_name])
+                )
+                transformed_df.loc[mask, amount_col_name] = -transformed_df.loc[mask, amount_col_name]
+                log.info(f"Applied sign_rule 'flip_if_withdrawal' to '{amount_col_name}' based on 'Category'.")
+            else:
+                log.warning("Sign_rule 'flip_if_withdrawal' specified, but 'Category' column not found. Rule not applied.")
         elif sign_rule == 'as_is':
             log.info(f"Sign_rule for '{amount_col_name}' is 'as_is'. No changes to sign.")
         elif isinstance(sign_rule, dict) and sign_rule.get('type') == 'flip_if_column_value_matches':
@@ -407,6 +434,10 @@ def apply_schema_transformations(
 
             if actual_col_to_check and debit_values:
                 log.info(f"Applying complex sign_rule 'flip_if_column_value_matches' on column '{actual_col_to_check}' with debit_values: {debit_values}.")
+                # Log unique values from the column that drives the sign_rule
+                if actual_col_to_check in transformed_df.columns:
+                    unique_sign_rule_values = transformed_df[actual_col_to_check].astype(str).unique().tolist()
+                    log.info(f"Unique values in '{actual_col_to_check}' (for sign_rule): {unique_sign_rule_values}")
                 
                 def adjust_sign(row):
                     amount = row[amount_col_name]
@@ -541,6 +572,12 @@ def apply_schema_transformations(
     # - Complex sign_rule (e.g. based on another column's value)
     # - Specific source pre-processing (if unavoidable by YAML)
 
+    # Verify apply_schema_transformations returns only canonical + extras
+    expected_cols = set(MASTER_SCHEMA_COLUMNS) | {"Extras"}
+    for col in transformed_df.columns:
+        if col not in expected_cols:
+            log.warning("Unexpected column survived mapping: %s", col)
+
     return transformed_df
 
 
@@ -602,6 +639,7 @@ def process_csv_files(
     merchant_rules = load_merchant_lookup_rules(merchant_lkp_path)
 
     all_processed_dfs: List[pd.DataFrame] = []
+    schema_ids_found: List[str] = [] # For schema matching smoke test
 
     for csv_file_path_obj in [Path(p) for p in csv_files]:
         log.info(f"Processing CSV file: {csv_file_path_obj.name}")
@@ -632,9 +670,12 @@ def process_csv_files(
 
         if not matched_schema:
             log.error(f"No matching schema found for {csv_file_path_obj.name}. Skipping file.")
+            schema_ids_found.append('None (no match)') # For smoke test
             continue
         
-        log.info(f"Using schema '{matched_schema.get('id')}' for {csv_file_path_obj.name}.")
+        schema_id_for_file = matched_schema.get('id', 'None (id missing in schema)')
+        schema_ids_found.append(schema_id_for_file) # For smoke test
+        log.info(f"Using schema '{schema_id_for_file}' for {csv_file_path_obj.name}.")
 
         # Apply schema transformations (column mapping, basic types, derived, static, etc.)
         processed_df = apply_schema_transformations(raw_df, matched_schema, merchant_rules)
@@ -651,17 +692,28 @@ def process_csv_files(
         processed_df['Merchant'] = _clean_merchant_column(processed_df, merchant_rules)
         log.info("Applied final merchant cleaning.")
 
-        # Generate TxnID
-        # Ensure all columns for TXN_ID_HASH_COLS are present before applying
-        missing_hash_cols = [col for col in TXN_ID_HASH_COLS if col not in processed_df.columns]
-        if missing_hash_cols:
-            log.error(f"Cannot generate TxnID for {csv_file_path_obj.name}. Missing required columns for hashing: {missing_hash_cols}. TxnID will be None.")
-            processed_df['TxnID'] = None
+        # Log merchant blanks for the current file
+        if 'Merchant' in processed_df.columns and not processed_df.empty:
+            blanks = processed_df['Merchant'].isna().sum()
+            percentage_blanks = (blanks / len(processed_df)) * 100 if len(processed_df) > 0 else 0
+            log.info(f"🛒 Merchant blanks after clean for file {csv_file_path_obj.name}: {blanks} ({percentage_blanks:.2f}%)")
+        elif processed_df.empty:
+            log.info(f"🛒 Merchant blanks after clean for file {csv_file_path_obj.name}: N/A (empty DataFrame)")
         else:
-            processed_df['TxnID'] = processed_df.apply(_generate_txn_id, axis=1)
-            log.info("Generated 'TxnID' column.")
-            if processed_df['TxnID'].isnull().any():
-                 log.warning(f"Some TxnIDs are null for {csv_file_path_obj.name}.")
+            log.info(f"🛒 Merchant column not found after clean for file {csv_file_path_obj.name}, cannot count blanks.")
+
+
+        # Generate TxnID
+        # The _generate_txn_id function now handles potentially missing columns from TXN_ID_HASH_COLS
+        # by using an empty string for hashing if a column is missing or its value is NA.
+        # Thus, the explicit check for missing_hash_cols here is no longer strictly necessary
+        # as long as apply_schema_transformations ensures the columns in TXN_ID_HASH_COLS exist
+        # (even if all NA) or _generate_txn_id correctly uses .get().
+        # The current _generate_txn_id uses .get(), so it's robust.
+        processed_df['TxnID'] = processed_df.apply(_generate_txn_id, axis=1)
+        log.info("Generated 'TxnID' column.")
+        if processed_df['TxnID'].isnull().any(): # This check is fine, as apply might return None if input is weird
+             log.warning(f"Some TxnIDs are null for {csv_file_path_obj.name} (this might be due to all hashable fields being empty/NA for a row).")
 
 
         # Populate Remaining Master Schema Fields (Defaults)
@@ -719,19 +771,35 @@ def process_csv_files(
                     log.warning(f"Could not coerce column '{col}' to type '{dtype_str}': {e}. Column may have mixed types or errors.")
             # If column is missing, it was already added with pd.NA
 
-        # Final Column Selection & Ordering
-        processed_df = processed_df.reindex(columns=MASTER_SCHEMA_COLUMNS)
+        # Final Column Selection & Ordering (with fill_value as per manual fix step)
+        log.info(f"Applying reindex to MASTER_SCHEMA_COLUMNS with fill_value=pd.NA for {csv_file_path_obj.name}")
+        processed_df = processed_df.reindex(columns=MASTER_SCHEMA_COLUMNS, fill_value=pd.NA)
         
         all_processed_dfs.append(processed_df)
         log.info(f"Finished processing {csv_file_path_obj.name}. {len(processed_df)} rows added.")
 
     if not all_processed_dfs:
         log.warning("No CSV files were processed successfully. Returning an empty DataFrame.")
+        # Log schema matching smoke test results even if no DFs were processed
+        log.info(f"Schema matching smoke test - Counts of schema_ids found: {Counter(schema_ids_found)}")
         return pd.DataFrame(columns=MASTER_SCHEMA_COLUMNS)
+
+    # Log schema matching smoke test results
+    log.info(f"Schema matching smoke test - Counts of schema_ids found: {Counter(schema_ids_found)}")
 
     final_df = pd.concat(all_processed_dfs, ignore_index=True)
     log.info(f"Successfully consolidated {len(all_processed_dfs)} CSV files into a single DataFrame with {len(final_df)} total rows.")
     
+    # Log total merchant blanks in final_df
+    if not final_df.empty and 'Merchant' in final_df.columns:
+        total_merchant_blanks = final_df['Merchant'].isna().sum()
+        total_percentage_blanks = (total_merchant_blanks / len(final_df)) * 100 if len(final_df) > 0 else 0
+        log.info(f"🛒 Total merchant blanks in final_df after concatenation: {total_merchant_blanks} ({total_percentage_blanks:.2f}%)")
+    elif final_df.empty:
+        log.info("🛒 Total merchant blanks in final_df: N/A (final DataFrame is empty)")
+    else:
+        log.info("🛒 Merchant column not found in final_df, cannot count total blanks.")
+
     # Final sort by Date (and perhaps Owner/Account for stability)
     final_df = final_df.sort_values(by=['Date', 'Owner', 'Amount'], ascending=[True, True, True], na_position='first')
     
