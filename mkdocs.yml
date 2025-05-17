@@ -1,20 +1,33 @@
-site_name: BALANCE‑pyexcel Docs
-site_url: https://<your‑github‑user>.github.io/BALANCE-pyexcel
+site_name: BALANCE-pyexcel Docs
+site_url: https://github.com/rzimmerman2022/BALANCE-pyexcel   # update if you publish with GitHub Pages
+
 theme:
   name: material
   features:
     - navigation.tabs
     - navigation.indexes
     - content.code.copy
-repo_url: https://github.com/<your‑github‑user>/BALANCE-pyexcel
+
+repo_url: https://github.com/rzimmerman2022/BALANCE-pyexcel
+
 nav:
   - Home: index.md
-  - Quick Start: quick_start.md
-  - Schema Registry: schema_registry.md
-  - Developer Guide: developer_setup.md
+  - Quick Start: quick_start.md
+  - Architecture Overview: architecture.md
+  - Power BI Integration: powerbi_integration.md       # ← NEW
+  - Schema Registry:
+      - Guide: schema_registry.md
+      - Examples: schema_registry_examples.md
+  - Developer Guide:
+      - Environment Setup: developer_setup.md
+      - CLI Usage: cli_usage.md                       # ← NEW
+      - Sync Review Sheet: sync_review.md             # ← NEW
+      - Contributing: contributing.md                 # (stub / future)
   - FAQ: faq.md
   - Reference:
       - balance_pipeline: reference/
+  - Changelog: CHANGELOG.md
+
 plugins:
   - search
   - mkdocstrings:
@@ -22,3 +35,9 @@ plugins:
         python:
           options:
             paths: ["src"]
+What changed
+
+Addition	Reason
+Power BI Integration	Gives users the step-by-step report guide we just authored.
+CLI Usage (under Developer Guide)	Central place for headless/automation instructions.
+Sync Review Sheet	Documents the Excel decision workflow and sync_review_decisions.
