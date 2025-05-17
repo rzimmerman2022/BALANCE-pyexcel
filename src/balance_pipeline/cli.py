@@ -25,8 +25,9 @@ from typing import Optional, Any
 from balance_pipeline import config # Import full config module
 
 # Import the pipeline modules
-from balance_pipeline.ingest import load_folder
-from balance_pipeline.normalize import normalize_df
+# from balance_pipeline.ingest import load_folder # Replaced by csv_consolidator
+# from balance_pipeline.normalize import normalize_df # Replaced by csv_consolidator + specific dedupe
+from balance_pipeline.csv_consolidator import process_csv_files
 from balance_pipeline.sync import sync_review_decisions
 # Removed: from balance_pipeline.export import write_parquet_duckdb
 
@@ -140,25 +141,83 @@ def etl_main(inbox_path: Path, prefer_source: str = "Rocket", exclude_patterns: 
     Main ETL function that loads CSVs, normalizes data, and returns a DataFrame.
     
     Args:
-        inbox_path: Path to the folder containing CSV files to process
-        prefer_source: Preferred source for deduplication (default: "Rocket")
-        exclude_patterns: List of glob patterns to exclude.
-        only_patterns: List of glob patterns to exclusively include.
+        inbox_path: Path to the folder containing CSV files to process.
+        prefer_source: Preferred source for deduplication (e.g., "Rocket", "Monarch").
+        exclude_patterns: List of glob patterns to exclude files/folders.
+        only_patterns: List of glob patterns to exclusively include files/folders.
         
     Returns:
-        pd.DataFrame: Processed and normalized transaction data
+        pd.DataFrame: Processed, normalized, and deduplicated transaction data.
     """
-    # Load data from CSVs using the schema registry
-    log.info(f"Loading CSVs from {inbox_path}")
-    # Pass exclude and only patterns to load_folder
-    df = load_folder(inbox_path, exclude_patterns=exclude_patterns or [], only_patterns=only_patterns or [])
-    log.info(f"Loaded {len(df)} rows from CSVs")
+    log.info(f"Starting ETL process for inbox: {inbox_path}")
+
+    # 1. Scan for CSV files
+    csv_file_paths = []
+    if inbox_path.is_dir():
+        for item in inbox_path.rglob('*.csv'): # Recursive glob
+            # Apply exclude patterns
+            if exclude_patterns and any(item.match(p) for p in exclude_patterns):
+                log.debug(f"Excluding file due to exclude pattern: {item}")
+                continue
+            # Apply only patterns (if any are specified)
+            if only_patterns and not any(item.match(p) for p in only_patterns):
+                log.debug(f"Excluding file because it doesn't match 'only' patterns: {item}")
+                continue
+            csv_file_paths.append(item)
+    elif inbox_path.is_file() and inbox_path.suffix.lower() == '.csv':
+        # Allow processing a single CSV file if inbox_path points to one
+         csv_file_paths.append(inbox_path)
+    else:
+        log.error(f"Inbox path {inbox_path} is not a valid directory or CSV file.")
+        return pd.DataFrame()
+
+    if not csv_file_paths:
+        log.warning(f"No CSV files found to process in {inbox_path} matching criteria.")
+        return pd.DataFrame()
     
-    # Normalize the data
-    log.info("Normalizing data")
-    df = normalize_df(df, prefer_source=prefer_source) # Pass the preferred source parameter
-    log.info(f"Normalized data contains {len(df)} rows")
+    log.info(f"Found {len(csv_file_paths)} CSV files to process: {[p.name for p in csv_file_paths]}")
+
+    # 2. Process CSV files using the new consolidator module
+    # This function handles schema matching, transformations, TxnID, merchant cleaning, etc.
+    df = process_csv_files(csv_file_paths) # prefer_source is not used by this function directly
     
+    if df.empty:
+        log.warning("CSV processing resulted in an empty DataFrame before deduplication.")
+        return df
+
+    log.info(f"Consolidated data from CSVs into {len(df)} rows before deduplication.")
+
+    # 3. Deduplication based on TxnID and prefer_source
+    # This logic is adapted from the original normalize_df function.
+    # 'DataSourceName' from csv_consolidator corresponds to 'Source' in normalize_df.
+    if "DataSourceName" in df.columns and "TxnID" in df.columns and df["TxnID"].notna().any():
+        initial_row_count_before_dedupe = len(df)
+        log.info(f"Applying deduplication, preferring source: '{prefer_source}'")
+        
+        # Ensure TxnID is string for consistent sorting/merging
+        df["TxnID"] = df["TxnID"].astype(str)
+
+        # Create a temporary sort key column for deduplication
+        df['_sort_key_for_dedupe'] = 2 # Default for NA or non-matching DataSourceName
+        df.loc[df['DataSourceName'] == prefer_source, '_sort_key_for_dedupe'] = 0
+        df.loc[(df['DataSourceName'] != prefer_source) & pd.notna(df['DataSourceName']), '_sort_key_for_dedupe'] = 1
+        
+        df = df.sort_values(by=['TxnID', '_sort_key_for_dedupe'], kind='mergesort')
+        
+        num_duplicates_before = df.duplicated(subset=["TxnID"], keep=False).sum()
+        if num_duplicates_before > 0:
+            log.info(f"Found {num_duplicates_before // 2} sets of potential duplicate entries based on TxnID before deduplication by preferred source ('{prefer_source}').")
+
+        df = df.drop_duplicates(subset=["TxnID"], keep="first")
+        df = df.drop(columns=['_sort_key_for_dedupe'])
+        
+        num_removed = initial_row_count_before_dedupe - len(df)
+        if num_removed > 0:
+            log.info(f"Removed {num_removed} duplicate transactions, prioritizing '{prefer_source}'.")
+    else:
+        log.warning("Skipping source-based deduplication: 'DataSourceName' or 'TxnID' column missing, or no TxnIDs generated.")
+
+    log.info(f"Final ETL DataFrame contains {len(df)} rows.")
     return df
 
 def main():

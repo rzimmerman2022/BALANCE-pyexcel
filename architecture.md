@@ -32,25 +32,33 @@ flowchart TD
 
         subgraph Configuration
             CONF_YAML["rules/schema_registry.yml"]
+            CONF_MERCHANT_CSV["rules/merchant_lookup.csv"]
             CONF_PY["src/balance_pipeline/config.py \n (+ .env optional)"]
             WBK_ConfigSheet[Excel: Config Sheet \n (Input Path, User Names)]
         end
 
         subgraph Python_Pipeline [src/balance_pipeline/]
-            PY_INIT["__init__.py \n (etl_main orchestrator)"]
-            PY_INGEST["ingest.py \n (YAML Reader, CSV Loader, \n Mapper, Sign Fixer, Owner Tag)"]
-            PY_NORM["normalize.py \n (Clean Desc, TxnID Gen, \n Flagging, Final Cols/Sort)"]
-            PY_UTILS["utils.py \n (Text Cleaning, Hashing)"]
+            PY_CLI["cli.py \n (etl_main orchestrator, \n File Scanner, Deduplication)"]
+            PY_CONSOLIDATOR["csv_consolidator.py \n (Schema Matching, Transformations, \n Merchant Cleaning, TxnID Gen)"]
+            PY_SYNC["sync.py \n (Excel Queue_Review Sync)"]
+            PY_UTILS["utils.py \n (Shared Text Cleaning, etc.)"]
+            PY_NORM_HELPERS["normalize.py \n (Original Merchant Cleaner, \n TxnID Hashing components - referenced)"]
             PY_CALC["calculate.py \n (Future: Balance Logic)"]
             PY_CLASS["classify.py \n (Future: Rule-based Tagging)"]
 
-            CONF_YAML --> PY_INGEST
-            CONF_PY --> PY_INGEST & PY_NORM & PY_UTILS #Potentially
-            FS_CSVs_J & FS_CSVs_R --> PY_INGEST
-            PY_UTILS --> PY_NORM
-            PY_INGEST -- Raw+Owner DataFrame --> PY_NORM
-            PY_INIT -- calls --> PY_INGEST & PY_NORM
-            PY_NORM -- Final DataFrame --> PY_INIT
+            CONF_YAML --> PY_CONSOLIDATOR
+            CONF_MERCHANT_CSV --> PY_CONSOLIDATOR
+            CONF_PY --> PY_CLI & PY_CONSOLIDATOR & PY_UTILS 
+            FS_CSVs_J & FS_CSVs_R -.-> PY_CLI # CLI scans these paths
+
+            PY_UTILS --> PY_CONSOLIDATOR & PY_NORM_HELPERS
+            PY_NORM_HELPERS --> PY_CONSOLIDATOR # Consolidator uses clean_merchant
+
+            PY_CLI -- CSV File Paths --> PY_CONSOLIDATOR
+            PY_CONSOLIDATOR -- Consolidated DataFrame --> PY_CLI
+            PY_CLI -- DataFrame for Sync --> PY_SYNC
+            PY_SYNC -- Synced DataFrame --> PY_CLI
+            PY_CLI -- Final DataFrame for Output --> WBK_PythonCell # and Parquet writing
         end
 
         subgraph Excel_Interface [workbook/BALANCE-pyexcel.xlsm]
@@ -63,11 +71,11 @@ flowchart TD
 
            WBK_ConfigSheet -- Input Path --> WBK_PythonCell
            PY_Trigger --> WBK_PythonCell
-           WBK_PythonCell -- calls --> PY_INIT
-           PY_INIT -- returns --> WBK_PythonCell
+           WBK_PythonCell -- calls --> PY_CLI # Or a wrapper in __init__ that calls CLI's etl_main
+           PY_CLI -- returns --> WBK_PythonCell
            WBK_PythonCell -- writes data --> WBK_Transactions # Or data read via formulas
            WBK_Transactions -- FILTER --> WBK_Queue
-           WBK_Queue -- Manual Input --> WBK_PythonCell # For future Sync step
+           WBK_Queue -- Manual Input --> PY_SYNC # Sync logic reads from Excel
            WBK_Transactions -- data source --> WBK_Dashboard # For charts/calcs
            WBK_RulesM & WBK_RulesS # Used for reference/manual input, maybe read by Python later
         end
@@ -86,11 +94,11 @@ flowchart TD
 Layer	Technology	Responsibility
 UI/Input	Excel Sheets, File System Folders	Data Input (CSVs via folders), Settings Config (Excel), Manual Transaction Classification (Excel Queue_Review)
 View	Excel Sheets (Dashboard, Transactions, Queue_Review)	Displaying Balances, Charts, Processed Transactions, Items needing Review
-Orchestration	Python Cell (=PY(...) in Excel), __init__.py (etl_main)	Triggering Python ETL process (etl_main), Coordinating calls to ingest and normalize modules
-ETL	Python package (src/balance_pipeline/), YAML Config	Schema-driven data ingestion (reading YAML, finding/reading CSVs, dynamic mapping, sign rules, deriving columns, owner tagging via ingest.py), Normalization (text cleaning, TxnID generation, default flagging, final column structuring via normalize.py), Shared Utilities (utils.py)
-Configuration	Excel Sheet (Config), rules/schema_registry.yml, .env	Storing runtime paths (CSV Inbox), user names (Excel); Storing CSV parsing rules (YAML); Optional environment overrides (.env via config.py)
-Storage	Excel Sheet (Transactions), File System (CSVs)	Persisting cleaned transaction data within the workbook; Original raw data source (external)
-Testing	pytest framework, tests/ folder, sample_data_multi/	Unit testing Python ETL functions using anonymized sample data representing multiple schemas
+Orchestration	Python Cell (=PY(...) in Excel), cli.py (etl_main)	Triggering Python ETL process (etl_main), Coordinating calls to CSV consolidator and sync modules.
+ETL	Python package (src/balance_pipeline/), YAML Config	Schema-driven CSV processing (via csv_consolidator.py: reading YAML, finding/reading CSVs, dynamic mapping, date/amount/derived/static column transformations, merchant cleaning, TxnID generation, master schema conformance), Deduplication (in cli.py), Shared Utilities (utils.py).
+Configuration	Excel Sheet (Config), rules/schema_registry.yml, rules/merchant_lookup.csv, .env	Storing runtime paths (CSV Inbox), user names (Excel); Storing CSV parsing rules (YAML); Merchant cleaning rules (CSV); Optional environment overrides (.env via config.py)
+Storage	File System (balance_final.parquet, CSVs), Excel Sheet (Transactions)	Primary data store (Parquet); Original raw data source (CSVs); View/Interaction layer (Excel).
+Testing	pytest framework, tests/ folder (including fixtures/), sample_data_multi/	Unit testing Python ETL functions using anonymized sample data representing multiple schemas.
 
 Export to Sheets
 ---
@@ -98,60 +106,60 @@ Export to Sheets
 User places new bank/credit card CSV files into their respective sub-folders (e.g., /CSVs/Jordyn/, /CSVs/Ryan/) located outside the Git repository.
 User opens BALANCE-pyexcel.xlsm in Excel.
 User ensures the full path to the parent CSV folder (e.g., C:\...\CSVs) is correctly entered in the Config sheet (CsvInboxPath).
-User triggers the main Python ETL cell (e.g., via Data > Refresh All, or cell execution).
-The Excel Python cell calls etl_main from src/balance_pipeline/__init__.py, passing the CsvInboxPath.
-etl_main orchestrates the process:
-Calls ingest.load_folder, passing the inbox path.
-ingest.load_folder:
-Recursively scans the inbox path and its subdirectories (rglob) for *.csv files.
-For each CSV found:
-Determines the Owner from the parent directory name (e.g., 'Jordyn', 'Ryan').
-Reads the first few rows to get headers.
-Calls _find_schema, passing the file path and headers.
-_find_schema:
-Loads rules from rules/schema_registry.yml (if not already loaded).
-Iterates through schemas in YAML, checking match_filename and header_signature against the current CSV.
-Returns the matching schema dictionary or None.
-If a schema is found:
-Reads the full CSV file.
-Applies the column_map from the schema to rename columns.
-Applies derived_columns rules (if any) using regex.
-Normalizes Date and Amount data types.
-Applies the sign_rule from the schema to standardize Amount sign (outflow = negative).
-Adds the Owner column.
-Ensures all STANDARD_COLS exist, adding NA if needed.
-Selects only STANDARD_COLS.
-Appends the processed DataFrame for this file to a list.
-After checking all files, concatenates all processed DataFrames in the list.
-Returns the combined DataFrame to etl_main.
-etl_main:
-Receives the combined DataFrame from ingest.load_folder.
-Calls normalize.normalize_df, passing the combined DataFrame.
-normalize.normalize_df:
-Takes the ingested data.
-Cleans descriptions using utils.clean_whitespace, creating CleanDesc.
-Generates TxnID using utils.sha256_hex based on hash of Owner, Date, Amount, Description, Account.
-Adds default SharedFlag = '?'.
-Ensures all FINAL_COLS are present and in the correct order.
-Sorts the DataFrame by Date.
-Returns the final, normalized DataFrame to etl_main.
-etl_main:
-Receives the final DataFrame from normalize.normalize_df.
-Returns this DataFrame back to the Excel Python cell.
-Excel: The Python cell receives the DataFrame. Depending on the exact formula/setup:
-The data might spill into cells adjacent to the formula.
-Or, if using direct write (less reliable initially), it attempts to write to the Transactions sheet/table. (Requires manual copy/paste from spill range as the robust starting point).
-Excel (Queue_Review Sheet): A FILTER formula dynamically displays rows from the Transactions sheet where SharedFlag = '?', ready for user classification.
+User triggers the main Python ETL cell (e.g., via Data > Refresh All, or cell execution), or runs the CLI command (`poetry run balance refresh ...`).
+The Excel Python cell (if used) calls `etl_main` (likely from `src/balance_pipeline/__init__.py` which in turn might call the CLI's `etl_main` or a similar function). The CLI directly calls `etl_main` in `cli.py`.
+`etl_main` (in `cli.py`) orchestrates the process:
+  a. Scans the `inbox_path` for CSV files, respecting `exclude_patterns` and `only_patterns`, creating a list of file paths.
+  b. Calls `csv_consolidator.process_csv_files`, passing the list of CSV paths, and paths to `schema_registry.yml` and `merchant_lookup.csv`.
+  c. `csv_consolidator.process_csv_files`:
+     i. Loads schema registry and merchant lookup rules.
+     ii. For each CSV file in the list:
+        1. Reads the raw CSV into a DataFrame.
+        2. Infers `Owner` from the CSV's parent directory name.
+        3. Gets `DataSourceDate` from the CSV's file modification time.
+        4. Calls `find_matching_schema` (using CSV headers and filename) to get the appropriate schema from the registry.
+        5. If a schema is matched, calls `apply_schema_transformations` with the DataFrame and schema rules.
+        6. `apply_schema_transformations`:
+           - Applies `column_map` to rename/select columns.
+           - Collects unmapped columns into an `Extras` JSON field.
+           - Parses date columns (e.g., `Date`, `PostDate`) using `date_format` from the schema.
+           - Standardizes `Amount` (numeric conversion, applies `amount_regex`, `sign_rule` including simple and complex types like `flip_if_column_value_matches`).
+           - Generates derived columns (e.g., `Account`, `AccountLast4`, `AccountType`) based on `derived_columns` rules in the schema.
+           - Populates `DataSourceName` from the schema ID.
+           - Adds static columns defined in `extra_static_cols`.
+        7. Populates `Owner` and `DataSourceDate` into the processed DataFrame.
+        8. Performs final merchant cleaning on the appropriate description column (populating the master `Merchant` column) using loaded merchant lookup rules and `balance_pipeline.normalize.clean_merchant` as a fallback.
+        9. Generates `TxnID` using a hash of key transaction attributes.
+        10. Sets default values for `Currency`, `SharedFlag`, `SplitPercent`, etc.
+        11. Ensures all master schema columns exist and coerces them to their defined data types (including robust boolean parsing via `coerce_bool`).
+        12. Orders columns according to the master schema.
+        13. Appends the processed DataFrame for this file to a list.
+     iii. After processing all CSVs, concatenates all resulting DataFrames.
+     iv. Sorts the combined DataFrame.
+     v. Returns the consolidated DataFrame to `etl_main`.
+  d. `etl_main` (in `cli.py`):
+     i. Receives the consolidated DataFrame from `process_csv_files`.
+     ii. Performs deduplication based on `TxnID` and the `prefer_source` argument, keeping the record from the preferred data source if duplicates exist.
+     iii. Returns this final DataFrame.
+The main script (`cli.py` `main()` function) then:
+  a. Loads existing canonical data from `balance_final.parquet` (if any).
+  b. Merges these existing classifications (SharedFlag, SplitPercent) into the newly processed data based on `TxnID`.
+  c. Reads `Queue_Review` sheet from the Excel workbook (if not `--no-sync`).
+  d. Calls `sync.sync_review_decisions` to update `SharedFlag` and `SplitPercent` in the DataFrame based on `Queue_Review` input.
+  e. Writes the final, updated DataFrame to `balance_final.parquet`.
+  f. Writes the data to the 'Transactions' sheet and a template to the 'Queue_Review' sheet in the Excel workbook (unless `--dry-run`).
+Excel (if not run headlessly): The Python cell receives the DataFrame from `etl_main`. Data is updated on the 'Transactions' sheet. The 'Queue_Review' sheet dynamically updates via its `FILTER` formula.
 ---
 3. Key Design Decisions
 Excel as Frontend: Leverage user familiarity with Excel for UI, configuration, data viewing, and manual classification.
-Python for ETL & Logic: Use Python (Pandas) for reliable, flexible data manipulation, cleaning, rule application, and calculations, overcoming limitations of pure Excel/VBA, especially for varied inputs.
-YAML Schema Registry: Centralize rules for parsing diverse CSV formats in an easy-to-edit rules/schema_registry.yml file. Makes the system highly maintainable and extensible without Python code changes for new formats. Configuration-over-code.
-Configuration in Excel & Files: Store runtime settings (paths, user names) in Excel Config sheet for easy user access. Store complex parsing rules in YAML. Use optional .env for environment-specific overrides (config.py).
-Owner Tagging via Folders: Use a simple convention (subfolders named after owners within the main CSV inbox) to automatically assign ownership during ingestion.
-Deterministic Transaction ID (TxnID): Generate a unique and reproducible ID for each transaction based on hashing key, stable attributes including Owner, Date, Amount, Description, Account. Essential for tracking, updates, and preventing duplicates.
-Modularity & Testing: Structure Python code into logical modules (ingest, normalize, utils, etc.) with clear functions. Use pytest for unit testing core logic using anonymized sample_data.
-Version Control (Git): Track all code, YAML configuration, documentation, tests, sample data, and the Excel workbook for history, backup, and collaboration.
-Dependency Management (Poetry): Ensure reproducible Python environments using pyproject.toml and poetry.lock.
+Python for ETL & Logic: Use Python (Pandas) for reliable, flexible data manipulation, cleaning, rule application, and calculations.
+YAML Schema Registry & CSV Merchant Rules: Centralize rules for parsing diverse CSV formats (`rules/schema_registry.yml`) and for cleaning merchant names (`rules/merchant_lookup.csv`). Makes the system highly maintainable and extensible. Configuration-over-code.
+Modular Python Backend: `csv_consolidator.py` handles comprehensive CSV processing. `cli.py` orchestrates the overall flow including deduplication and Excel interaction. `sync.py` handles Excel data synchronization.
+Owner Tagging via Folders: Use a simple convention (subfolders named after owners within the main CSV inbox) to automatically assign ownership.
+Deterministic Transaction ID (TxnID): Generate a unique and reproducible ID for each transaction. Essential for tracking, updates, and preventing duplicates.
+Comprehensive Master Schema: A well-defined target schema ensures data consistency.
+Unit Testing: `pytest` framework with fixtures and parametrized tests for core logic.
+CLI for Headless Operation: `cli.py` enables running the full ETL pipeline, including Parquet and Excel updates, from the command line, suitable for automation or users not directly interacting with Python in Excel.
+Dependency Management (Poetry): Ensure reproducible Python environments.
 
 **END REVISED CONTENT FOR `architecture.md`**

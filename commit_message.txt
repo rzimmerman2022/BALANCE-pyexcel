@@ -1,0 +1,44 @@
+feat(etl): implement comprehensive CSV consolidation module
+
+This commit introduces a new CSV consolidation module (`csv_consolidator.py`) and integrates it into the ETL pipeline. This module significantly enhances the project's ability to process diverse financial CSV formats in a robust and configurable manner.
+
+Key changes and improvements include:
+
+**1. New CSV Consolidator Module (`src/balance_pipeline/csv_consolidator.py`):**
+    -   Handles schema-driven ingestion, transformation, and normalization of multiple CSV files.
+    -   Loads CSV parsing rules from `rules/schema_registry.yml` and merchant cleaning rules from `rules/merchant_lookup.csv`.
+    -   Features:
+        -   Dynamic schema matching (filename patterns, header signatures).
+        -   Header normalization and flexible column mapping.
+        -   Collection of unmapped columns into an `Extras` JSON field.
+        -   Advanced date parsing with format specification.
+        -   Sophisticated amount standardization:
+            -   Handles `amount_regex` for cleaning amount strings.
+            -   Supports simple sign rules (`as_is`, `flip_if_positive`, etc.).
+            -   Implements complex `flip_if_column_value_matches` sign rule based on values in another column.
+        -   Robust derived column generation (`static_value`, `from_column`, `regex_extract`, `concatenate`).
+        -   Population of `DataSourceName` and `extra_static_cols`.
+        -   Inference of `Owner` and `DataSourceDate`.
+        -   Comprehensive merchant name cleaning using lookup CSV and fallback to `normalize.clean_merchant`.
+        -   Deterministic `TxnID` generation.
+        -   Population of master schema defaults (Currency, SharedFlag, SplitPercent).
+        -   Final data type coercion to master schema, including robust boolean parsing via `coerce_bool` helper.
+
+**2. Unit Test Harness (`tests/test_csv_consolidator.py`):**
+    -   Added five sample CSVs to `tests/fixtures/`.
+    -   Created parametrized tests for `process_csv_files`, validating row counts, required columns, TxnID uniqueness, and basic amount properties.
+
+**3. Schema Registry Enhancements (`rules/schema_registry.yml`):**
+    -   Added an example of the `flip_if_column_value_matches` sign rule to `discover_it_card` schema.
+
+**4. CLI Integration (`src/balance_pipeline/cli.py`):**
+    -   Modified `etl_main` function to use `csv_consolidator.process_csv_files`.
+    -   `etl_main` now handles CSV file scanning (respecting exclude/only patterns) and passes the file list to the consolidator.
+    -   Preserved and integrated the existing `prefer_source` deduplication logic to operate on the output of the new consolidator.
+
+**5. Documentation Updates:**
+    -   `README.md`: Updated "Getting Started" with CLI usage for `balance refresh` and clarified Parquet output filename.
+    -   `architecture.md`: Rewrote data flow, updated Mermaid diagram and layers table to reflect the new `csv_consolidator.py` module and its central role.
+    -   `AGENTS.MD`: Updated "Frequently-Used Helper Functions" and "Project Roadmap" (Stage 1) to describe the new ETL architecture and capabilities.
+
+This refactoring centralizes CSV processing logic, improves configurability through `schema_registry.yml`, and enhances the overall robustness and maintainability of the ETL pipeline.

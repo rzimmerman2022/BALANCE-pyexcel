@@ -51,6 +51,20 @@ Its key feature is a schema-driven ingestion engine: using rules defined in `rul
     * Place these sample files inside the corresponding subfolders within the `sample_data_multi/` directory (e.g., `sample_data_multi/jordyn/chase_sample.csv`, `sample_data_multi/ryan/monarch_sample.csv`). This folder *is* tracked by Git.
 7.  **Enable Python in Excel:** Ensure Python is enabled (`File > Options > Formulas > Enable Python`) and trust prompts if necessary when running Python code for the first time.
 
+8.  **Running the ETL Pipeline (Command Line for Development/Testing):**
+    *   To process your CSVs and update the Parquet file (and optionally Excel, if not using `--dry-run`), run the following command from the project root directory (`BALANCE-pyexcel`):
+        ```bash
+        poetry run balance refresh "C:\MyCSVs" "C:\Path\To\MyWorkbook.xlsm"
+        ```
+        (Replace `"C:\MyCSVs"` with the path to your CSV inbox folder and `"C:\Path\To\MyWorkbook.xlsm"` with the path to your Excel workbook).
+    *   This command will:
+        *   Read CSVs from the specified inbox.
+        *   Process them according to `rules/schema_registry.yml`.
+        *   Create/update `balance_final.parquet` in the same directory as your workbook.
+        *   If not a `--dry-run`, it will also attempt to update the 'Transactions' and 'Queue_Review' sheets in the Excel workbook.
+    *   You can use various options like `--dry-run`, `--no-sync`, `--log <logfile>`, `--verbose`, `--exclude <pattern>`, `--only <pattern>`, etc. Run `poetry run balance refresh --help` for all options.
+    *   The primary data output is `balance_final.parquet`, located alongside your Excel workbook.
+
 ### Using the Standalone Executable (Alternative)
 
 For users who don't need the full development environment (Poetry, Git), a standalone executable can be built or downloaded. This packages the Python script and its dependencies into a single `.exe` file (on Windows).
@@ -96,8 +110,7 @@ You can download the latest Windows executable directly from the GitHub Actions 
 
 ### Using DuckDB for Analysis (Optional)
 
-After running the pipeline (either via `poetry run balance-pyexcel ...` or the standalone executable), a file named `Final_Output.parquet` will be created in the same directory as your Excel workbook. This file contains the complete, processed transaction data in the efficient Parquet format.
-> **Note:** Parquet is written via DuckDB COPY; no PyArrow wheels needed.
+After running the pipeline (either via `poetry run balance refresh ...` or the standalone executable), a file named `balance_final.parquet` (the name is configurable via `BALANCE_FINAL_PARQUET_FILENAME` in `.env` or `src/balance_pipeline/config.py`) will be created in the same directory as your Excel workbook. This file contains the complete, processed transaction data in the efficient Parquet format.
 
 You can use DuckDB to query this data directly for more advanced analysis or connect it to tools like Power Query:
 
@@ -105,26 +118,26 @@ You can use DuckDB to query this data directly for more advanced analysis or con
 2.  **Query the Parquet File:** Open the DuckDB CLI and run SQL queries directly against the Parquet file:
     ```sql
     -- Example: Load and view the first 10 rows
-    SELECT * FROM read_parquet('C:/Path/To/Your/Workbook/Directory/Final_Output.parquet') LIMIT 10;
+    SELECT * FROM read_parquet('C:/Path/To/Your/Workbook/Directory/balance_final.parquet') LIMIT 10;
 
     -- Example: Create a persistent DuckDB database file and import the data
     CREATE DATABASE 'my_finance_db.duckdb';
     USE 'my_finance_db.duckdb';
-    CREATE TABLE transactions AS SELECT * FROM read_parquet('C:/Path/To/Your/Workbook/Directory/Final_Output.parquet');
+    CREATE TABLE transactions AS SELECT * FROM read_parquet('C:/Path/To/Your/Workbook/Directory/balance_final.parquet');
     SELECT COUNT(*) FROM transactions;
     ```
-    (Replace the path with the actual location of your `Final_Output.parquet` file).
+    (Replace the path with the actual location of your `balance_final.parquet` file).
 3.  **Connect via Power Query/ODBC:**
     *   **Install Driver:** First, download and install the **DuckDB ODBC driver** from [duckdb.org/docs/api/odbc](https://duckdb.org/docs/api/odbc). The MSI installer is recommended for Windows.
     *   **Excel Connection:**
-        *   You can use the sample `.odc` file provided in the `samples/` directory (`Connect_DuckDB_Parquet.odc`). Place it next to your `Final_Output.parquet` file and try opening it via `Data > Existing Connections` in Excel.
-        *   Alternatively, configure an ODBC Data Source (DSN) using the "ODBC Data Sources (x64)" administrator tool in Windows. Point the DSN to your `.parquet` file (e.g., `Database=C:\Path\To\Final_Output.parquet`). Then, in Excel, use `Data > Get Data > From Other Sources > From ODBC` and select your DSN.
+        *   You can use the sample `.odc` file provided in the `samples/` directory (`Connect_DuckDB_Parquet.odc`). You may need to edit it to point to `balance_final.parquet`. Place it next to your `balance_final.parquet` file and try opening it via `Data > Existing Connections` in Excel.
+        *   Alternatively, configure an ODBC Data Source (DSN) using the "ODBC Data Sources (x64)" administrator tool in Windows. Point the DSN to your `.parquet` file (e.g., `Database=C:\Path\To\balance_final.parquet`). Then, in Excel, use `Data > Get Data > From Other Sources > From ODBC` and select your DSN.
     *   **Power BI Connection:**
         *   Use the `ODBC` connector (`Get data > ODBC`).
         *   Select `None` for the Data Source Name (DSN) if you haven't configured one.
         *   Expand "Advanced options". In the "Connection string" field, enter the following (replace the path):
             ```
-            Driver={DuckDB Driver};Database=C:\Path\To\Your\Workbook\Directory\Final_Output.parquet;
+            Driver={DuckDB Driver};Database=C:\Path\To\Your\Workbook\Directory\balance_final.parquet;
             ```
         *   Click OK. You should be able to connect and see the data. You can leave the SQL statement blank initially to browse.
 

@@ -20,7 +20,7 @@ This document provides comprehensive guidelines for AI agents (such as OpenAI Co
 
 | Layer             | Path(s)                                               | Description                                                                    |
 |-------------------|-------------------------------------------------------|--------------------------------------------------------------------------------|
-| **ETL Core** | `src/balance_pipeline/`                             | Ingests CSV/PDF data, normalizes it, and writes to `balance_final.parquet`.    |
+| **ETL Core** | `src/balance_pipeline/`                             | Ingests CSV/PDF data, normalizes it, and writes to `balance_final.parquet`. Key modules include `csv_consolidator.py` for CSV processing and `cli.py` for orchestration. |
 | **Excel Front-end** | `workbook/BALANCE-pyexcel.xlsm`                     | Utilizes Python in Excel via `=PY(etl_main(...))` to display processed data.   |
 | **CLI** | `src/balance_pipeline/cli.py` (invoked as `balance refresh`) | Enables headless data refresh and merges Parquet data with Excel flags.        |
 | **Rules** | `rules/schema_registry.yml`, `rules/merchant_lookup.csv` | Defines declarative schema mappings and rules for cleaning merchant names.     |
@@ -197,9 +197,10 @@ Report Name Logic: If you modify ReportUtils.getReportName or related logic that
 To maintain consistency and avoid code duplication, reuse these existing helper functions where appropriate. Codex should prioritize using these helpers over reimplementing similar logic.
 
 Need / Purpose	How to Call / Function Location
-Load YAML configuration safely	yaml.safe_load(Path(path_to_yaml_file).read_text('utf-8'))
-Generate a unique Transaction ID (TxnID)	balance_pipeline.normalize._hash_txn(row_data)
-Clean/Canonicalize merchant description	balance_pipeline.normalize.clean_merchant(description_string)
+Load YAML configuration safely	`yaml.safe_load(Path(path_to_yaml_file).read_text('utf-8'))`
+Process list of CSV files into a consolidated, normalized DataFrame	`balance_pipeline.csv_consolidator.process_csv_files(csv_paths: list, schema_registry_path: Path, merchant_lookup_path: Path)` (Main ETL entry for CSVs)
+Generate a unique Transaction ID (TxnID)	Logic is internal to `csv_consolidator.py` (based on `normalize._hash_txn` principles).
+Clean/Canonicalize merchant description	`balance_pipeline.normalize.clean_merchant(description_string)` (Used as a fallback by `csv_consolidator.py` after checking `merchant_lookup.csv`)
 
 Export to Sheets
 (This list may be expanded. Check relevant utility modules before implementing common tasks.)
@@ -250,22 +251,22 @@ Output file	balance_final.parquet first created.
 Acceptance	Manual run writes Parquet & displays in Excel.
 
 Export to Sheets
-Stage 1 · Config-driven ETL (✅ DONE)
+Stage 1 · Config-driven ETL (✅ DONE & Enhanced)
 Item	Detail
-1.1 Schema Registry	rules/schema_registry.yml with id, match_filename, header_signature, column_map, sign_rule, date_format, derived_columns.
-1.2 Ingestion engine	ingest.py::load_folder() traverses owner sub-folders, applies schema, tags Owner. STANDARD_COLS enforced.
-1.3 Normalisation	normalize.py → _clean_desc, clean_merchant (hard-coded regex), deterministic TxnID hash, dedup by Source preference.
-1.4 CLI + Excel hook	balance refresh + etl_main() callable from Python-in-Excel (=PY(...)).
-Deliverables	- docs/architecture.md (mermaid diagram)&lt;br>- Unit tests for two bank schemas&lt;br>- CI: Ruff + PyTest on Python 3.11
-Exit criteria	- pytest -q → 0 failures&lt;br>- Sample run logs “Successfully wrote balance_final.parquet”
+1.1 Schema Registry	`rules/schema_registry.yml` defines comprehensive CSV parsing rules: `id`, `match_filename`, `header_signature`, `column_map`, `sign_rule` (supporting simple string rules and complex `type: flip_if_column_value_matches`), `date_format`, `derived_columns` (supporting `static_value`, `from_column`, `regex_extract`, `concatenate`), `amount_regex`, `extra_static_cols`. `rules/merchant_lookup.csv` for merchant cleaning.
+1.2 CSV Processing Engine	`src/balance_pipeline/csv_consolidator.py::process_csv_files()` is the core engine. It takes a list of CSV paths, loads schema and merchant rules. For each CSV: matches schema, applies all transformations (column mapping, date parsing, amount standardization, derived columns, extras), infers Owner & DataSourceDate, performs merchant cleaning, generates TxnID, and ensures master schema conformance including data types (with robust boolean parsing).
+1.3 Deduplication & Orchestration	`src/balance_pipeline/cli.py::etl_main()` scans for CSV files (respecting include/exclude patterns), calls `process_csv_files`, then performs deduplication of transactions based on `TxnID` and `prefer_source` logic.
+1.4 CLI + Excel hook	`balance refresh` command (`cli.py`) orchestrates the full ETL. `etl_main()` remains callable from Python-in-Excel (`=PY(...)`).
+Deliverables	- `docs/architecture.md` updated with new flow.<br>- Unit tests for `csv_consolidator.py` covering multiple sample CSVs (`tests/test_csv_consolidator.py`).<br>- CI: Ruff + PyTest on Python 3.11 (and 3.10).
+Exit criteria	- `pytest -q` → 0 failures.<br>- Sample run logs “Successfully wrote balance_final.parquet”.<br>- Key features like derived columns, complex sign rules, and boolean parsing are functional.
 
 Export to Sheets
 Stage 2 · User-friendly data & sync (✅ DONE)
 Item	Detail
 2.0 Merchant lookup CSV	rules/merchant_lookup.csv loaded on-demand; fallback to _clean_desc.title().
 2.1 Two-way classification sync	Excel Queue_Review sheet → CLI merges SharedFlag/SplitPercent back into Parquet.
-2.2 Docs + tests	- power_bi_workflow.md (Parquet via DuckDB ODBC)&lt;br>- Tests for merchant rules, sync merge&lt;br>- CI badge in README
-2.3 Patch 2.1 (perf & resilience)	- Selective Parquet read (TxnID, SharedFlag, SplitPercent)&lt;br>- Retry loop on to_parquet w/ exponential back-off.
+2.2 Docs + tests	- power_bi_workflow.md (Parquet via DuckDB ODBC)<br>- Tests for merchant rules, sync merge<br>- CI badge in README
+2.3 Patch 2.1 (perf & resilience)	- Selective Parquet read (TxnID, SharedFlag, SplitPercent)<br>- Retry loop on to_parquet w/ exponential back-off.
 
 Export to Sheets
 Stage 3 · Polish & Dev-Experience (🚧 In Progress)
@@ -284,7 +285,7 @@ Item	Detail
 4.2 Balance calculation engine	calculate.py computes owed/owing per person, running balance graph, split reimbursements.
 4.3 Incremental ingest	Track last processed file hash / modified-time → skip unchanged. Optional --since YYYY-MM-DD to re-process delta.
 4.4 Tests + visual smoke	Golden dataset in tests/data/golden.parquet → expected balances. Power BI template (.pbit) checked into /templates.
-Exit criteria	- balance refresh --dry-run finishes &lt; 5 s on 10k-txn sample&lt;br>- pytest coverage ≥ 90 %&lt;br>- Power BI template refreshes without user edits
+Exit criteria	- balance refresh --dry-run finishes < 5 s on 10k-txn sample<br>- pytest coverage ≥ 90 %<br>- Power BI template refreshes without user edits
 
 Export to Sheets
 Stage 5 · UX & Release hardening (🟢 Future)
@@ -309,7 +310,7 @@ S0  S1    S2     Patch2.1   S3 (current)   S4           S5
 
 Acceptance Checklist Before v1.0 Release
 All CI jobs green on Python 3.10, 3.11, (and eventually 3.12).
-“Getting Started” documentation enables a user to install & refresh on a clean Windows machine in &lt; 15 minutes.
+“Getting Started” documentation enables a user to install & refresh on a clean Windows machine in < 15 minutes.
 Power BI template publishes to Power BI Service and successfully refreshes via an Azure Function or similar automated mechanism.
 Manual regression test: delete cache, refresh data, verify that room names (or equivalent critical dynamic data) update correctly (addresses historical bugs like Stage 2 bug).
 Thorough security review completed: no secrets committed to the repository, logging is scrubbed of PII.

@@ -63,10 +63,32 @@
     Amount: Amount
     Category: Category          # Discover sample includes Category
     Card Type: Account         # Map Card Type to our standard Account column
+    # Example: Transaction Type: Transaction Type # Assuming a column named "Transaction Type" exists in some Discover CSVs
   # Sign rule: How to handle the Amount sign.
-  # 'as_is': Keep the sign exactly as it appears in the CSV.
-  #          Discover sample showed payments (outflow context) were already negative.
-  sign_rule: as_is
+  # This demonstrates the complex sign rule. If 'Transaction Type' column is not present
+  # or doesn't match, amounts might not be flipped as expected by this rule.
+  # The 'as_is' rule was based on a sample where payments were already negative.
+  # This complex rule would override 'as_is' if the conditions are met.
+  sign_rule:
+    type: flip_if_column_value_matches
+    # IMPORTANT: 'column' refers to the column name *after* mapping by 'column_map' if it was mapped,
+    # OR the original column name if it wasn't explicitly mapped but exists in the CSV.
+    # For this example, let's assume "Transaction Type" is a column that might exist in the source
+    # and we want to use its raw name. If it were mapped, e.g. "Details" -> "TransactionTypeMapped",
+    # then 'column' here should be "TransactionTypeMapped".
+    # For simplicity, assuming "Transaction Type" is the raw column name to check.
+    column: "Transaction Type" # Raw name from CSV
+    debit_values: ["debit", "withdrawal", "payment"] # Case-insensitive match
+    # If 'Transaction Type' (normalized) matches one of these, and Amount is positive, flip it.
+    # If 'Transaction Type' matches and Amount is negative, it's kept as is (already a debit).
+    # If 'Transaction Type' does NOT match (e.g., "credit", "refund"), and Amount is negative, flip it to positive.
+    # If 'Transaction Type' does NOT match and Amount is positive, it's kept as is (already a credit/inflow).
+    # This logic implies: flip positive amounts if debit_value matches; flip negative amounts if debit_value does NOT match.
+    # This is a common pattern for credit card statements where debits are positive and credits are negative.
+    # The goal is: outflows are negative, inflows are positive.
+    # So:
+    # 1. If type in debit_values: Amount should be negative. If current Amount > 0, flip.
+    # 2. If type NOT in debit_values (i.e., it's a credit/refund): Amount should be positive. If current Amount < 0, flip.
 
 # ------------------------------------------------------------------------------
 # Schema ID: wells_fargo_card
