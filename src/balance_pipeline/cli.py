@@ -186,29 +186,136 @@ Examples:
     ) # End of ArgumentParser definition
     
     # Define arguments AFTER the ArgumentParser initialization
-    parser.add_argument("inbox", help="Path to CSV inbox folder")
-    parser.add_argument("workbook", help="Path to target Excel workbook (.xlsx or .xlsm)")
-    parser.add_argument("--no-sync", action="store_true", help="Skip reading/syncing decisions from Queue_Review sheet")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging (DEBUG level)")
-    parser.add_argument("--log", help="Path to log file (in addition to console output)")
-    parser.add_argument("--dry-run", action="store_true", help="Process data but do not write to Excel")
+    # Positional arguments for full ETL mode, now optional if --raw-dir is used.
+    parser.add_argument("inbox", nargs="?", default=None, 
+                        help="Path to CSV inbox folder (for full ETL mode). Required if --raw-dir is not used.")
+    parser.add_argument("workbook", nargs="?", default=None, 
+                        help="Path to target Excel workbook (for full ETL mode). Required if --raw-dir is not used.")
+    
+    parser.add_argument("--no-sync", action="store_true", help="Skip reading/syncing decisions from Queue_Review sheet (full ETL mode).")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging (DEBUG level).")
+    parser.add_argument("--log", help="Path to log file (in addition to console output).")
+    parser.add_argument("--dry-run", action="store_true", help="Process data but do not write to Excel (full ETL mode).")
     parser.add_argument("--queue-sheet", default="Queue_Review", 
-                        help="Name of the sheet containing decisions (default: Queue_Review)")
+                        help="Name of the sheet containing decisions (full ETL mode, default: Queue_Review).")
     parser.add_argument("--prefer-source", default="Rocket", 
-                        help="Preferred source when deduplicating transactions (default: Rocket)")
+                        help="Preferred source when deduplicating transactions (full ETL mode, default: Rocket).")
     parser.add_argument("--exclude", nargs="*", default=[],
-                        help="Glob patterns for files/directories to exclude (e.g., '_Archive/*' 'Document*')")
+                        help="Glob patterns for files/directories to exclude (full ETL mode, e.g., '_Archive/*' 'Document*').")
     parser.add_argument("--only", nargs="*", default=[],
-                        help="Glob patterns for files/directories to include exclusively (e.g., 'BankStatement*.csv')")
+                        help="Glob patterns for files/directories to include exclusively (full ETL mode, e.g., 'BankStatement*.csv').")
+
+    # Argument for raw processing mode (replaces --raw-csv)
+    parser.add_argument(
+        "--raw-dir",
+        metavar="PATH",
+        type=Path, # Converts argument to a Path object
+        default=None, # Will be None if flag is not provided
+        help="Raw processing mode: Path to a single CSV file or a directory containing CSVs (processed recursively). "
+             "Bypasses schema registry and complex cleaning. "
+             "If used, 'inbox' and 'workbook' arguments are ignored. "
+             "Output is a single 'balance_final.parquet' in the directory specified by --out.",
+    )
+    # --out argument is now general, used by --raw-dir and potentially other modes if added later.
+    # It was previously tied to --raw-csv. Let's ensure its help text is general.
+    # The existing --out definition is fine: parser.add_argument("--out", type=Path, default=Path("artifacts"), help="Output directory (used with --raw-csv)")
+    # I will update its help string to be more general.
+    # The SEARCH block needs to include the original --out to replace it.
+    # This is tricky. I'll do --out in a separate, very targeted replace if needed, or assume the current one is okay for now.
+    # For now, I'll assume the existing --out is fine and its help text will be updated implicitly by context or later if needed.
+    # The prompt's plan for CLI usage is `poetry run python src/balance_pipeline/cli.py --raw-dir ../CSVs --out artifacts`
+    # This implies --out is still a valid argument.
+    # The original --out was: parser.add_argument("--out", type=Path, default=Path("artifacts"), help="Output directory (used with --raw-csv)")
+    # This should be fine, its help text is slightly specific but functionally it works.
+    # Let's keep the existing --out as is for this step.
+    parser.add_argument("--out", type=Path, default=Path("artifacts"), help="Output directory (used with --raw-dir, or other modes).")
     args = parser.parse_args()
     
     # --- Setup Logging ---
     # Must happen before any significant logging calls
     setup_logging(args.log, args.verbose)
-    log.info("="*50)
-    log.info("Starting BALANCE-pyexcel CLI process...") 
-    log.debug(f"Arguments received: {args}")
-    
+
+    # --- Mode Dispatch ---
+    if args.raw_dir: # Check if --raw-dir argument was provided (it's a Path object or None)
+        log.info(f"Raw directory/file processing mode activated for input: {args.raw_dir}")
+        # args.raw_dir is already a Path object due to type=Path in add_argument
+        raw_input_path = args.raw_dir.expanduser().resolve() 
+        # args.out is also a Path object, defaulting to 'artifacts'
+        output_dir = args.out.expanduser().resolve()
+
+        all_dfs = []
+        files_processed_count = 0
+        processed_filenames = [] # To log which files were combined
+
+        if not raw_input_path.exists():
+            log.error(f"Input path for --raw-dir does not exist: {raw_input_path}")
+            sys.exit(1)
+
+        files_to_process = []
+        if raw_input_path.is_file():
+            if raw_input_path.suffix.lower() == ".csv":
+                log.info(f"Processing single raw CSV file: {raw_input_path.name}")
+                files_to_process.append(raw_input_path)
+            else:
+                log.error(f"Specified path for --raw-dir is a file, but not a CSV: {raw_input_path}")
+                sys.exit(1) # Exit if it's a file but not CSV
+        elif raw_input_path.is_dir():
+            log.info(f"Scanning directory for CSV files: {raw_input_path}")
+            # Using sorted list for deterministic processing order
+            for csv_file_path_item in sorted(list(raw_input_path.rglob('*.csv'))):
+                files_to_process.append(csv_file_path_item)
+            if not files_to_process: # Log if directory scan yields no CSVs
+                 log.warning(f"No CSV files found in directory: {raw_input_path}")
+        else:
+            log.error(f"Input path for --raw-dir is neither a file nor a directory: {raw_input_path}")
+            sys.exit(1) # Exit if path is invalid type
+        
+        for csv_file_path in files_to_process:
+            # Safety nets: skip files in _archive or fixtures (case-insensitive)
+            # Check parts of the path string for these directory names.
+            path_str_lower = str(csv_file_path.as_posix()).lower()
+            if "/_archive/" in path_str_lower or "/fixtures/" in path_str_lower:
+                log.info(f"Skipping file in protected directory: {csv_file_path.name}")
+                continue
+            
+            # process_single_raw_csv_file is the refactored function
+            df = process_single_raw_csv_file(csv_file_path) 
+            if df is not None and not df.empty: # Only append if df is valid and has data
+                all_dfs.append(df)
+                files_processed_count += 1
+                processed_filenames.append(csv_file_path.name)
+            elif df is not None and df.empty: 
+                log.info(f"File {csv_file_path.name} resulted in an empty DataFrame (e.g. headers only), not included in final Parquet.")
+            # If df is None, process_single_raw_csv_file already logged the error/skip reason.
+
+        if not all_dfs:
+            log.warning("No dataframes were successfully processed or all valid CSVs were empty/skipped. No Parquet file will be written.")
+            sys.exit(0) # Successful exit, but nothing to write
+
+        try:
+            combined_df = pd.concat(all_dfs, ignore_index=True)
+            log.info(f"Combined data from {files_processed_count} CSV file(s) into a DataFrame with {len(combined_df)} rows.")
+            if files_processed_count > 0: # Log filenames only if some files were processed
+                 log.debug(f"Source files included: {', '.join(processed_filenames)}")
+
+            output_dir.mkdir(parents=True, exist_ok=True)
+            dest_parquet = output_dir / "balance_final.parquet" # Standardized name
+            combined_df.to_parquet(dest_parquet, index=False)
+            # Standard print message for success
+            print(f"✅  Wrote combined Parquet: {dest_parquet} (from {files_processed_count} file(s))")
+            sys.exit(0) # Successful exit after writing Parquet
+        except Exception as e:
+            log.error(f"Error writing combined Parquet file to {dest_parquet}: {e}", exc_info=True)
+            sys.exit(1)
+
+    elif args.inbox and args.workbook:
+        # This is the start of the original full ETL logic.
+        # The following lines were originally after the old `if args.raw_csv:` block.
+        log.info("="*50)
+        log.info("Starting BALANCE-pyexcel CLI process (full ETL mode)...")
+        log.debug(f"Arguments received (full ETL mode): inbox='{args.inbox}', workbook='{args.workbook}'")
+        # The original # --- Path Validation and Resolution --- and the main try...finally block
+        # for the full ETL process will follow here, as they are part of the existing code structure.
     # --- Path Validation and Resolution ---
     try:
         inbox = Path(args.inbox).expanduser().resolve(strict=True) # strict=True ensures inbox exists
@@ -629,6 +736,111 @@ def _create_queue_review_template(df: pd.DataFrame, writer: Any, sheet_name: str
     except Exception as e:
         log.error(f"Failed to write '{sheet_name}' template sheet: {e}")
 
+def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
+    """
+    Reads a single raw CSV file, derives Owner, DataSourceName, and DataSourceDate metadata,
+    and returns a pandas DataFrame. Returns None if the file cannot be processed or should be skipped.
+    """
+    import pandas as pd # Keep imports local to function as per previous pattern
+    import re
+    import datetime
+
+    log.info(f"[process_single_raw_csv_file] Attempting to process: {src.name}")
+    try:
+        df = pd.read_csv(src)
+
+        if "Amount" in df.columns:
+            # Attempt to convert 'Amount' to numeric, coercing errors to NaN
+            original_dtype_amount = df["Amount"].dtype
+            # Common practice: remove currency symbols and thousands separators before converting
+            # For now, assuming pd.to_numeric can handle reasonably clean numbers or will coerce others.
+            # If amounts have '$', ',', this might need pre-cleaning:
+            # df["Amount"] = df["Amount"].astype(str).str.replace(r'[$,]', '', regex=True)
+            df["Amount"] = pd.to_numeric(df["Amount"], errors='coerce')
+            
+            nan_in_amount = df["Amount"].isna().sum()
+            # Only log if there were actual NaNs *after* coercion that weren't already NaN
+            # This check is a bit complex; simpler to just log if any NaNs exist post-coercion.
+            if nan_in_amount > 0:
+                # Check if these NaNs were newly introduced or already there.
+                # This requires comparing pre- and post-coercion NaN counts if being precise.
+                # For simplicity, just log the presence of NaNs.
+                log.warning(f"Found {nan_in_amount} NaN value(s) in 'Amount' column for {src.name} after numeric conversion.")
+            
+            if original_dtype_amount != df["Amount"].dtype:
+                log.debug(f"Changed 'Amount' column dtype from {original_dtype_amount} to {df['Amount'].dtype} for {src.name}.")
+        else:
+            log.warning(f"'Amount' column not found in {src.name}. Creating it as float64 with NaNs.")
+            # Create an 'Amount' column of float type filled with NaNs if it doesn't exist.
+            # This ensures schema consistency when concatenating DataFrames.
+            df["Amount"] = pd.Series(dtype='float64', index=df.index)
+
+        if "AccountLast4" in df.columns:
+            # Convert all values to string, ensuring that original NaN/None values are preserved.
+            # .astype(str) would convert NaN to the string "nan".
+            # A robust way is to apply a function that converts non-nulls to str.
+            # Or, convert to str and then fix "nan" strings that were originally NaN.
+            is_na_before_acct_last4 = df["AccountLast4"].isna()
+            df["AccountLast4"] = df["AccountLast4"].astype(str) # Converts everything to string, NaN -> "nan"
+            # Restore original NaNs to None so PyArrow treats them as nulls
+            df.loc[is_na_before_acct_last4, "AccountLast4"] = None 
+            log.debug(f"Ensured 'AccountLast4' column is string type for {src.name}, preserving NaNs.")
+        else:
+            log.warning(f"'AccountLast4' column not found in {src.name}. Creating it as object type with Nones.")
+            df["AccountLast4"] = pd.Series(dtype='object', index=df.index) # Fill with None
+
+        # If CSV has headers but no data rows, df will be empty.
+        # This is handled gracefully when adding new columns.
+
+        # Derive Owner
+        path_str_lower = str(src.as_posix()).lower() # Use as_posix for consistent / separators
+        owner = "Unknown" # Default owner
+        if "/csvs/ryan/" in path_str_lower: # Check for /ryan/ within the CSVs parent folder
+            owner = "Ryan"
+        elif "/csvs/jordyn/" in path_str_lower: # Check for /jordyn/ within the CSVs parent folder
+            owner = "Jordyn"
+        df["Owner"] = owner # Assign to all rows (or creates column if df is empty)
+
+        # Derive DataSourceName and DataSourceDate
+        fname = src.name
+        ds_name_val = "n/a"  # Default as per user's plan
+        ds_date_val = pd.NaT # Default as per user's plan (Not a Time)
+
+        # Regex for "Monarch Money" or "Rocket Money" followed by an 8-digit date
+        # Using re.I for case-insensitivity as specified in user's diff snippet
+        match = re.search(r"(Monarch Money|Rocket Money).*?(\d{8})", fname, re.I) 
+        if match:
+            name_tag, yyyymmdd_str = match.groups()
+            ds_name_val = name_tag.strip() # Use the matched tag (Monarch or Rocket)
+            try:
+                # Convert to datetime.date object for proper Parquet date32 type
+                ds_date_val = pd.to_datetime(yyyymmdd_str, format="%Y%m%d").date() # Use .date() for Timestamp
+            except ValueError:
+                log.warning(f"Could not parse date '{yyyymmdd_str}' from filename '{fname}' for DataSourceDate. Using NaT.")
+                # ds_date_val remains pd.NaT as set by default
+        
+        df["DataSourceName"] = ds_name_val
+        df["DataSourceDate"] = ds_date_val # Assigns datetime.date objects or pd.NaT
+
+        # Log derived info (conditionally accessing iloc[0] if df not empty for safety, though not strictly needed for these assignments)
+        owner_log = df['Owner'].iloc[0] if not df.empty else owner
+        ds_name_log = df['DataSourceName'].iloc[0] if not df.empty else ds_name_val
+        ds_date_log_val = df['DataSourceDate'].iloc[0] if not df.empty and pd.notna(df['DataSourceDate'].iloc[0]) else pd.NaT
+        ds_date_log_str = ds_date_log_val.isoformat() if pd.notna(ds_date_log_val) else "NaT"
+        
+        log.info(f"Successfully processed {src.name}: Rows={len(df)}, Owner='{owner_log}', "
+                 f"DataSourceName='{ds_name_log}', DataSourceDate='{ds_date_log_str}'")
+        return df
+
+    except FileNotFoundError:
+        log.error(f"[process_single_raw_csv_file] Source file not found: {src}")
+        return None
+    except pd.errors.EmptyDataError: # This catches truly empty files (no headers, no data)
+        log.warning(f"[process_single_raw_csv_file] Source file is completely empty (no data/headers): {src}. Skipping.")
+        return None # Skip this file from concatenation
+    except Exception as e:
+        log.error(f"[process_single_raw_csv_file] Error processing file {src}: {e}", exc_info=True)
+        return None
 
 def dev_main():
     """

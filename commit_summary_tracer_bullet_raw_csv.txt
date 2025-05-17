@@ -1,0 +1,32 @@
+feat: Implement raw CSV directory processing with enhanced metadata
+
+This commit significantly enhances the raw data ingestion capabilities of the CLI, building upon the initial "tracer bullet" functionality. The script can now process an entire directory of CSV files (including subdirectories), derive richer metadata, and consolidate all data into a single Parquet file.
+
+Key Enhancements:
+
+1.  **Directory Processing (`--raw-dir`):**
+    *   The `--raw-csv` flag has been replaced with `--raw-dir PATH`.
+    *   This argument now accepts either a path to a single CSV file or a path to a directory.
+    *   If a directory is provided, the script recursively scans for all `*.csv` files.
+    *   Implemented safety nets to skip files located in directories named `_archive` or `fixtures`.
+
+2.  **Consolidated Output:**
+    *   All processed CSVs (whether from a single file or a directory scan) are concatenated into a single pandas DataFrame.
+    *   This combined DataFrame is then written to `artifacts/balance_final.parquet`.
+
+3.  **Refined Metadata Columns:**
+    *   `Owner`: Derived based on whether the file path contains `/ryan/` or `/jordyn/`. Defaults to "Unknown".
+    *   `DataSourceName` (string): Populated with "Monarch Money" or "Rocket Money" if these keywords are found in the filename along with a date. Defaults to "n/a".
+    *   `DataSourceDate` (date): Extracted from filenames matching the "Monarch Money" or "Rocket Money" pattern with an 8-digit `YYYYMMDD` date. Stored as a proper date type in Parquet. Defaults to `NaT` (Not a Time) if not applicable.
+    *   The previous combined `SourceFile` column has been replaced by `DataSourceName` and `DataSourceDate` for better data typing and sortability.
+
+4.  **Robust Data Type Handling:**
+    *   `Amount` column: Explicitly converted to numeric using `pd.to_numeric(errors='coerce')`. Non-numeric values become `NaN`.
+    *   `AccountLast4` column: Explicitly converted to string type, preserving original `NaN` values as nulls for PyArrow compatibility. If the column is missing in a CSV, it's created and filled with nulls to ensure schema consistency during concatenation.
+    *   These changes prevent type errors during Parquet file generation.
+
+5.  **Argument Parser Update:**
+    *   The main positional arguments `inbox` and `workbook` (for full ETL mode) are now optional (`nargs='?'`).
+    *   The script now dispatches logic based on whether `--raw-dir` is provided or if `inbox` and `workbook` are provided for the full ETL. An error is raised if neither set of required arguments for a mode is met.
+
+These modifications provide a robust and flexible way to quickly ingest and consolidate raw CSV data from multiple sources into a queryable Parquet format, suitable for initial data exploration and validation in Power BI.
