@@ -36,6 +36,7 @@ import yaml # For loading schema_registry.yml
 
 # --- Local Application Imports ---
 from .config import SCHEMA_REGISTRY_PATH, MERCHANT_LOOKUP_PATH # Default paths
+from .constants import MASTER_SCHEMA_COLUMNS # Added import
 # We will need _hash_txn and clean_merchant from normalize.py
 # For now, let's assume they might be refactored or directly used.
 # If direct use: from .normalize import _txn_id_like_function, clean_merchant
@@ -47,43 +48,13 @@ from .utils import _clean_desc_single # For fallback merchant cleaning if needed
 # --- Setup Logger ---
 log = logging.getLogger(__name__)
 
-# --- Master Schema Columns (as per task description) ---
-# Columns marked with `★` are mandatory.
-MASTER_SCHEMA_COLUMNS = [
-    "TxnID",                # ★
-    "Owner",                # ★
-    "Date",                 # ★
-    "PostDate",
-    "Merchant",             # ★
-    "OriginalDescription",
-    "Category",             # ★
-    "Amount",               # ★
-    "Tags",
-    "Institution",
-    "Account",              # ★ (Marked as mandatory based on TxnID dependency and general use)
-    "AccountLast4",
-    "AccountType",
-    "SharedFlag",
-    "SplitPercent",
-    "StatementStart",
-    "StatementEnd",
-    "StatementPeriodDesc",
-    "DataSourceName",
-    "DataSourceDate",
-    "ReferenceNumber",
-    "Note",
-    "IgnoredFrom",
-    "TaxDeductible",
-    "CustomName",
-    "Currency",
-    "Extras",
-]
-
+# MANDATORY_MASTER_COLS was defined here, but MASTER_SCHEMA_COLUMNS is now imported.
+# If MANDATORY_MASTER_COLS is still needed, it should be defined based on the imported MASTER_SCHEMA_COLUMNS or also moved to constants.py
+# For now, assuming it might be implicitly handled or defined elsewhere if still used.
+# Based on the prompt, only MASTER_SCHEMA_COLUMNS is the focus.
 MANDATORY_MASTER_COLS = [
     "TxnID", "Owner", "Date", "Merchant", "Category", "Amount", "Account"
 ]
-
-
 # Placeholder for main processing function and helpers
 # These will be implemented in subsequent steps.
 
@@ -470,87 +441,179 @@ def apply_schema_transformations(
     else:
         log.warning(f"Amount column '{amount_col_name}' not found after mapping. Cannot apply sign rules or ensure numeric type.")
 
-    # 6. Derived Columns (interpreting schema['derived_columns']) - Placeholder for now
-    # This will be a complex part.
-    derived_columns_rules = schema_rules.get('derived_columns', {})
-    if derived_columns_rules:
-        log.info(f"Applying derived_columns rules: {derived_columns_rules}")
-        for target_col, rule_spec in derived_columns_rules.items():
-            if not isinstance(rule_spec, dict):
-                log.warning(f"Rule specification for derived column '{target_col}' is not a dictionary. Skipping.")
+    # 6. Derived Columns
+    derived_cfg = schema_rules.get('derived_columns', {}) # Use derived_cfg to match ingest.py
+    if derived_cfg:
+        log.info(f"Applying derived_columns rules: {derived_cfg}")
+        for new_col_name, rule_cfg in derived_cfg.items(): # Use new_col_name and rule_cfg
+            if not isinstance(rule_cfg, dict):
+                log.warning(f"Skipping invalid derived_column config for '{new_col_name}': Expected a dictionary, got {type(rule_cfg)}. Config: {rule_cfg}")
+                transformed_df[new_col_name] = pd.NA
                 continue
 
-            rule_type = rule_spec.get('type')
+            rule_type = rule_cfg.get("rule") # Shape A: get 'rule'
+            rule_details = rule_cfg # For Shape A, rule_cfg itself contains all details
+
+            # Back-compat for old Shape B (nested keys)
+            if rule_type is None:
+                if "regex_extract" in rule_cfg:
+                    rule_type = "regex_extract"
+                    rule_details = rule_cfg["regex_extract"]
+                elif "static_value" in rule_cfg:
+                    rule_type = "static_value"
+                    rule_details = rule_cfg["static_value"] 
+            
+            if rule_type is None:
+                log.warning(f"Unknown rule type for derived column '{new_col_name}'. Rule config: {rule_cfg}. Skipping.")
+                transformed_df[new_col_name] = pd.NA
+                continue
             
             try:
-                if rule_type == 'static_value':
-                    transformed_df[target_col] = rule_spec.get('value')
-                    log.info(f"Derived column '{target_col}' set with static value: {rule_spec.get('value')}")
-                
-                elif rule_type == 'from_column':
-                    source_col = rule_spec.get('source_column')
-                    if source_col and source_col in transformed_df.columns:
-                        transformed_df[target_col] = transformed_df[source_col]
-                        log.info(f"Derived column '{target_col}' copied from '{source_col}'.")
-                    else:
-                        log.warning(f"Source column '{source_col}' for derived column '{target_col}' not found. Skipping.")
-                        transformed_df[target_col] = pd.NA
+                if rule_type == "static_value":
+                    if isinstance(rule_details, dict): # Shape A
+                        static_val = rule_details.get("value")
+                    else: # Old Shape B
+                        static_val = rule_details
+                    
+                    if static_val is None:
+                        log.warning(f"Skipping static_value for '{new_col_name}': 'value' not found or is None. Details: {rule_details}")
+                        transformed_df[new_col_name] = pd.NA
+                        continue
+                    transformed_df[new_col_name] = static_val
+                    log.info(f"Derived column '{new_col_name}' with static value: '{static_val}'")
 
-                elif rule_type == 'regex_extract':
-                    source_col = rule_spec.get('source_column')
-                    pattern = rule_spec.get('pattern')
-                    group_index = rule_spec.get('group_index', 1) # Default to first capturing group
-                    if source_col and source_col in transformed_df.columns and pattern:
-                        # Ensure source_col is string type for regex
-                        transformed_df[target_col] = transformed_df[source_col].astype(str).str.extract(
-                            pat=str(pattern), expand=False, flags=re.IGNORECASE
-                        ).str.get(group_index -1 if isinstance(group_index, int) and group_index > 0 else 0) # .str.get() for Series of lists/tuples if expand=True
-                        # If expand=False, str.extract returns a Series. If pattern has groups, it's a Series of matches.
-                        # If the pattern is just (value), then it's fine.
-                        # A common use case is `(\d{4})` to get last 4. str.extract would return a Series of these.
-                        # If pattern has multiple groups and expand=False, it returns a DataFrame.
-                        # For simplicity, assuming pattern extracts a single value or the first group.
-                        # A more robust way for single group extraction:
-                        extracted_series = transformed_df[source_col].astype(str).str.extract(pat=str(pattern), expand=False)
-                        if isinstance(extracted_series, pd.DataFrame) and group_index <= len(extracted_series.columns):
-                             transformed_df[target_col] = extracted_series.iloc[:, group_index -1]
-                        elif isinstance(extracted_series, pd.Series):
-                             transformed_df[target_col] = extracted_series
-                        else:
-                             transformed_df[target_col] = pd.NA
-                             log.warning(f"Regex extract for '{target_col}' from '{source_col}' did not yield expected Series/DataFrame or group_index is out of bounds.")
+                elif rule_type == "regex_extract":
+                    if not isinstance(rule_details, dict):
+                        log.warning(f"Skipping regex_extract for '{new_col_name}': rule details not a dict. Details: {rule_details}")
+                        transformed_df[new_col_name] = pd.NA
+                        continue
 
-                        log.info(f"Derived column '{target_col}' from '{source_col}' using regex: '{pattern}', group: {group_index}.")
-                    else:
-                        log.warning(f"Missing source_column, pattern, or column not found for regex_extract for '{target_col}'. Skipping.")
-                        transformed_df[target_col] = pd.NA
-                
-                elif rule_type == 'concatenate':
-                    source_cols = rule_spec.get('source_columns', [])
-                    separator = rule_spec.get('separator', ' ')
-                    if source_cols and all(sc in transformed_df.columns for sc in source_cols):
-                        # Ensure all source columns are string type
-                        concat_series = None
-                        for i, sc in enumerate(source_cols):
-                            current_col_series = transformed_df[sc].astype(str)
-                            if i == 0:
-                                concat_series = current_col_series
-                            else:
-                                concat_series = concat_series + separator + current_col_series
-                        transformed_df[target_col] = concat_series
-                        log.info(f"Derived column '{target_col}' by concatenating {source_cols} with '{separator}'.")
-                    else:
-                        log.warning(f"One or more source columns for concatenate for '{target_col}' not found. Skipping. Needed: {source_cols}")
-                        transformed_df[target_col] = pd.NA
+                    source_col = rule_details.get("column")
+                    pattern_str = rule_details.get("pattern")
+                    
+                    if not source_col or not pattern_str:
+                        log.warning(f"Skipping regex_extract for '{new_col_name}': missing 'column' or 'pattern' in details. Details: {rule_details}")
+                        transformed_df[new_col_name] = pd.NA
+                        continue
+                    
+                    if source_col not in transformed_df.columns:
+                        log.warning(f"Skipping regex_extract for '{new_col_name}': source column '{source_col}' not found in DataFrame.")
+                        transformed_df[new_col_name] = pd.NA
+                        continue
+
+                    regex = re.compile(pattern_str)
+                    capture_group_name = list(regex.groupindex.keys())[0] if regex.groupindex else None
+
+                    def extract_with_regex(text_to_search: Any) -> Any:
+                        if pd.isna(text_to_search): return pd.NA
+                        match = regex.search(str(text_to_search))
+                        if match:
+                            if capture_group_name and capture_group_name in match.groupdict():
+                                return match.group(capture_group_name)
+                            elif match.groups(): 
+                                return match.group(1) 
+                        return pd.NA
+
+                    transformed_df[new_col_name] = transformed_df[source_col].apply(extract_with_regex)
+                    log.info(f"Derived column '{new_col_name}' from '{source_col}' using regex: '{pattern_str}' (capture group: '{capture_group_name or '1st unnamed'}')")
                 
                 else:
-                    log.warning(f"Unknown rule type '{rule_type}' for derived column '{target_col}'. Skipping.")
-                    transformed_df[target_col] = pd.NA
-            
-            except Exception as e:
-                log.error(f"Error applying derived column rule for '{target_col}' (type: {rule_type}): {e}", exc_info=True)
-                transformed_df[target_col] = pd.NA # Ensure column exists even if derivation fails
+                    log.warning(f"Unknown rule type '{rule_type}' specified for derived column '{new_col_name}'. Config: {rule_cfg}. Skipping.")
+                    transformed_df[new_col_name] = pd.NA
 
+            except Exception as e:
+                log.error(f"Error deriving column '{new_col_name}' with rule_type '{rule_type}': {e}", exc_info=True)
+                transformed_df[new_col_name] = pd.NA
+    
+    # Handle extras_ignore: remove specified columns if they exist
+    # This should happen after all columns (original, mapped, derived) are settled.
+    extras_to_ignore = schema_rules.get("extras_ignore", [])
+    if extras_to_ignore:
+        # Columns to drop should be those present in the DataFrame at this stage.
+        # These could be original column names if they weren't mapped, or new names if they were.
+        # The extras_ignore list in schema_registry.yml refers to original column names.
+        # However, the current transformed_df has already undergone renames.
+        # The logic in ingest.py's load_folder was:
+        #   cols_to_drop_from_df = [col for col in extras_to_ignore if col in df.columns]
+        #   df = df.drop(columns=cols_to_drop_from_df)
+        # This implies extras_ignore contains names as they appear *after* potential mapping
+        # or are original names that were *not* mapped.
+        # Given the `schema_registry.yml` has `extras_ignore: ["Name", ...]` and "Name" is an *original* column
+        # that is *not* in `column_map` for the affected schemas, it means we should check `extras_to_ignore`
+        # against the columns currently in `transformed_df`.
+        
+        # Let's re-evaluate: extras_ignore should refer to columns as they are *named in the source CSV*
+        # or as they are *after mapping if they were mapped to something that should then be ignored*.
+        # The user's schema_registry.yml has `extras_ignore: ["Name"]` etc. "Name" is an original column.
+        # The current `transformed_df` might still have "Name" if it wasn't mapped, or it might have been mapped.
+        # The simplest interpretation that matches `ingest.py`'s apparent behavior is to check against current df columns.
+        
+        # However, the log "Unexpected column survived mapping: Name" suggests "Name" *is* still in the df
+        # after mapping (because it wasn't in column_map).
+        # So, the list in extras_ignore should contain names as they are in the DataFrame *at the point of ignoring*.
+        
+        # The `extras_ignore` in `schema_registry.yml` lists original column names.
+        # These original names might still exist in `transformed_df` if they were not part of `rename_dict`.
+        # Or, if an original column listed in `extras_ignore` *was* mapped, we should ignore its *new* name.
+        # This is getting complex. The `ingest.py` version was simpler:
+        # `cols_to_drop_from_df = [col for col in extras_to_ignore if col in df.columns]`
+        # This assumes `extras_ignore` contains names that are currently present in the DataFrame.
+        # Let's stick to the user's `schema_registry.yml` where `extras_ignore` lists original names.
+        # We need to find which of these original names are still present (i.e., were not mapped and renamed).
+        
+        # The `unmapped_original_cols` list contains original column names that were not mapped.
+        # The `Extras` column now holds a JSON of these.
+        # The `extras_ignore` from schema should refer to original column names.
+        # We need to ensure these are not carried forward if they are not part of `MASTER_SCHEMA_COLUMNS`.
+        # The current `Extras` column creation already handles unmapped columns.
+        # The `extras_ignore` directive is about *preventing* certain unmapped columns from even going into the `Extras` JSON,
+        # or dropping them if they somehow survived as actual columns.
+
+        # Let's refine the logic for `Extras` creation and then apply `extras_ignore`.
+        # Current `Extras` logic:
+        # mapped_original_cols = set(rename_dict.keys())
+        # unmapped_original_cols = [col for col in original_columns if col not in mapped_original_cols]
+        # extras_df = df[unmapped_original_cols].copy() ...
+        
+        # New approach for extras_ignore:
+        # 1. Identify columns to be put into 'Extras': these are `unmapped_original_cols`.
+        # 2. From this list, remove any columns specified in `extras_ignore`.
+        # 3. Then, create the 'Extras' JSON from the filtered list.
+        # 4. Also, explicitly drop any columns listed in `extras_ignore` that might still exist as actual columns
+        #    in `transformed_df` (e.g. if they were mapped to a name that is also in `extras_ignore`, though unlikely).
+
+        # First, drop any columns listed in extras_ignore that are currently actual columns in transformed_df.
+        # These would be original names that were NOT mapped by `rename_dict`.
+        cols_to_drop_directly = [col for col in extras_to_ignore if col in transformed_df.columns]
+        if cols_to_drop_directly:
+            transformed_df.drop(columns=cols_to_drop_directly, inplace=True, errors='ignore')
+            log.info(f"Dropped columns directly based on 'extras_ignore': {cols_to_drop_directly}")
+            # Update unmapped_original_cols if any were dropped directly
+            unmapped_original_cols = [col for col in unmapped_original_cols if col not in cols_to_drop_directly]
+
+        # Re-create 'Extras' column logic, considering extras_ignore for what goes into JSON.
+        # `original_columns` are the raw headers from the input CSV `df`.
+        # `rename_dict` maps raw headers to canonical names.
+        
+        # Columns that were mapped:
+        mapped_raw_headers = set(rename_dict.keys())
+        # Columns from original CSV that were NOT mapped:
+        unmapped_raw_headers = [col for col in original_columns if col not in mapped_raw_headers]
+        
+        # From these unmapped raw headers, filter out those listed in extras_ignore:
+        final_cols_for_extras_json = [col for col in unmapped_raw_headers if col not in extras_to_ignore]
+        
+        if final_cols_for_extras_json:
+            # Create a DataFrame of just these columns from the *original* df
+            extras_df_filtered = df[final_cols_for_extras_json].copy()
+            transformed_df['Extras'] = extras_df_filtered.apply(
+                lambda row: json.dumps(row.dropna().to_dict()), axis=1
+            )
+            log.info(f"Collected unmapped columns (after extras_ignore) into 'Extras' JSON: {final_cols_for_extras_json}")
+        else:
+            transformed_df['Extras'] = None 
+            log.info("No unmapped columns left for 'Extras' JSON after applying extras_ignore.")
+            
     # 7. Specific source pre-processing (e.g., Rocket Money) - Placeholder
     # This should be minimized by making YAML expressive.
     # schema_id = schema_rules.get('id', '').lower()
@@ -772,7 +835,8 @@ def process_csv_files(
             # If column is missing, it was already added with pd.NA
 
         # Final Column Selection & Ordering (with fill_value as per manual fix step)
-        log.info(f"Applying reindex to MASTER_SCHEMA_COLUMNS with fill_value=pd.NA for {csv_file_path_obj.name}")
+        # Use the imported MASTER_SCHEMA_COLUMNS directly.
+        log.info(f"Applying reindex to MASTER_SCHEMA_COLUMNS (element 3: {MASTER_SCHEMA_COLUMNS[3] if len(MASTER_SCHEMA_COLUMNS) > 3 else 'N/A'}) with fill_value=pd.NA for {csv_file_path_obj.name}")
         processed_df = processed_df.reindex(columns=MASTER_SCHEMA_COLUMNS, fill_value=pd.NA)
         
         all_processed_dfs.append(processed_df)

@@ -22,14 +22,29 @@ import os # os was not used directly, sys.executable and os.getcwd() are in dev_
 import time # Added for retry loop
 import io # io module is no longer used
 from typing import Optional, Any
-from balance_pipeline import config # Import full config module
+import sys # Added for sys.modules manipulation
+import importlib # Added for reload and explicit import
 
-# Import the pipeline modules
-# from balance_pipeline.ingest import load_folder # Replaced by csv_consolidator
-# from balance_pipeline.normalize import normalize_df # Replaced by csv_consolidator + specific dedupe
-from balance_pipeline.csv_consolidator import process_csv_files
+# --- Attempt to clear any cached balance_pipeline modules ---
+# This is an aggressive step to try and force a fresh load.
+try:
+    modules_to_delete = [key for key in sys.modules if key.startswith('balance_pipeline')]
+    if modules_to_delete:
+        logging.info(f"Attempting to remove cached modules: {modules_to_delete}")
+        for key in modules_to_delete:
+            del sys.modules[key]
+except Exception as e_clear_cache:
+    logging.warning(f"Could not clear sys.modules for balance_pipeline: {e_clear_cache}")
+
+# Now import the modules, hopefully freshly
+from balance_pipeline import config # Import full config module
+from balance_pipeline import ingest as ingest_module # Import the module itself for reloading
+from balance_pipeline import csv_consolidator as csv_consolidator_module # Import for reloading
+from balance_pipeline.constants import MASTER_SCHEMA_COLUMNS # Added import
+# from balance_pipeline.csv_consolidator import process_csv_files # Will call as csv_consolidator_module.process_csv_files
 from balance_pipeline.sync import sync_review_decisions
 # Removed: from balance_pipeline.export import write_parquet_duckdb
+
 
 # --- Force UTF-8 Encoding for stdout/stderr ---
 # This helps ensure emojis (like ✅) and other Unicode characters print correctly,
@@ -179,7 +194,8 @@ def etl_main(inbox_path: Path, prefer_source: str = "Rocket", exclude_patterns: 
 
     # 2. Process CSV files using the new consolidator module
     # This function handles schema matching, transformations, TxnID, merchant cleaning, etc.
-    df = process_csv_files(csv_file_paths) # prefer_source is not used by this function directly
+    # Call using the reloaded module reference
+    df = csv_consolidator_module.process_csv_files(csv_file_paths) # prefer_source is not used by this function directly
     
     if df.empty:
         log.warning("CSV processing resulted in an empty DataFrame before deduplication.")
@@ -220,10 +236,28 @@ def etl_main(inbox_path: Path, prefer_source: str = "Rocket", exclude_patterns: 
     log.info(f"Final ETL DataFrame contains {len(df)} rows.")
     return df
 
+# importlib is already imported at the top
+# ingest_module is already imported at the top
+
 def main():
     """
     Main CLI entry point
     """
+    # Attempt to reload the ingest module to pick up changes
+    # This should happen AFTER setup_logging if it logs, or ensure logging is configured first.
+    # For now, let's assume logging is configured by setup_logging called later.
+    try:
+        # Re-import and reload ingest_module specifically within main's scope if needed,
+        # or rely on the top-level import and reload.
+        # To be safe, let's ensure ingest_module is the one from the top.
+        importlib.reload(ingest_module)
+        print("INFO: Reloaded balance_pipeline.ingest module in main().", file=sys.stderr)
+        # Also reload csv_consolidator to pick up its internal changes like MASTER_SCHEMA_COLUMNS
+        importlib.reload(csv_consolidator_module)
+        print("INFO: Reloaded balance_pipeline.csv_consolidator module in main().", file=sys.stderr)
+    except Exception as e_reload:
+        print(f"WARNING: Could not reload modules in main(): {e_reload}", file=sys.stderr)
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         description="BALANCE-pyexcel ETL Pipeline: Process CSVs and update Excel.", 

@@ -45,6 +45,15 @@
   #                       contains 'Withdrawal' or 'Payment' (case-insensitive).
   #                       Assumes deposits are already negative in the source file.
   sign_rule: flip_if_withdrawal
+  derived_columns:
+    AccountLast4:
+      rule: regex_extract
+      column: Account
+      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+    AccountType:
+      rule: static_value
+      value: "Checking"
+  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number"]
 
 # ------------------------------------------------------------------------------
 # Schema ID: discover_it_card
@@ -67,6 +76,15 @@
   # Sign rule: How to handle the Amount sign.
   # Changed to flip_if_positive as Transaction Type column is not reliably present.
   sign_rule: flip_if_positive
+  derived_columns:
+    AccountLast4:
+      rule: regex_extract
+      column: Account
+      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+    AccountType:
+      rule: static_value
+      value: "Credit Card"
+  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number", "Statement Period"]
 
 # ------------------------------------------------------------------------------
 # Schema ID: wells_fargo_card
@@ -92,6 +110,15 @@
   # Static columns to add to every row from this source
   extra_static_cols:
     Institution: "Wells Fargo" # Changed Bank to Institution
+  derived_columns:
+    AccountLast4:
+      rule: regex_extract
+      column: Account
+      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+    AccountType:
+      rule: static_value
+      value: "Credit Card"
+  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number", "Statement Period Description"]
 
 # ------------------------------------------------------------------------------
 # Schema ID: monarch_export
@@ -116,6 +143,15 @@
   # Sign rule: How to handle the Amount sign.
   # 'as_is': Keep the sign as is. Monarch sample showed outflows were already negative.
   sign_rule: as_is
+  derived_columns:
+    AccountLast4:
+      rule: regex_extract
+      column: Account
+      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+    AccountType:
+      rule: static_value
+      value: "Checking"
+  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number", "Original Statement", "Notes", "Tags"]
 
 # ------------------------------------------------------------------------------
 # Schema ID: rocket_money
@@ -141,6 +177,15 @@
   # 'flip_if_positive': Flips positive amounts to negative.
   #                     Rocket Money sample showed expenses were positive.
   sign_rule: flip_if_positive
+  derived_columns:
+    AccountLast4:
+      rule: regex_extract
+      column: Account
+      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+    AccountType:
+      rule: static_value
+      value: "Credit Card"
+  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number", "Original Date", "Account Type", "Account Number", "Custom Name", "Note", "Ignored From", "Tax Deductible"]
 
 # ------------------------------------------------------------------------------
 # Schema ID: jordyn_pdf_document

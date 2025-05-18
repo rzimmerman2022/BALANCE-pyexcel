@@ -42,7 +42,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # final DataFrame produced by the load_folder function. All input CSVs
 # will be transformed to match this structure.
 # Added PostDate for TxnID hashing
-STANDARD_COLS = ["Owner", "Date", "PostDate", "Description", "Amount", "Account", "Category", "Bank", "Source"]
+STANDARD_COLS = ["Owner", "Date", "PostDate", "Description", "Amount", "Account", "AccountLast4", "AccountType", "Category", "Bank", "Source"]
 
 # --- Load Schema Registry from YAML ---
 # The schema registry defines the rules for processing each different CSV format.
@@ -213,96 +213,123 @@ def _apply_sign_rule(df: pd.DataFrame, rule: str | None) -> pd.DataFrame:
 # ------------------------------------------------------------------------------
 # Function: _derive_columns
 # ------------------------------------------------------------------------------
-def _derive_columns(df: pd.DataFrame, derived_cfg: dict[str, str] | None) -> pd.DataFrame:
+def _derive_columns(df: pd.DataFrame, derived_cfg: dict | None) -> pd.DataFrame:
     """
-    Derives new columns using regular expressions on the 'Description' column,
-    based on patterns defined in the schema's 'derived_columns' section.
-
-    Currently tailored for extracting an 'Amount' if it's embedded in the description.
+    Derives new columns based on rules defined in the schema's 'derived_columns' section.
+    Supports 'static_value' and 'regex_extract' rule types.
 
     Args:
         df (pd.DataFrame): The DataFrame for the current CSV (after mapping).
-        derived_cfg (dict[str, str] | None): The 'derived_columns' dictionary
-                                              from the schema, or None.
+        derived_cfg (dict | None): The 'derived_columns' dictionary from the schema.
+                                   Example:
+                                   {
+                                       'NewColName1': {'static_value': 'SomeValue'},
+                                       'NewColName2': {
+                                           'regex_extract': {
+                                               'column': 'SourceColumn',
+                                               'pattern': '(?P<capture_group_name>...)'
+                                           }
+                                       }
+                                   }
 
     Returns:
-        pd.DataFrame: The DataFrame potentially with new derived columns added,
-                      and 'Amount' possibly filled or created.
+        pd.DataFrame: The DataFrame with new derived columns added.
     """
-    # If no derivation rules are defined, return the DataFrame as is.
     if derived_cfg is None:
         return df
 
-    # --- Pre-checks ---
-    # Derivation relies on the 'Description' column.
-    if 'Description' not in df.columns:
-        logging.error("Cannot derive columns: 'Description' column not found.")
-        return df
-    # Ensure 'Description' is treated as string data.
-    df["Description"] = df["Description"].astype(str)
+    logging.info(f"Applying derived_columns rules: {derived_cfg}")
 
-    logging.info(f"Attempting to derive columns using patterns: {derived_cfg}")
+    for new_col_name, rule_cfg in derived_cfg.items(): # Renamed rule_config to rule_cfg for clarity
+        if not isinstance(rule_cfg, dict):
+            logging.warning(f"Skipping invalid derived_column config for '{new_col_name}': Expected a dictionary, got {type(rule_cfg)}. Config: {rule_cfg}")
+            df[new_col_name] = pd.NA
+            continue
 
-    # Loop through each derivation rule defined in the YAML.
-    for new_col, pattern in derived_cfg.items():
+        # 1️⃣ New Shape-A path (e.g., rule: regex_extract, column: ..., pattern: ...)
+        rule_type = rule_cfg.get("rule")
+        rule_details = rule_cfg # For Shape A, rule_cfg itself contains all details
+
+        # 2️⃣ Back-compat path (old nested keys like regex_extract: {...} or static_value: "value")
+        if rule_type is None:
+            if "regex_extract" in rule_cfg:
+                rule_type = "regex_extract"
+                rule_details = rule_cfg["regex_extract"]
+            elif "static_value" in rule_cfg: # This was the old way for static_value
+                rule_type = "static_value"
+                # For old static_value, rule_details was the value itself, not a dict.
+                # The new logic below expects rule_details to be a dict for static_value if it's from Shape A.
+                # So, we need to handle this carefully.
+                # If old style, rule_details becomes the value. If new style, rule_details is the dict.
+                rule_details = rule_cfg["static_value"] 
+            
+        if rule_type is None:
+            logging.warning(f"Unknown rule type for derived column '{new_col_name}'. Rule config: {rule_cfg}. Skipping.")
+            df[new_col_name] = pd.NA
+            continue
+
         try:
-            # Compile the regex pattern for efficiency.
-            regex = re.compile(pattern)
+            if rule_type == "static_value":
+                # For Shape A: rule_details is a dict like {'rule': 'static_value', 'value': 'ActualValue'}
+                # For old Shape B: rule_details is the 'ActualValue' itself.
+                if isinstance(rule_details, dict): # Shape A
+                    static_val = rule_details.get("value")
+                else: # Old Shape B
+                    static_val = rule_details
+                
+                if static_val is None:
+                    logging.warning(f"Skipping static_value for '{new_col_name}': 'value' not found or is None. Details: {rule_details}")
+                    df[new_col_name] = pd.NA
+                    continue
+                df[new_col_name] = static_val
+                logging.info(f"Derived column '{new_col_name}' with static value: '{static_val}'")
 
-            # Define a helper function to apply the regex and extract the amount.
-            def extract_amount_from_regex(text: str) -> float | None:
-                match = regex.search(text)
-                if match:
-                    try:
-                        # Try extracting named group 'amt' first (preferred).
-                        # (?P<amt>...) in regex defines a named group.
-                        return float(match.group('amt'))
-                    except IndexError:
-                        # If 'amt' group doesn't exist, try the first captured group.
-                        try:
-                            return float(match.group(1))
-                        except IndexError:
-                            logging.warning(f"Regex pattern '{pattern}' matched '{text}' but required capture group ('amt' or group 1) not found.")
-                            return pd.NA # Use pandas NA for missing numeric
-                        except ValueError:
-                             logging.warning(f"Could not convert captured group 1 to float from regex '{pattern}' on text '{text}'")
-                             return pd.NA
-                    except ValueError:
-                        # Handle cases where the extracted value isn't a valid float.
-                        logging.warning(f"Could not convert captured group 'amt' to float from regex '{pattern}' on text '{text}'")
-                        return pd.NA
-                # Return NA if the regex pattern doesn't match the description.
-                return pd.NA
+            elif rule_type == "regex_extract":
+                # For Shape A: rule_details is a dict like {'rule': 'regex_extract', 'column': 'X', 'pattern': 'Y'}
+                # For old Shape B: rule_details is a dict like {'column': 'X', 'pattern': 'Y'}
+                # The structure of rule_details is the same (a dict with 'column' and 'pattern') for both.
+                if not isinstance(rule_details, dict):
+                    logging.warning(f"Skipping regex_extract for '{new_col_name}': rule details not a dict. Details: {rule_details}")
+                    df[new_col_name] = pd.NA
+                    continue
 
-            # Apply the extraction function to the 'Description' column to create the new column.
-            df[new_col] = df["Description"].apply(extract_amount_from_regex)
-            logging.info(f"Derived column '{new_col}' using regex pattern: '{pattern}'")
+                source_col = rule_details.get("column")
+                pattern_str = rule_details.get("pattern")
+                
+                if not source_col or not pattern_str:
+                    logging.warning(f"Skipping regex_extract for '{new_col_name}': missing 'column' or 'pattern' in details. Details: {rule_details}")
+                    df[new_col_name] = pd.NA
+                    continue
+                
+                if source_col not in df.columns:
+                    logging.warning(f"Skipping regex_extract for '{new_col_name}': source column '{source_col}' not found in DataFrame.")
+                    df[new_col_name] = pd.NA
+                    continue
 
-            # --- Special Handling for Amount Derivation ---
-            # If we specifically derived an amount (using key 'AmountFromDesc' in YAML)
-            # use it to populate or create the main 'Amount' column.
-            # REVIEW: Ensure the key 'AmountFromDesc' matches your YAML for Wells Fargo.
-            if new_col == "AmountFromDesc":
-                if "Amount" not in df.columns:
-                    # If 'Amount' doesn't exist at all, create it from the derived values.
-                    df["Amount"] = df[new_col]
-                    logging.info("Created 'Amount' column from derived column 'AmountFromDesc'")
-                else:
-                    # If 'Amount' exists but has missing values, fill them using derived values.
-                    original_na_count = df["Amount"].isna().sum()
-                    # Use fillna() which is efficient for this purpose.
-                    df["Amount"] = df["Amount"].fillna(df[new_col])
-                    filled_na_count = original_na_count - df["Amount"].isna().sum()
-                    if filled_na_count > 0:
-                        logging.info(f"Filled {filled_na_count} missing 'Amount' values using derived column '{new_col}'")
+                regex = re.compile(pattern_str)
+                capture_group_name = list(regex.groupindex.keys())[0] if regex.groupindex else None
 
-                # Optionally drop the intermediate derived column after use.
-                # Keep it for now for debugging, can be removed later.
-                # df = df.drop(columns=[new_col])
+                def extract_with_regex(text_to_search: str) -> Any:
+                    if pd.isna(text_to_search): return pd.NA
+                    match = regex.search(str(text_to_search))
+                    if match:
+                        if capture_group_name and capture_group_name in match.groupdict():
+                            return match.group(capture_group_name)
+                        elif match.groups(): 
+                            return match.group(1) 
+                    return pd.NA
+
+                df[new_col_name] = df[source_col].apply(extract_with_regex)
+                logging.info(f"Derived column '{new_col_name}' from '{source_col}' using regex: '{pattern_str}' (capture group: '{capture_group_name or '1st unnamed'}')")
+            
+            # No 'elif rule_type is None:' here because it's caught by the 'continue' above.
+            else: # Handles any other string in rule_type that isn't 'static_value' or 'regex_extract'
+                logging.warning(f"Unknown rule type '{rule_type}' specified for derived column '{new_col_name}'. Config: {rule_cfg}. Skipping.")
+                df[new_col_name] = pd.NA
 
         except Exception as e:
-            # Log errors encountered during the derivation process for a specific rule.
-            logging.error(f"Error deriving column '{new_col}' with pattern '{pattern}': {e}")
+            logging.error(f"Error deriving column '{new_col_name}' with rule_type '{rule_type}': {e}", exc_info=True)
+            df[new_col_name] = pd.NA
 
     return df
 
@@ -450,9 +477,17 @@ def load_folder(
 
             # Derive any additional columns specified in the schema.
             derived_cfg = schema.get("derived_columns")
-            if derived_cfg:
-                df = _derive_columns(df, derived_cfg)
+            df = _derive_columns(df, derived_cfg) # Pass derived_cfg directly, new function handles None
 
+            # Handle extras_ignore: remove specified columns if they exist
+            extras_to_ignore = schema.get("extras_ignore", [])
+            # logging.critical(f"<<<<< EXTRAS_IGNORE in INGEST.PY: Schema ID {schema_id}, extras_to_ignore: {extras_to_ignore} >>>>>") # Removed critical log
+            if extras_to_ignore:
+                cols_to_drop_from_df = [col for col in extras_to_ignore if col in df.columns]
+                if cols_to_drop_from_df:
+                    df = df.drop(columns=cols_to_drop_from_df)
+                    logging.info(f"Dropped columns from DataFrame based on 'extras_ignore': {cols_to_drop_from_df} for schema '{schema_id}'")
+            
             # Check if essential columns exist AFTER mapping/derivation.
             essential_cols = ["Date", "Description", "Amount"]
             missing_essentials = [col for col in essential_cols if col not in df.columns]
