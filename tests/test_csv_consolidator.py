@@ -29,8 +29,8 @@ SAMPLE_CSVS = [
     ("Jordyn - Chase Bank - Total Checking x6173 - All.csv", {"expected_min_rows": 1, "owner": "Jordyn"}),
     ("Jordyn - Discover - Discover It Card x1544 - CSV.csv", {"expected_min_rows": 1, "owner": "Jordyn"}),
     ("Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV.csv", {"expected_min_rows": 1, "owner": "Jordyn"}),
-    ("BALANCE - Monarch Money - 041225.csv", {"expected_min_rows": 1, "owner": "Ryan"}), # Assuming owner based on path convention
-    ("BALANCE - Rocket Money - 041225.csv", {"expected_min_rows": 1, "owner": "Ryan"}), # Assuming owner based on path convention
+    ("Ryan - Monarch Money - 041225.csv", {"expected_min_rows": 1, "owner": "Ryan"}),
+    ("Ryan - Rocket Money - 041225.csv", {"expected_min_rows": 1, "owner": "Ryan"}),
 ]
 
 # --- Test Functions ---

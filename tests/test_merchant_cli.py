@@ -148,7 +148,7 @@ def test_cli_merchant_add_happy_path(project_root_for_cli_tests: Path):
     print("STDOUT:", result.stdout)
     print("STDERR:", result.stderr)
     assert result.returncode == 0
-    assert "Rule added 👍" in result.stdout
+    assert "Rule added - Refresh in Excel to apply." in result.stdout
     
     assert rules_file.exists()
     with open(rules_file, 'r', newline='', encoding='utf-8') as f:

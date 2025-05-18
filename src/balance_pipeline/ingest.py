@@ -20,6 +20,7 @@ Author: Your Name / AI Assistant
 # ==============================================================================
 from __future__ import annotations  # Ensures compatibility with type hints like str | Path
 from pathlib import Path
+from typing import Any # Added for F821
 import pandas as pd
 import yaml
 import re
@@ -54,11 +55,11 @@ try:
     # Attempt to read the YAML file using UTF-8 encoding.
     _SCHEMAS = yaml.safe_load(_SCHEMA_REGISTRY_PATH.read_text(encoding='utf-8'))
     if not isinstance(_SCHEMAS, list):
-         # Ensure the loaded YAML is a list of dictionaries as expected.
-         logging.error(f"CRITICAL: Schema registry file '{_SCHEMA_REGISTRY_PATH}' did not load as a list.")
-         _SCHEMAS = []
+        # Ensure the loaded YAML is a list of dictionaries as expected.
+        logging.error(f"CRITICAL: Schema registry file '{_SCHEMA_REGISTRY_PATH}' did not load as a list.")
+        _SCHEMAS = []
     else:
-         logging.info(f"Successfully loaded {_SCHEMA_REGISTRY_PATH} containing {len(_SCHEMAS)} schema(s).")
+        logging.info(f"Successfully loaded {_SCHEMA_REGISTRY_PATH} containing {len(_SCHEMAS)} schema(s).")
 except FileNotFoundError:
     # Handle the critical error if the rules file doesn't exist.
     logging.error(f"CRITICAL: Schema registry file not found at '{_SCHEMA_REGISTRY_PATH}'. Ingestion will likely fail.")
@@ -261,20 +262,20 @@ def _derive_columns(df: pd.DataFrame, derived_cfg: dict | None) -> pd.DataFrame:
                 # The new logic below expects rule_details to be a dict for static_value if it's from Shape A.
                 # So, we need to handle this carefully.
                 # If old style, rule_details becomes the value. If new style, rule_details is the dict.
-                rule_details = rule_cfg["static_value"] 
+                rule_details = rule_cfg["static_value"]
             
         if rule_type is None:
             logging.warning(f"Unknown rule type for derived column '{new_col_name}'. Rule config: {rule_cfg}. Skipping.")
             df[new_col_name] = pd.NA
             continue
-
+        
         try:
             if rule_type == "static_value":
                 # For Shape A: rule_details is a dict like {'rule': 'static_value', 'value': 'ActualValue'}
                 # For old Shape B: rule_details is the 'ActualValue' itself.
                 if isinstance(rule_details, dict): # Shape A
                     static_val = rule_details.get("value")
-                else: # Old Shape B
+                else:  # Old Shape B
                     static_val = rule_details
                 
                 if static_val is None:
@@ -310,20 +311,20 @@ def _derive_columns(df: pd.DataFrame, derived_cfg: dict | None) -> pd.DataFrame:
                 capture_group_name = list(regex.groupindex.keys())[0] if regex.groupindex else None
 
                 def extract_with_regex(text_to_search: str) -> Any:
-                    if pd.isna(text_to_search): return pd.NA
+                    if pd.isna(text_to_search):
+                        return pd.NA
                     match = regex.search(str(text_to_search))
                     if match:
                         if capture_group_name and capture_group_name in match.groupdict():
                             return match.group(capture_group_name)
-                        elif match.groups(): 
-                            return match.group(1) 
+                        elif match.groups():
+                            return match.group(1)
                     return pd.NA
 
                 df[new_col_name] = df[source_col].apply(extract_with_regex)
                 logging.info(f"Derived column '{new_col_name}' from '{source_col}' using regex: '{pattern_str}' (capture group: '{capture_group_name or '1st unnamed'}')")
             
-            # No 'elif rule_type is None:' here because it's caught by the 'continue' above.
-            else: # Handles any other string in rule_type that isn't 'static_value' or 'regex_extract'
+            else:  # Handles any other string in rule_type that isn't 'static_value' or 'regex_extract'
                 logging.warning(f"Unknown rule type '{rule_type}' specified for derived column '{new_col_name}'. Config: {rule_cfg}. Skipping.")
                 df[new_col_name] = pd.NA
 

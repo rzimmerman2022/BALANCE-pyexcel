@@ -22,25 +22,13 @@ import os # os was not used directly, sys.executable and os.getcwd() are in dev_
 import time # Added for retry loop
 import io # io module is no longer used
 from typing import Optional, Any
-import sys # Added for sys.modules manipulation
 import importlib # Added for reload and explicit import
 
-# --- Attempt to clear any cached balance_pipeline modules ---
-# This is an aggressive step to try and force a fresh load.
-try:
-    modules_to_delete = [key for key in sys.modules if key.startswith('balance_pipeline')]
-    if modules_to_delete:
-        logging.info(f"Attempting to remove cached modules: {modules_to_delete}")
-        for key in modules_to_delete:
-            del sys.modules[key]
-except Exception as e_clear_cache:
-    logging.warning(f"Could not clear sys.modules for balance_pipeline: {e_clear_cache}")
 
 # Now import the modules, hopefully freshly
 from balance_pipeline import config # Import full config module
 from balance_pipeline import ingest as ingest_module # Import the module itself for reloading
 from balance_pipeline import csv_consolidator as csv_consolidator_module # Import for reloading
-from balance_pipeline.constants import MASTER_SCHEMA_COLUMNS # Added import
 # from balance_pipeline.csv_consolidator import process_csv_files # Will call as csv_consolidator_module.process_csv_files
 from balance_pipeline.sync import sync_review_decisions
 # Removed: from balance_pipeline.export import write_parquet_duckdb
@@ -863,7 +851,6 @@ def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
     """
     import pandas as pd # Keep imports local to function as per previous pattern
     import re
-    import datetime
 
     log.info(f"[process_single_raw_csv_file] Attempting to process: {src.name}")
     try:

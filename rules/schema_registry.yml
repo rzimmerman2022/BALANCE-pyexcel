@@ -1,286 +1,228 @@
-# ==============================================================================
-# File:    schema_registry.yml
-# Project: BALANCE-pyexcel
-# Author:  Ryan Zimmerman / AI Assistant
-# Purpose: Defines rules for parsing different bank/source CSV formats.
-#          The 'ingest.py' script reads this file to determine how to handle
-#          each unique CSV layout dynamically.
-#
-# Revision History:
-# 2025-04-21 (v0.1.0) - Initial creation based on proposal, added comments.
-# 2025-04-22 (v0.1.1) - Corrected Discover & WF header_signatures,
-#                        fixed WF amount handling (use direct map, remove derived),
-#                        fixed Monarch date mapping & sign rule, added Category maps.
-# ==============================================================================
-# Instructions: To add a new CSV format:
-# 1. Copy an existing block (e.g., `- id: ... sign_rule: ...`).
-# 2. Change the `id` to something unique (e.g., `amex_blue_cash`).
-# 3. Update `match_filename` with a glob pattern matching the new CSV's name.
-# 4. Update `header_signature` with a few column names unique to that CSV format.
-# 5. Update `column_map` to map the CSV's column names to our STANDARD_COLS.
-# 6. Choose the correct `sign_rule` ('as_is', 'flip_if_positive', 'flip_if_withdrawal').
-# 7. Add `derived_columns` only if needed (like the original WF example, now removed).
-# ==============================================================================
-# --- Start of Schema Definitions ---
-
-# ------------------------------------------------------------------------------
-# Schema ID: chase_total_checking
-# Description: Rules for Chase Total Checking account exports.
-# ------------------------------------------------------------------------------
 - id: chase_total_checking
-  # How to identify files matching this schema (uses glob pattern matching on filename).
-  match_filename: "Jordyn - Chase Bank - Total Checking*" # Matches files starting like this
-  # List of column headers that MUST be present in the CSV to confirm it's this schema. Case-sensitive.
-  header_signature: ["Name", "Institution", "Account Type", "Transaction Date"]
-  # Mapping from the column names found IN THE CSV to our STANDARD column names.
+  match_filename: Jordyn - Chase Bank - Total Checking*
+  header_signature:
+  - Name
+  - Institution
+  - Account Type
+  - Transaction Date
   column_map:
     Transaction Date: Date
-    Description: OriginalDescription # Mapped to OriginalDescription
+    Description: OriginalDescription
     Post Date: PostDate
     Amount: Amount
     Category: Category
-    Account Type: Account       # Map Account Type to our standard Account column
-  # Rule for correcting the sign of the 'Amount' column.
-  # 'flip_if_withdrawal': Makes 'Amount' negative ONLY IF the 'Category' column
-  #                       contains 'Withdrawal' or 'Payment' (case-insensitive).
-  #                       Assumes deposits are already negative in the source file.
+    Account Type: Account
   sign_rule: flip_if_withdrawal
   derived_columns:
     AccountLast4:
       rule: regex_extract
       column: Account
-      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
     AccountType:
       rule: static_value
-      value: "Checking"
-  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number"]
-
-# ------------------------------------------------------------------------------
-# Schema ID: discover_it_card
-# Description: Rules for Discover It credit card exports.
-# ------------------------------------------------------------------------------
+      value: Checking
+  extras_ignore:
+  - Name
+  - Statement Start Date
+  - Statement End Date
+  - Reference Number
 - id: discover_it_card
-  # How to identify files matching this schema (glob pattern).
-  match_filename: "Jordyn - Discover - Discover It Card*"
-  # Header check: Ensure these specific columns exist in the CSV.
-  header_signature: ["Name", "Institution", "Card Type", "Date"]
-  # Column mapping: Source CSV column -> Standard internal column name.
+  match_filename: Jordyn - Discover - Discover It Card*
+  header_signature:
+  - Name
+  - Institution
+  - Card Type
+  - Date
   column_map:
     Date: Date
     Post Date: PostDate
-    Description: OriginalDescription # Mapped to OriginalDescription
+    Description: OriginalDescription
     Amount: Amount
     Category: Category
     Card Type: Account
-    Transaction Type: AccountType   # Mapped to AccountType
-  # Sign rule: How to handle the Amount sign.
-  # Changed to flip_if_positive as Transaction Type column is not reliably present.
+    Transaction Type: AccountType
   sign_rule: flip_if_positive
   derived_columns:
     AccountLast4:
       rule: regex_extract
       column: Account
-      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
     AccountType:
       rule: static_value
-      value: "Credit Card"
-  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number", "Statement Period"]
-
-# ------------------------------------------------------------------------------
-# Schema ID: wells_fargo_card
-# Description: Rules for Wells Fargo Active Cash card exports.
-# ------------------------------------------------------------------------------
+      value: Credit Card
+  extras_ignore:
+  - Name
+  - Statement Start Date
+  - Statement End Date
+  - Reference Number
+  - Statement Period
 - id: wells_fargo_card
-  # How to identify files matching this schema (glob pattern).
-  match_filename: "Jordyn - Wells Fargo - Active Cash*"
-  # Header check: Ensure these specific columns exist in the CSV.
-  header_signature: ["Name", "Institution", "Account Description"]
-  # Column mapping: Source CSV column -> Standard internal column name.
+  match_filename: Jordyn - Wells Fargo - Active Cash*
+  header_signature:
+  - Name
+  - Institution
+  - Account Description
   column_map:
     Date: Date
     Post Date: PostDate
-    Description: OriginalDescription # Mapped to OriginalDescription
+    Description: OriginalDescription
     Amount: Amount
     Category: Category
     Account Description: Account
-  # Sign rule: How to handle the Amount sign.
-  # 'flip_if_positive': Makes any positive Amount negative. Assumes credits/payments are negative.
-  #                     Chosen because Purchases in sample were positive.
   sign_rule: flip_if_positive
-  # Static columns to add to every row from this source
   extra_static_cols:
-    Institution: "Wells Fargo" # Changed Bank to Institution
+    Institution: Wells Fargo
   derived_columns:
     AccountLast4:
       rule: regex_extract
       column: Account
-      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
     AccountType:
       rule: static_value
-      value: "Credit Card"
-  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number", "Statement Period Description"]
-
-# ------------------------------------------------------------------------------
-# Schema ID: monarch_export
-# Description: Rules for exports generated from Monarch Money aggregator.
-# ------------------------------------------------------------------------------
+      value: Credit Card
+  extras_ignore:
+  - Name
+  - Statement Start Date
+  - Statement End Date
+  - Reference Number
+  - Statement Period Description
 - id: monarch_export
-  # How to identify files matching this schema (glob pattern).
-  match_filename: "BALANCE - Monarch Money*"
-  # Header check: Ensure these specific columns exist in the CSV.
-  header_signature: ["Merchant", "Account", "Original Statement"]
-  # Static columns to add to every row from this source
+  match_filename: BALANCE - Monarch Money*
+  header_signature:
+  - Merchant
+  - Account
+  - Original Statement
   extra_static_cols:
-    Source: "Monarch"
-  # Column mapping: Source CSV column -> Standard internal column name.
+    Source: Monarch
   column_map:
     Date: Date
-    Merchant: OriginalDescription # Mapped to OriginalDescription
+    Merchant: OriginalDescription
     Amount: Amount
     Account: Account
-    Institution: Institution      # Mapped to Institution
+    Institution: Institution
     Category: Category
-  # Sign rule: How to handle the Amount sign.
-  # 'as_is': Keep the sign as is. Monarch sample showed outflows were already negative.
   sign_rule: as_is
   derived_columns:
     AccountLast4:
       rule: regex_extract
       column: Account
-      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
     AccountType:
       rule: static_value
-      value: "Checking"
-  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number", "Original Statement", "Notes", "Tags"]
-
-# ------------------------------------------------------------------------------
-# Schema ID: rocket_money
-# Description: Rules for exports generated from Rocket Money aggregator.
-# ------------------------------------------------------------------------------
+      value: Checking
+  extras_ignore:
+  - Name
+  - Statement Start Date
+  - Statement End Date
+  - Reference Number
+  - Original Statement
+  - Notes
+  - Tags
 - id: rocket_money
-  # How to identify files matching this schema (glob pattern).
-  match_filename: "BALANCE - Rocket Money*"
-  # Header check: Ensure these specific columns exist in the CSV.
-  header_signature: ["Account Name", "Institution Name", "Amount"]
-  # Static columns to add to every row from this source
+  match_filename: BALANCE - Rocket Money*
+  header_signature:
+  - Account Name
+  - Institution Name
+  - Amount
   extra_static_cols:
-    Source: "Rocket"
-  # Column mapping: Source CSV column -> Standard internal column name.
+    Source: Rocket
   column_map:
     Date: Date
-    Description: OriginalDescription # Mapped to OriginalDescription
+    Description: OriginalDescription
     Amount: Amount
     Account Name: Account
-    Institution Name: Institution   # Mapped to Institution
+    Institution Name: Institution
     Category: Category
-  # Sign rule: How to handle the Amount sign.
-  # 'flip_if_positive': Flips positive amounts to negative.
-  #                     Rocket Money sample showed expenses were positive.
   sign_rule: flip_if_positive
   derived_columns:
     AccountLast4:
       rule: regex_extract
       column: Account
-      pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
     AccountType:
       rule: static_value
-      value: "Credit Card"
-  extras_ignore: ["Name", "Statement Start Date", "Statement End Date", "Reference Number", "Original Date", "Account Type", "Account Number", "Custom Name", "Note", "Ignored From", "Tax Deductible"]
-
-# ------------------------------------------------------------------------------
-# Schema ID: jordyn_pdf_document
-# Description: Rules for CSVs generated from Jordyn's PDFs (Document*.csv files)
-#              These files have MM/DD date format and need year inference.
-# ------------------------------------------------------------------------------
+      value: Credit Card
+  extras_ignore:
+  - Name
+  - Statement Start Date
+  - Statement End Date
+  - Reference Number
+  - Original Date
+  - Account Type
+  - Account Number
+  - Custom Name
+  - Note
+  - Ignored From
+  - Tax Deductible
 - id: jordyn_pdf_document
-  match_filename: "BALANCE - Jordyn PDF - Document*.csv"
-  header_signature: ["TransDate", "RawMerchant", "Amount", "AccountLast4"]
+  match_filename: BALANCE - Jordyn PDF - Document*.csv
+  header_signature:
+  - TransDate
+  - RawMerchant
+  - Amount
+  - AccountLast4
   extra_static_cols:
-    Institution: "Wells Fargo" # Changed Bank to Institution
+    Institution: Wells Fargo
   column_map:
-    TransDate:   Date
-    RawMerchant: OriginalDescription # Mapped to OriginalDescription
-    Amount:      Amount
+    TransDate: Date
+    RawMerchant: OriginalDescription
+    Amount: Amount
     AccountLast4: Account
     PostDate: PostDate
-    ReferenceNumber: ReferenceNumber # Assuming ReferenceNumber might exist
-  # No date_format specified initially, to let pandas infer MM/DD.
-  # Year will need to be inferred or added, potentially in ingest.py if parsing fails.
-  amount_regex: '-?\$?([\d,]+\.\d{2})'
+    ReferenceNumber: ReferenceNumber
+  amount_regex: -?\$?([\d,]+\.\d{2})
   sign_rule: flip_if_positive
-
-# ------------------------------------------------------------------------------
-# Schema ID: jordyn_pdf
-# Description: Rules for CSVs generated from Jordyn's PDFs via process_pdfs.py script.
-# NOTE: Header signature and column map are initial guesses based on typical PDF
-#       statement structures extracted by Camelot. May need refinement after
-#       inspecting the actual CSV output from the script.
-# ------------------------------------------------------------------------------
 - id: jordyn_pdf
-  # Match CSVs generated by the updated process_pdfs.py script (YYYY-MM format) OR the test sample
-  match_filename: "BALANCE - Jordyn PDF - *.csv" # Revert to specific pattern
-  # Header signature expected from the updated script (matching fixture)
-  header_signature: ["TransDate", "RawMerchant", "Amount"] # Corrected header signature
-  # Static columns to add
+  match_filename: BALANCE - Jordyn PDF - *.csv
+  header_signature:
+  - TransDate
+  - RawMerchant
+  - Amount
   extra_static_cols:
-    Institution: "Wells Fargo" # Changed Bank to Institution
-  # Column mapping for the CSVs *after* processing by process_pdfs.py
+    Institution: Wells Fargo
   column_map:
-    TransDate:   Date
-    RawMerchant: OriginalDescription # Mapped to OriginalDescription
-    Amount:      Amount
+    TransDate: Date
+    RawMerchant: OriginalDescription
+    Amount: Amount
     AccountLast4: Account
     PostDate: PostDate
-    ReferenceNumber: ReferenceNumber      # (leave Comment above)
-  # Date format expected in the CSV after PDF processing.
-  date_format: '%m/%d/%Y' # Corrected to match fixture data
-  # Regex to clean the Amount column before converting to numeric.
-  # Strips optional leading hyphen, optional dollar sign, and commas.
-  amount_regex: '-?\$?([\d,]+\.\d{2})' # Added to handle potential formatting issues
-  # Sign rule: Fixture shows positive amounts, so flip them.
-  sign_rule: flip_if_positive # Changed from as_is to match fixture data
-
-# ------------------------------------------------------------------------------
-# Schema ID: jordyn_pdf_document
-# Description: Rules for CSVs generated from Jordyn's PDFs (Document*.csv files)
-#              These files have MM/DD date format and need year inference.
-
-# ------------------------------------------------------------------------------
-# Schema ID: test_data_source1
-# Description: For test_cli_integration.py data_source1.csv
-# ------------------------------------------------------------------------------
+    ReferenceNumber: ReferenceNumber
+  date_format: '%m/%d/%Y'
+  amount_regex: -?\$?([\d,]+\.\d{2})
+  sign_rule: flip_if_positive
 - id: test_data_source1
-  match_filename: "data_source1.csv"
-  header_signature: ["Date", "Description", "Amount", "Account", "Category", "Bank"] # Basic assumption
+  match_filename: data_source1.csv
+  header_signature:
+  - transaction date
+  - account name
+  - bank name
+  - details
+  - value
   column_map:
     Date: Date
-    Description: OriginalDescription # Mapped to OriginalDescription
+    Description: OriginalDescription
     Amount: Amount
     Account: Account
     Category: Category
-    Bank: Institution             # Mapped to Institution
-  sign_rule: as_is # Default, adjust if tests imply specific sign handling
+    Bank: Institution
+  sign_rule: as_is
   extra_static_cols:
-    Source: "TestSource1"
-
-# ------------------------------------------------------------------------------
-# Schema ID: test_data_source2
-# Description: For test_cli_integration.py data_source2.csv
-# ------------------------------------------------------------------------------
+    Source: TestSource1
 - id: test_data_source2
-  match_filename: "data_source2.csv"
-  header_signature: ["Date", "Description", "Amount", "Account", "Category", "Bank"] # Basic assumption
+  match_filename: data_source2.csv
+  header_signature:
+  - transaction date
+  - account name
+  - bank name
+  - details
+  - value
   column_map:
     Date: Date
-    Description: OriginalDescription # Mapped to OriginalDescription
+    Description: OriginalDescription
     Amount: Amount
     Account: Account
     Category: Category
-    Bank: Institution             # Mapped to Institution
-  sign_rule: as_is # Default, adjust if tests imply specific sign handling
+    Bank: Institution
+  sign_rule: as_is
   extra_static_cols:
-    Source: "TestSource2"
-
-# ==============================================================================
-# End of Schema Registry File
-# ==============================================================================
+    Source: TestSource2

@@ -1,0 +1,45 @@
+Refactor: Continue stabilization of BALANCE-pyexcel
+
+This commit includes several changes aimed at addressing test failures and stabilizing the BALANCE-pyexcel pipeline. Work is paused pending further investigation of remaining test failures.
+
+**Detailed Changes:**
+
+**1. Column Definitions (Addressing Bucket 1):**
+    *   Executed a script (Step 1 from user prompt) intended to add "Description" and "Source" to column lists in:
+        *   `src/balance_pipeline/constants.py` (MASTER_SCHEMA_COLUMNS)
+        *   `src/balance_pipeline/ingest.py` (ESSENTIAL_COLS or FINAL_COLS)
+    *   Manually verified `src/balance_pipeline/constants.py` and ensured "Source" was correctly added to `MASTER_SCHEMA_COLUMNS`. "Description" was already present.
+    *   Verified that `src/balance_pipeline/ingest.py` already included "Description" and "Source" in its `STANDARD_COLS` definition.
+    *   *Note:* Test failures related to missing "Description" persist, suggesting issues in how data is processed or columns are selected/retained through the pipeline, rather than just the initial definitions.
+
+**2. Owner Inference Logic (Addressing Bucket 2):**
+    *   Executed a script (Step 2 from user prompt) to refine the owner inference fallback logic in `src/balance_pipeline/csv_consolidator.py`.
+    *   Iteratively updated the owner inference logic in `src/balance_pipeline/csv_consolidator.py`:
+        *   Modified directory-based owner detection to be case-insensitive (e.g., "ryan/" maps to "Ryan").
+        *   Updated filename-based owner detection to correctly parse the first token (e.g., "Ryan" from "Ryan - Monarch Money - ...").
+        *   Removed a previous assumption that "BALANCE" as a filename token implied "Ryan", based on user clarification.
+    *   Updated `tests/test_csv_consolidator.py`: Changed the `SAMPLE_CSVS` parameterization to expect fixture filenames like "Ryan - Monarch Money - ..." instead of "BALANCE - Monarch Money - ...". This aligns with the user's statement that they have renamed these files locally.
+
+**3. Normalization Module (Addressing Bucket 3):**
+    *   Executed a script (Step 3 from user prompt) to:
+        *   Restore module-level globals `_merchant_lookup_data` and `MERCHANT_LOOKUP_PATH` in `src/balance_pipeline/normalize.py`.
+        *   Correct logging calls and row counter initialization in `src/balance_pipeline/normalize.py`.
+    *   *Note:* Test failures related to merchant normalization and lookup loading in `test_normalize.py` and `test_merchant.py` persist, indicating these changes may not be fully effective or other issues exist.
+
+**4. PDF Processing Script (Addressing Bucket 4):**
+    *   Executed a script (Step 4 from user prompt) to add a directory creation safeguard (`PARQUET_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)`) before file touch/write operations in `scripts/process_pdfs.py`'s `append_to_master` function.
+    *   *Note:* The `test_append_to_master_parquet` test still fails, indicating the Parquet file is not being created as expected.
+
+**Current Test Status:**
+*   The last `pytest -q` run resulted in 17 failed tests and 53 passed tests.
+*   Failures related to `test_process_single_csv_file` not finding "Ryan - ..." fixture files suggest that the test execution environment might not be picking up the user's local renaming of these files in `tests/fixtures/`. This was the subject of the last follow-up question before pausing.
+*   Other significant failures persist around:
+    *   Correctly processing and retaining the "Description" column throughout the pipeline.
+    *   Deduplication logic (preferring Monarch over Rocket).
+    *   Merchant normalization and lookup file handling in `normalize.py`.
+    *   Parquet file creation by `scripts/process_pdfs.py`.
+    *   Overall data integrity leading to fewer rows than expected in several CLI integration tests.
+
+**Next Steps (Paused):**
+*   Awaiting user confirmation regarding the actual renaming of fixture files in the `tests/fixtures` directory to match "Ryan - ...".
+*   Further systematic debugging of the remaining 17 test failures, focusing on each original failure bucket.

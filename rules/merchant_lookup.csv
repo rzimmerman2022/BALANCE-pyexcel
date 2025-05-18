@@ -5,3 +5,7 @@ WAL\sMART.*,Walmart
 AMAZON\.COM.*,Amazon Com
 SUPER.*MART,SuperMart
 ^COFFEE SHOP$,Generic Coffee Place
+^AMAZON\s*MKTP,Amazon Marketplace
+^AMAZON\s*MKTP,Amazon Marketplace
+^AMAZON\s*MKTP,Amazon Marketplace
+^AMAZON\s*MKTP,Amazon Marketplace

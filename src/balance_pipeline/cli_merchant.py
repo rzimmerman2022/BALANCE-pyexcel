@@ -13,21 +13,29 @@ import sys
 from pathlib import Path
 import logging
 
+# Local application imports
+from . import config
+
 # Configure logging
 log = logging.getLogger(__name__)
 
+MERCHANT_LOOKUP_PATH = config.MERCHANT_LOOKUP_PATH
 MERCHANT_RULES_FILENAME = "merchant_lookup.csv"
-RULES_DIR = "rules" # Relative to project root, or adjust as needed
+RULES_DIR = "rules"
+__all__ = ["add_merchant_rule", "MERCHANT_RULES_FILENAME", "RULES_DIR"]
 
-def get_rules_file_path(project_root: Path = None) -> Path:
-    """Determines the path to the merchant_lookup.csv file."""
-    if project_root is None:
-        # This assumes the script is run from a context where Path.cwd() is the project root
-        # or that RULES_DIR is accessible from the current working directory.
-        # For a poetry script, cwd might be the project root.
-        # A more robust solution might involve finding the project root based on a known file/dir.
-        project_root = Path.cwd() 
-    return project_root / RULES_DIR / MERCHANT_RULES_FILENAME
+# MERCHANT_RULES_FILENAME = "merchant_lookup.csv" # No longer needed
+# RULES_DIR = "rules" # No longer needed
+
+# def get_rules_file_path(project_root: Path = None) -> Path: # No longer needed
+#     """Determines the path to the merchant_lookup.csv file."""
+#     if project_root is None:
+#         # This assumes the script is run from a context where Path.cwd() is the project root
+#         # or that RULES_DIR is accessible from the current working directory.
+#         # For a poetry script, cwd might be the project root.
+#         # A more robust solution might involve finding the project root based on a known file/dir.
+#         project_root = Path.cwd() 
+#     return project_root / RULES_DIR / MERCHANT_RULES_FILENAME
 
 def add_merchant_rule(pattern: str, canonical_name: str, rules_file: Path = None):
     """
@@ -39,7 +47,7 @@ def add_merchant_rule(pattern: str, canonical_name: str, rules_file: Path = None
         rules_file (Path, optional): Path to the rules CSV. Defaults to standard location.
     """
     if rules_file is None:
-        rules_file = get_rules_file_path()
+        rules_file = MERCHANT_LOOKUP_PATH # Use path from config
 
     # Sanitize canonical_name: reject if it contains a comma
     if ',' in canonical_name:
@@ -113,10 +121,10 @@ def main_merchant():
     # If this `main_merchant` is called from another script, sys.argv might need slicing.
 
     if args.command == "add":
-        # Determine rules file path. If --rules-file is added, use args.rules_file.
-        # For now, using default.
-        rules_path = get_rules_file_path() 
-        add_merchant_rule(args.pattern, args.canonical, rules_file=rules_path)
+        # Determine rules file path relative to CWD for CLI execution
+        # The test fixture sets up CWD to be the temp project root.
+        cli_rules_file = Path.cwd() / RULES_DIR / MERCHANT_RULES_FILENAME
+        add_merchant_rule(args.pattern, args.canonical, rules_file=cli_rules_file)
     else:
         parser.print_help() # Should not happen if subcommand is required
 

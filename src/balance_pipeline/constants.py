@@ -4,5 +4,5 @@ MASTER_SCHEMA_COLUMNS = [
     "AccountType", "SharedFlag", "SplitPercent", "StatementStart",
     "StatementEnd", "StatementPeriodDesc", "DataSourceName", "DataSourceDate",
     "ReferenceNumber", "Note", "IgnoredFrom", "TaxDeductible", "CustomName",
-    "Currency", "Extras",
+    "Currency", "Extras", "Description", "Source",
 ]

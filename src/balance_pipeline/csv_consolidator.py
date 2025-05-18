@@ -42,8 +42,6 @@ from .constants import MASTER_SCHEMA_COLUMNS # Added import
 # If direct use: from .normalize import _txn_id_like_function, clean_merchant
 # For now, I will re-implement _hash_txn logic as per spec and use clean_merchant from normalize
 from .normalize import clean_merchant as project_clean_merchant # Alias to avoid conflict
-from .normalize import _ID_COLS_FOR_HASH as NORMALIZE_ID_COLS_FOR_HASH # For TxnID generation reference
-from .utils import _clean_desc_single # For fallback merchant cleaning if needed directly
 
 # --- Setup Logger ---
 log = logging.getLogger(__name__)
@@ -393,7 +391,6 @@ def apply_schema_transformations(
                 actual_col_to_check = rule_col_name
             else:
                 # Try normalized version if original rule_col_name not found (e.g. schema used raw name, df has normalized)
-                normalized_rule_col_name = _normalize_csv_header(rule_col_name)
                 # Check against normalized df headers that might exist if not mapped
                 # This is tricky because df columns are already mapped ones or original unmapped.
                 # The rule should ideally refer to a column name present in transformed_df at this stage.
@@ -430,7 +427,7 @@ def apply_schema_transformations(
             elif not actual_col_to_check:
                  log.warning(f"Column '{rule_col_name}' specified in complex sign_rule not found in DataFrame. Rule not applied.")
             else: # no debit_values
-                 log.warning(f"No 'debit_values' provided for complex sign_rule. Rule not applied effectively.")
+                 log.warning("No 'debit_values' provided for complex sign_rule. Rule not applied effectively.")
 
         elif sign_rule: # Any other non-empty sign rule not recognized (includes simple strings not caught above)
             log.warning(f"Unrecognized or improperly structured sign_rule: '{sign_rule}'. Amount signs may be incorrect.")
@@ -505,7 +502,8 @@ def apply_schema_transformations(
                     capture_group_name = list(regex.groupindex.keys())[0] if regex.groupindex else None
 
                     def extract_with_regex(text_to_search: Any) -> Any:
-                        if pd.isna(text_to_search): return pd.NA
+                        if pd.isna(text_to_search):
+                            return pd.NA
                         match = regex.search(str(text_to_search))
                         if match:
                             if capture_group_name and capture_group_name in match.groupdict():
@@ -524,6 +522,11 @@ def apply_schema_transformations(
             except Exception as e:
                 log.error(f"Error deriving column '{new_col_name}' with rule_type '{rule_type}': {e}", exc_info=True)
                 transformed_df[new_col_name] = pd.NA
+    
+    # Alias OriginalDescription to Description if Description is missing
+    if "OriginalDescription" in transformed_df.columns and "Description" not in transformed_df.columns:
+        transformed_df["Description"] = transformed_df["OriginalDescription"]
+        log.info("Aliased 'OriginalDescription' to 'Description' as 'Description' was missing.")
     
     # Handle extras_ignore: remove specified columns if they exist
     # This should happen after all columns (original, mapped, derived) are settled.
@@ -716,8 +719,35 @@ def process_csv_files(
             continue
 
         # Infer Owner (e.g., from subfolder name "Jordyn"/"Ryan")
-        # Assumes CSVs are in a structure like .../OwnerName/file.csv
-        owner = csv_file_path_obj.parent.name
+        wanted_owners_map = {"ryan": "Ryan", "jordyn": "Jordyn"} # Map lowercase dir name to capitalized Owner name
+        current_path_segment = csv_file_path_obj.parent
+        owner = None  # Default if not found by walking
+
+        # Walk up a few levels (e.g., up to 4) to find a directory named Ryan or Jordyn (case-insensitive)
+        for _ in range(4):  # Check current parent and up to 3 levels higher
+            if not current_path_segment or not current_path_segment.name:
+                break # Should not happen with Path objects, but defensive
+            
+            dir_name_lower = current_path_segment.name.lower()
+            if dir_name_lower in wanted_owners_map:
+                owner = wanted_owners_map[dir_name_lower] # Assign the capitalized version
+                break
+            
+            # Stop if we hit a directory named 'BALANCE-pyexcel' (repo root) or filesystem root
+            if current_path_segment.name == 'BALANCE-pyexcel' or current_path_segment == current_path_segment.parent:
+                break
+            current_path_segment = current_path_segment.parent
+        
+        # --- tweak: try filename token before UnknownOwner fallback ---
+        if owner is None:
+            stem_parts = csv_file_path_obj.stem.split(" - ", 1)
+            filename_token = stem_parts[0] # Get the first part (e.g., "Ryan" or "Jordyn")
+            
+            if filename_token in {"Ryan", "Jordyn"}: 
+                owner = filename_token
+        
+        if owner is None:
+            owner = "UnknownOwner"
         log.info(f"Inferred Owner: '{owner}' from path.")
 
         # DataSourceDate (file modification date)
@@ -836,7 +866,10 @@ def process_csv_files(
 
         # Final Column Selection & Ordering (with fill_value as per manual fix step)
         # Use the imported MASTER_SCHEMA_COLUMNS directly.
-        log.info(f"Applying reindex to MASTER_SCHEMA_COLUMNS (element 3: {MASTER_SCHEMA_COLUMNS[3] if len(MASTER_SCHEMA_COLUMNS) > 3 else 'N/A'}) with fill_value=pd.NA for {csv_file_path_obj.name}")
+        log.info("Applying reindex to MASTER_SCHEMA_COLUMNS (element 3: {}) with fill_value=pd.NA for {}".format(
+            MASTER_SCHEMA_COLUMNS[3] if len(MASTER_SCHEMA_COLUMNS) > 3 else 'N/A',
+            csv_file_path_obj.name
+        ))
         processed_df = processed_df.reindex(columns=MASTER_SCHEMA_COLUMNS, fill_value=pd.NA)
         
         all_processed_dfs.append(processed_df)
