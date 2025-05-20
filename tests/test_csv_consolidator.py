@@ -17,7 +17,11 @@ import pandas as pd
 from pathlib import Path
 
 # Module to test
-from balance_pipeline.csv_consolidator import process_csv_files, MANDATORY_MASTER_COLS
+from balance_pipeline.csv_consolidator import (
+    process_csv_files,
+    MANDATORY_MASTER_COLS,
+    _normalize_csv_header,
+)
 
 # --- Constants for Test Fixtures ---
 # Assuming CWD for tests will be the project root BALANCE-pyexcel/
@@ -110,3 +114,15 @@ def test_process_single_csv_file(csv_filename: str, params: dict):
 # - Test with a schema that has `derived_columns` (once an example exists in schema_registry.yml).
 # - Test specific transformations like date parsing with explicit formats, amount_regex.
 # - Test the complex sign rule once implemented.
+
+
+def test_normalize_csv_header_aliases():
+    """Common header aliases should map to canonical names."""
+    cases = {
+        'Txn Date': 'date',
+        'Account Name': 'account',
+        'running balance': 'balance',
+    }
+
+    for raw, expected in cases.items():
+        assert _normalize_csv_header(raw) == expected
