@@ -23,6 +23,8 @@ import time # Added for retry loop
 import io # io module is no longer used
 from typing import Optional, Any
 import importlib # Added for reload and explicit import
+import click
+from balance_pipeline.errors import BalancePipelineError
 
 
 # Now import the modules, hopefully freshly
@@ -511,7 +513,10 @@ Examples:
 
         # Step 1: Run ETL pipeline for current sources
         # df_from_sources will have TxnID, and SharedFlag/SplitPercent initialized by normalize_df
-        df_from_sources = etl_main(inbox, prefer_source=args.prefer_source, exclude_patterns=args.exclude, only_patterns=args.only)
+        try:
+            df_from_sources = etl_main(inbox, prefer_source=args.prefer_source, exclude_patterns=args.exclude, only_patterns=args.only)
+        except BalancePipelineError as exc:
+            raise click.ClickException(str(exc)) from exc
         if df_from_sources.empty and inbox.exists():
              log.warning("ETL process resulted in an empty DataFrame from sources. Check source CSVs and logs.")
              # If canonical_df exists, we might still proceed with it.

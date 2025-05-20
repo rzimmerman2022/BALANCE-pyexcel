@@ -15,6 +15,7 @@ import pandas as pd
 import re
 import unicodedata
 import logging
+from balance_pipeline.errors import DataConsistencyError
 
 log = logging.getLogger(__name__)
 
@@ -31,9 +32,8 @@ def _strip_accents(txt: str | None) -> str:
             ch for ch in unicodedata.normalize("NFD", txt)
             if unicodedata.category(ch) != "Mn"
         )
-    except TypeError:
-        log.warning(f"Could not strip accents from non-string input: {type(txt)}. Returning empty string.")
-        return ""
+    except TypeError as e:
+        raise DataConsistencyError(f"Could not strip accents from non-string input: {type(txt)}") from e
 
 # ------------------------------------------------------------------------------
 # Function: _clean_desc (Original, for single string)
@@ -55,8 +55,7 @@ def _clean_desc_single(desc: str | None) -> str:
         # Step 5: Strip leading/trailing whitespace
         return desc_single_space.strip()
     except Exception as e:
-        log.warning(f"Error cleaning description: '{desc}'. Error: {e}. Returning original.")
-        return str(desc or '') # Return original string or empty if error
+        raise DataConsistencyError(f"Error cleaning description: '{desc}'. Error: {e}") from e
 
 # ------------------------------------------------------------------------------
 # Function: clean_desc_vectorized (New, for pandas Series)

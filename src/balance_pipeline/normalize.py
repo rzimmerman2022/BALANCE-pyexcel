@@ -25,6 +25,7 @@ import logging             # For logging messages
 from typing import Any, List, Tuple, Optional     # Added for type hint
 import re                  # Added for regex operations
 import csv                 # For reading merchant lookup CSV
+from balance_pipeline.errors import DataConsistencyError, RecoverableFileError, FatalSchemaError
 
 # Local application imports
 from .utils import _clean_desc_single, clean_desc_vectorized # Updated import
@@ -57,11 +58,7 @@ def _load_merchant_lookup() -> List[Tuple[re.Pattern, str]]:
             reader = csv.reader(f)
             header = next(reader) # Skip header row
             if header != ['pattern', 'canonical']:
-                log.error(
-                    f"Invalid header in {MERCHANT_LOOKUP_PATH}. "
-                    f"Expected ['pattern', 'canonical'], got {header}"
-                )
-                raise ValueError(f"Invalid header in merchant lookup file: {MERCHANT_LOOKUP_PATH}")
+                raise FatalSchemaError(f"Invalid header in merchant lookup file: {MERCHANT_LOOKUP_PATH}. Expected ['pattern', 'canonical'], got {header}")
 
             for i, row in enumerate(reader, start=2): # start=2 for 1-based indexing + header
                 if not row or len(row) != 2:
@@ -80,14 +77,12 @@ def _load_merchant_lookup() -> List[Tuple[re.Pattern, str]]:
                     raise ValueError(err_msg) from e
         _merchant_lookup_data = loaded_rules
         log.info(f"Successfully loaded and compiled {len(_merchant_lookup_data)} merchant lookup rules from {MERCHANT_LOOKUP_PATH}.")
-    except FileNotFoundError:
-        log.error(f"Merchant lookup file not found: {MERCHANT_LOOKUP_PATH}. Proceeding without merchant cleaning rules.")
-        _merchant_lookup_data = [] # Ensure it's an empty list so subsequent calls don't try to reload
+    except FileNotFoundError as e:
+        raise RecoverableFileError(f"Merchant lookup file not found: {MERCHANT_LOOKUP_PATH}") from e
     except ValueError: # Specifically catch ValueErrors raised by header/regex checks
         raise # Re-raise these critical ValueErrors to be caught by the module-level try-except
-    except Exception as e: # Catch other potential errors like permission issues
-        log.error(f"Failed to load merchant lookup file {MERCHANT_LOOKUP_PATH} (unexpected error): {e}")
-        _merchant_lookup_data = [] # Fallback to empty list on other errors
+    except Exception as e:
+        raise RecoverableFileError(f"Failed to load merchant lookup file {MERCHANT_LOOKUP_PATH}: {e}") from e
         # Optionally, re-raise as RuntimeError if any other exception is considered critical
         # raise RuntimeError(f"Critical unexpected error loading merchant lookup from {MERCHANT_LOOKUP_PATH}: {e}") from e
 
@@ -107,8 +102,8 @@ def clean_merchant(description: str) -> str:
     Cleans the merchant description using rules from merchant_lookup.csv.
     Falls back to a generic cleaning if no rule matches.
     """
-    if not isinstance(description, str): # Handle potential non-string inputs
-        return str(description)
+    if not isinstance(description, str):
+        raise DataConsistencyError(f"Expected merchant description as string, got {type(description)}")
 
     rules = _load_merchant_lookup() # Get cached/loaded rules
 

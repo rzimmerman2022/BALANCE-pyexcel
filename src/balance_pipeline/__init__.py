@@ -27,6 +27,7 @@ import pandas as pd              # For DataFrame operations (used in type hint)
 # Import core processing functions from other modules within this package
 from .ingest import load_folder    # Function to load data from CSVs
 from .normalize import normalize_df # Function to clean and normalize the data
+from .errors import BalancePipelineError
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP (Logging)

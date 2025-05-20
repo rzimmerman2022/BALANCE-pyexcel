@@ -25,6 +25,9 @@ import pandas as pd
 import yaml
 import re
 import logging
+from balance_pipeline.errors import RecoverableFileError, FatalSchemaError
+from balance_pipeline.schema_registry import load_registry, find_matching_schema
+from .sign_rules import flip_if_positive, flip_if_withdrawal
 
 # Local application imports
 from . import config # Import config module to access constants
@@ -52,26 +55,14 @@ _SCHEMA_REGISTRY_PATH = config.SCHEMA_REGISTRY_PATH # Use path from config
 _SCHEMAS: list[dict] = [] # Initialize as empty list
 
 try:
-    # Attempt to read the YAML file using UTF-8 encoding.
-    _SCHEMAS = yaml.safe_load(_SCHEMA_REGISTRY_PATH.read_text(encoding='utf-8'))
-    if not isinstance(_SCHEMAS, list):
-        # Ensure the loaded YAML is a list of dictionaries as expected.
-        logging.error(f"CRITICAL: Schema registry file '{_SCHEMA_REGISTRY_PATH}' did not load as a list.")
-        _SCHEMAS = []
-    else:
-        logging.info(f"Successfully loaded {_SCHEMA_REGISTRY_PATH} containing {len(_SCHEMAS)} schema(s).")
-except FileNotFoundError:
-    # Handle the critical error if the rules file doesn't exist.
-    logging.error(f"CRITICAL: Schema registry file not found at '{_SCHEMA_REGISTRY_PATH}'. Ingestion will likely fail.")
-    # _SCHEMAS remains empty
+    _SCHEMAS = load_registry(_SCHEMA_REGISTRY_PATH)
+    logging.info(f"Successfully loaded {_SCHEMA_REGISTRY_PATH} containing {len(_SCHEMAS)} schema(s).")
+except FileNotFoundError as e:
+    raise FatalSchemaError(f"Schema registry file not found at '{_SCHEMA_REGISTRY_PATH}'") from e
 except yaml.YAMLError as e:
-    # Handle errors during YAML parsing (e.g., incorrect formatting).
-    logging.error(f"CRITICAL: Failed to parse schema registry YAML file '{_SCHEMA_REGISTRY_PATH}': {e}")
-    # _SCHEMAS remains empty
+    raise FatalSchemaError(f"Failed to parse schema registry YAML file '{_SCHEMA_REGISTRY_PATH}': {e}") from e
 except Exception as e:
-    # Catch any other unexpected errors during file loading.
-    logging.error(f"CRITICAL: An unexpected error occurred loading schema registry '{_SCHEMA_REGISTRY_PATH}': {e}")
-    # _SCHEMAS remains empty
+    raise FatalSchemaError(f"An unexpected error occurred loading schema registry '{_SCHEMA_REGISTRY_PATH}': {e}") from e
 
 
 # ==============================================================================
@@ -97,8 +88,7 @@ def _find_schema(csv_path: Path, df_head: pd.DataFrame) -> dict | None:
     """
     # Pre-check: Ensure the schema registry loaded correctly.
     if not _SCHEMAS:
-        logging.error("Schema registry is empty or failed to load. Cannot match schema.")
-        return None
+        raise FatalSchemaError("Schema registry is empty or failed to load. Cannot match schema.")
 
     # Pre-process headers from the CSV preview for reliable matching.
     df_head.columns = [str(col).strip() for col in df_head.columns]
@@ -556,14 +546,10 @@ def load_folder(
         except pd.errors.EmptyDataError:
             # Skip files that are completely empty.
             logging.warning(f"Skipping empty CSV file: {csv_path.name}")
-        except FileNotFoundError:
-             # Should not happen within rglob, but handle just in case.
-             logging.error(f"File disappeared during processing?: {csv_path}")
+        except FileNotFoundError as e:
+            raise RecoverableFileError(f"File disappeared during processing: {csv_path}") from e
         except Exception as e:
-            # Log any other unexpected error during the processing of a single file.
-            # Use exc_info=True to include the traceback for debugging.
-            logging.error(f"Failed to process file {csv_path.name}: {e}", exc_info=True)
-            # Continue to the next file.
+            raise RecoverableFileError(f"Failed to process file {csv_path.name}: {e}") from e
 
     # --- Final Combination ---
     # Check if any files were successfully processed.

@@ -45,7 +45,10 @@ jobs:
       - name: Run tests
         run: poetry run pytest
 
-  build_docs:
+      - name: Ensure mypy passes
+        run: poetry run mypy src/balance_pipeline
+
+  build_docs
     needs: test # Run after all test matrix jobs succeed
     runs-on: ubuntu-latest # Build docs on a consistent environment
     steps:
