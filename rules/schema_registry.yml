@@ -226,3 +226,20 @@
   sign_rule: as_is
   extra_static_cols:
     Source: TestSource2
+- id: generic_bank
+  match_filename: Generic Bank*
+  header_signature:
+  - date
+  - merchant
+  - amount
+  - account name
+  - running balance
+  column_map:
+    Date: Date
+    Merchant: OriginalDescription
+    Amount: Amount
+    Account Name: Account
+    Running Balance: Balance
+  sign_rule: as_is
+  extras_ignore:
+  - Check Number
