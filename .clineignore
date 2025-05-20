@@ -1,0 +1,67 @@
+# Virtual environments - don't include package dependencies in context
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Build artifacts and caches - irrelevant for code review
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Large data files - these exceed token limits without adding value
+*.parquet
+data/processed/
+CSVs/
+fixtures/
+sample_data/**/*.csv
+sample_data_multi/**/*.csv
+*.xlsx
+*.temp.xlsx
+
+# Large configuration rule files - consider splitting into smaller files later
+rules/schema_registry.yml
+rules/merchant_lookup.csv
+
+# Generated workbook - tracked separately from source code
+workbook/BALANCE-pyexcel.xlsm
+workbook/*.temp.xlsx
+workbook/*.lock
+
+# Binary and large documentation files - keep markdown but exclude binaries
+docs/**/*.pdf
+docs/**/*.png
+docs/**/*.jpg
+*.odc
+**/*[0-9]MB.*
+
+# System and IDE files - platform-specific noise
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+
+# Temporary and lock files
+*.log
+*.lock
+~$*.xls?*
+
+# Large commit summaries
+*_CommitSummary*.txt
+
+# Specific large files identified in the repo
+Connect_DuckDB_Parquet.odc

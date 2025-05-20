@@ -42,6 +42,7 @@ from .constants import MASTER_SCHEMA_COLUMNS # Added import
 # If direct use: from .normalize import _txn_id_like_function, clean_merchant
 # For now, I will re-implement _hash_txn logic as per spec and use clean_merchant from normalize
 from .normalize import clean_merchant as project_clean_merchant # Alias to avoid conflict
+from .errors import BalancePipelineError, RecoverableFileError, FatalSchemaError, DataConsistencyError
 
 # --- Setup Logger ---
 log = logging.getLogger(__name__)
@@ -701,8 +702,15 @@ def process_csv_files(
     schema_reg_path = schema_registry_override_path or SCHEMA_REGISTRY_PATH
     merchant_lkp_path = merchant_lookup_override_path or MERCHANT_LOOKUP_PATH
 
-    schema_registry = load_and_parse_schema_registry(schema_reg_path)
-    merchant_rules = load_merchant_lookup_rules(merchant_lkp_path)
+    try:
+        schema_registry = load_and_parse_schema_registry(schema_reg_path)
+    except Exception as exc:
+        raise FatalSchemaError(f"Failed to load schema registry: {exc}") from exc
+
+    try:
+        merchant_rules = load_merchant_lookup_rules(merchant_lkp_path)
+    except Exception as exc:
+        raise RecoverableFileError(f"Failed to load merchant lookup rules: {exc}") from exc
 
     all_processed_dfs: List[pd.DataFrame] = []
     schema_ids_found: List[str] = [] # For schema matching smoke test
@@ -710,13 +718,12 @@ def process_csv_files(
     for csv_file_path_obj in [Path(p) for p in csv_files]:
         log.info(f"Processing CSV file: {csv_file_path_obj.name}")
         try:
-            raw_df = pd.read_csv(csv_file_path_obj, dtype=str) # Read all as string initially
+            raw_df = pd.read_csv(csv_file_path_obj, dtype=str)  # Read all as string initially
             if raw_df.empty:
                 log.warning(f"CSV file {csv_file_path_obj.name} is empty. Skipping.")
                 continue
-        except Exception as e:
-            log.error(f"Failed to read CSV {csv_file_path_obj.name}: {e}", exc_info=True)
-            continue
+        except Exception as exc:
+            raise RecoverableFileError(f"Failed to read CSV {csv_file_path_obj.name}: {exc}") from exc
 
         # Infer Owner (e.g., from subfolder name "Jordyn"/"Ryan")
         wanted_owners_map = {"ryan": "Ryan", "jordyn": "Jordyn"} # Map lowercase dir name to capitalized Owner name
