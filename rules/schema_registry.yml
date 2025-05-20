@@ -226,3 +226,16 @@
   sign_rule: as_is
   extra_static_cols:
     Source: TestSource2
+- id: generic_bank
+  match_filename: generic_bank_*.csv
+  header_signature:
+    - Date
+    - Description
+    - Amount
+  column_map:
+    Date: Date
+    Description: OriginalDescription
+    Amount: Amount
+  sign_rule: as_is
+  extra_static_cols:
+    Source: GenericBank

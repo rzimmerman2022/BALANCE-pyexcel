@@ -110,3 +110,15 @@ def test_process_single_csv_file(csv_filename: str, params: dict):
 # - Test with a schema that has `derived_columns` (once an example exists in schema_registry.yml).
 # - Test specific transformations like date parsing with explicit formats, amount_regex.
 # - Test the complex sign rule once implemented.
+
+
+def test_generic_bank_schema(tmp_path: Path) -> None:
+    """Ensure a simple CSV matches the generic_bank schema."""
+
+    csv_file = tmp_path / "generic_bank_01.csv"
+    csv_file.write_text(
+        "Date,Description,Amount\n2025-05-01,Coffee,-2.50\n", encoding="utf-8"
+    )
+    df = process_csv_files([csv_file])
+    assert not df.empty
+    assert df["DataSourceName"].iloc[0] == "generic_bank"
