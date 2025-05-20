@@ -16,6 +16,7 @@
 # -----------------------------------------------------------------------------
 # Change Log
 # Date        Author            Type        Note
+# 2025-05-28  Cline (AI)        feat        Map common header aliases in _normalize_csv_header.
 # 2025-05-16  Cline (AI)        feat        Initial creation of the module.
 ###############################################################################
 
@@ -93,7 +94,7 @@ def coerce_bool(series: pd.Series) -> pd.Series:
 
 
 def _normalize_csv_header(header: str) -> str:
-    """Normalizes a CSV column header: lowercase, strip, remove special chars except space."""
+    """Normalize a CSV column header."""
     if not isinstance(header, str):
         return ""
     # Convert to lowercase
@@ -102,7 +103,15 @@ def _normalize_csv_header(header: str) -> str:
     normalized = re.sub(r'[^a-z0-9\s]', '', normalized).strip()
     # Replace multiple spaces with a single space
     normalized = re.sub(r'\s+', ' ', normalized)
-    return normalized
+
+    alias_map = {
+        'txn date': 'date',
+        'transaction date': 'date',
+        'account name': 'account',
+        'running balance': 'balance',
+    }
+
+    return alias_map.get(normalized, normalized)
 
 def find_matching_schema(
     df_headers: List[str],
