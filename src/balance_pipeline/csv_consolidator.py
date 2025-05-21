@@ -36,8 +36,9 @@ import pandas as pd
 import yaml # For loading schema_registry.yml
 
 # --- Local Application Imports ---
-from .config import SCHEMA_REGISTRY_PATH, MERCHANT_LOOKUP_PATH # Default paths
-from .constants import MASTER_SCHEMA_COLUMNS # Added import
+from .config import SCHEMA_REGISTRY_PATH, MERCHANT_LOOKUP_PATH  # Default paths
+from .constants import MASTER_SCHEMA_COLUMNS  # Added import
+from . import schema_registry as sr
 # We will need _hash_txn and clean_merchant from normalize.py
 # For now, let's assume they might be refactored or directly used.
 # If direct use: from .normalize import _txn_id_like_function, clean_merchant
@@ -113,69 +114,17 @@ def _normalize_csv_header(header: str) -> str:
 
     return alias_map.get(normalized, normalized)
 
+# Replacement function simplified for new matcher
+
 def find_matching_schema(
     df_headers: List[str],
     filename: str,
-    schema_registry: Dict[str, List[Dict[str, Any]]]
+    schema_registry: Dict[str, List[Dict[str, Any]]],
 ) -> Optional[Dict[str, Any]]:
-    """
-    Identifies the correct schema from the registry for a given CSV.
-    Matches first by filename pattern, then by header signature.
+    """Shim to the new matcher returning only the schema."""
+    match = sr.find_matching_schema(df_headers, filename, schema_registry.get("schemas", []))
+    return match.schema
 
-    Args:
-        df_headers (List[str]): List of actual (raw) column headers from the CSV.
-        filename (str): The name of the CSV file.
-        schema_registry (Dict[str, List[Dict[str, Any]]]): The loaded schema registry.
-
-    Returns:
-        Optional[Dict[str, Any]]: The matched schema definition, or None if no match.
-    """
-    normalized_df_headers = {_normalize_csv_header(h) for h in df_headers}
-    file_path = Path(filename) # Use Path for robust name matching
-
-    schemas = schema_registry.get('schemas', [])
-    if not schemas:
-        log.warning("Schema registry is empty or not in the expected format.")
-        return None
-
-    # Attempt 1: Match by filename pattern
-    for schema in schemas:
-        match_filename_pattern = schema.get('match_filename')
-        if match_filename_pattern:
-            if file_path.match(match_filename_pattern):
-                log.info(f"Matched schema '{schema.get('id')}' by filename pattern '{match_filename_pattern}' for file '{filename}'.")
-                # Further verify with header signature if present
-                header_signature = schema.get('header_signature')
-                if header_signature:
-                    # Normalize schema's expected headers for comparison
-                    normalized_schema_headers = {_normalize_csv_header(h) for h in header_signature}
-                    if normalized_schema_headers.issubset(normalized_df_headers):
-                        log.info(f"Header signature also matches for schema '{schema.get('id')}'.")
-                        return schema
-                    else:
-                        log.warning(
-                            f"Filename pattern matched schema '{schema.get('id')}' for '{filename}', "
-                            f"but header signature did not. Expected subset: {normalized_schema_headers}, "
-                            f"Got: {normalized_df_headers}. Will continue searching."
-                        )
-                else: # No header signature to check, filename match is enough
-                    return schema
-    
-    log.info(f"No schema matched by filename pattern for '{filename}'. Trying header signature only.")
-
-    # Attempt 2: Match by header signature only (if no filename match)
-    # This is a fallback if filename patterns are not exhaustive or change.
-    for schema in schemas:
-        header_signature = schema.get('header_signature')
-        if header_signature:
-            # Normalize schema's expected headers for comparison
-            normalized_schema_headers = {_normalize_csv_header(h) for h in header_signature}
-            if normalized_schema_headers.issubset(normalized_df_headers):
-                log.info(f"Matched schema '{schema.get('id')}' by header signature for file '{filename}'.")
-                return schema
-                
-    log.warning(f"No schema found for file '{filename}' using filename or header signature.")
-    return None
 
 # --- Helper for TxnID Generation ---
 # Based on normalize.py:_txn_id and task requirements
@@ -775,15 +724,13 @@ def process_csv_files(
         
         # Identify Schema
         # Use raw_df.columns.tolist() for header matching
-        matched_schema = find_matching_schema(raw_df.columns.tolist(), csv_file_path_obj.name, schema_registry)
+        result = sr.find_matching_schema(raw_df.columns.tolist(), csv_file_path_obj.name, schema_registry.get("schemas", []))
+        matched_schema = result.schema
+        if matched_schema.get("id") == "generic_checking":
+            log.warning("Using fallback schema for %s (missing: %s)", csv_file_path_obj.name, ", ".join(sorted(result.missing)))
 
-        if not matched_schema:
-            log.error(f"No matching schema found for {csv_file_path_obj.name}. Skipping file.")
-            schema_ids_found.append('None (no match)') # For smoke test
-            continue
-        
-        schema_id_for_file = matched_schema.get('id', 'None (id missing in schema)')
-        schema_ids_found.append(schema_id_for_file) # For smoke test
+        schema_id_for_file = matched_schema.get("id", "None (id missing in schema)")
+        schema_ids_found.append(schema_id_for_file)  # For schema matching smoke test
         log.info(f"Using schema '{schema_id_for_file}' for {csv_file_path_obj.name}.")
 
         # Apply schema transformations (column mapping, basic types, derived, static, etc.)

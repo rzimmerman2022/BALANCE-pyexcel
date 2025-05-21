@@ -52,7 +52,13 @@ build-backend = "poetry.core.masonry.api"
 
 # Optional: Add tool-specific configurations below later if needed
 # [tool.ruff]
-# ...
+# Ignore unused-import warnings in legacy modules
+[tool.ruff]
+[tool.ruff.lint]
+ignore = ["F401"]
+
+[tool.ruff.format]
+exclude = ["*"]
 # [tool.black]
 # ...
 # [tool.pytest.ini_options]

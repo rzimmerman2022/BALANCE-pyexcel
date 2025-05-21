@@ -26,6 +26,7 @@ import yaml
 import re
 import logging
 from balance_pipeline.errors import RecoverableFileError, FatalSchemaError
+# TODO(Stage-3): switch to schema_detector.detect(headers)
 from balance_pipeline.schema_registry import load_registry, find_matching_schema
 from .sign_rules import flip_if_positive, flip_if_withdrawal
 

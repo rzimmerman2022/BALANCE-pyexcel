@@ -124,6 +124,14 @@
   - Account Name
   - Institution Name
   - Amount
+  optional:
+  - Description
+  - Date
+  aliases:
+    Account Name:
+    - Acct Name
+    Institution Name:
+    - Bank Name
   extra_static_cols:
     Source: Rocket
   column_map:
@@ -190,6 +198,22 @@
   date_format: '%m/%d/%Y'
   amount_regex: -?\$?([\d,]+\.\d{2})
   sign_rule: flip_if_positive
+- id: generic_checking
+  match_filename: generic_bank_*
+  required:
+  - Date
+  - Merchant
+  - Amount
+  optional:
+  - Running Balance
+  - Check Number
+  aliases:
+    Merchant:
+    - Description
+    - Payee
+    Account:
+    - Account Name
+    - Acct Name
 - id: test_data_source1
   match_filename: data_source1.csv
   header_signature:
