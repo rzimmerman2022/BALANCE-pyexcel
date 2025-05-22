@@ -12,14 +12,14 @@ if os.path.exists(parquet_path):
     query = f"SELECT COUNT(*) as row_count FROM '{parquet_path}'"
     result = con.execute(query).fetchall()
     print(f"Row count: {result[0][0]}")
-    
+
     # Show schema
     query = f"DESCRIBE SELECT * FROM '{parquet_path}'"
     schema = con.execute(query).fetchall()
     print("\nSchema:")
     for col in schema:
         print(f"{col[0]}: {col[1]}")
-    
+
     # Show sample data (first 5 rows)
     query = f"SELECT * FROM '{parquet_path}' LIMIT 5"
     data = con.execute(query).fetchall()

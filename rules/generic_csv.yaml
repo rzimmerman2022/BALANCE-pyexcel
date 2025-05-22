@@ -1,0 +1,10 @@
+name: generic_csv
+required:
+  date:
+    - "Date"
+  amount:
+    - "Amount"
+  merchant:
+    - "Merchant"
+    - "Description"
+optional: {}

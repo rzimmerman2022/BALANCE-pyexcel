@@ -19,6 +19,7 @@ from balance_pipeline.errors import DataConsistencyError
 
 log = logging.getLogger(__name__)
 
+
 # ------------------------------------------------------------------------------
 # Function: _strip_accents (Moved from normalize.py)
 # ------------------------------------------------------------------------------
@@ -27,13 +28,17 @@ def _strip_accents(txt: str | None) -> str:
     if pd.isna(txt):
         return ""
     try:
-        txt = str(txt) # Ensure input is string
+        txt = str(txt)  # Ensure input is string
         return "".join(
-            ch for ch in unicodedata.normalize("NFD", txt)
+            ch
+            for ch in unicodedata.normalize("NFD", txt)
             if unicodedata.category(ch) != "Mn"
         )
     except TypeError as e:
-        raise DataConsistencyError(f"Could not strip accents from non-string input: {type(txt)}") from e
+        raise DataConsistencyError(
+            f"Could not strip accents from non-string input: {type(txt)}"
+        ) from e
+
 
 # ------------------------------------------------------------------------------
 # Function: _clean_desc (Original, for single string)
@@ -55,12 +60,15 @@ def _clean_desc_single(desc: str | None) -> str:
         # Step 5: Strip leading/trailing whitespace
         return desc_single_space.strip()
     except Exception as e:
-        raise DataConsistencyError(f"Error cleaning description: '{desc}'. Error: {e}") from e
+        raise DataConsistencyError(
+            f"Error cleaning description: '{desc}'. Error: {e}"
+        ) from e
+
 
 # ------------------------------------------------------------------------------
 # Function: clean_desc_vectorized (New, for pandas Series)
 # ------------------------------------------------------------------------------
-def clean_desc_vectorized(desc_series: pd.Series) -> pd.Series:
+def clean_desc_vectorized(desc_series: pd.Series) -> pd.Series: # Changed pd.Series[str] to pd.Series
     """
     Cleans a pandas Series of description strings using vectorized operations.
     """
@@ -69,28 +77,29 @@ def clean_desc_vectorized(desc_series: pd.Series) -> pd.Series:
 
     # Handle NaNs by filling with empty string for processing, then can be reverted if needed
     original_na = desc_series.isna()
-    series_filled_na = desc_series.fillna('')
+    series_filled_na = desc_series.fillna("")
 
     # Step 1: Strip accents (still needs .apply for unicodedata, but on the series)
     # Ensure series is string type before applying _strip_accents
     stripped_series = series_filled_na.astype(str).apply(_strip_accents)
-    
+
     # Step 2: Convert to uppercase
     upper_series = stripped_series.str.upper()
-    
+
     # Step 3: Replace non-alphanumeric characters (excluding space) with a space
     # Regex is applied per element, but .str.replace is vectorized
     alphanum_series = upper_series.str.replace(r"[^A-Z0-9 ]+", " ", regex=True)
-    
+
     # Step 4: Replace multiple spaces with a single space
     single_space_series = alphanum_series.str.replace(r"\s+", " ", regex=True)
-    
+
     # Step 5: Strip leading/trailing whitespace
     cleaned_series = single_space_series.str.strip()
 
     # Restore NaNs if they were originally present
-    cleaned_series.loc[original_na] = pd.NA # Or np.nan if preferred
-    
+    cleaned_series.loc[original_na] = pd.NA  # Or np.nan if preferred
+
     return cleaned_series
+
 
 # Add other utility functions here as needed.

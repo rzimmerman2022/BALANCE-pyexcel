@@ -11,13 +11,13 @@ Description: Contains integration tests specifically for validating the ingestio
 
 import pytest
 from pathlib import Path
-import shutil # For copying files in fixture
+import shutil  # For copying files in fixture
 
 # --- Imports from Application Code ---
 # Assuming tests are run from the project root or pytest handles PYTHONPATH
 from src.balance_pipeline.ingest import load_folder
 from src.balance_pipeline.normalize import normalize_df, FINAL_COLS
-from src.balance_pipeline import config # To get project root for fixture path
+from src.balance_pipeline import config  # To get project root for fixture path
 
 # --- Constants ---
 # Define the relative path to the source fixture file from the project root
@@ -27,7 +27,8 @@ FIXTURE_DEST_FILENAME = "BALANCE - Jordyn PDF - Sample.csv"
 
 # --- Pytest Fixture for Test Setup ---
 
-@pytest.fixture(scope="function") # Create a fresh temp dir for each test function
+
+@pytest.fixture(scope="function")  # Create a fresh temp dir for each test function
 def jordyn_pdf_inbox(tmp_path: Path) -> Path:
     """
     Sets up a temporary directory structure mimicking the expected input folder
@@ -62,7 +63,9 @@ def jordyn_pdf_inbox(tmp_path: Path) -> Path:
 
     # Teardown (handled automatically by pytest's tmp_path fixture)
 
+
 # --- Test Function ---
+
 
 def test_jordyn_pdf_ingestion_and_normalization(jordyn_pdf_inbox: Path):
     """
@@ -78,7 +81,7 @@ def test_jordyn_pdf_ingestion_and_normalization(jordyn_pdf_inbox: Path):
     7. Asserts that the 'Amount' sign is correctly flipped (negative).
     """
     # --- Arrange ---
-    inbox_path = jordyn_pdf_inbox # Path provided by the fixture
+    inbox_path = jordyn_pdf_inbox  # Path provided by the fixture
 
     # --- Act ---
     # Ingest the data using the temporary inbox
@@ -86,26 +89,30 @@ def test_jordyn_pdf_ingestion_and_normalization(jordyn_pdf_inbox: Path):
 
     # Check if ingestion returned any data before normalizing
     if ingested_df.empty:
-        pytest.fail("Ingestion returned an empty DataFrame. Check schema matching or file reading.")
+        pytest.fail(
+            "Ingestion returned an empty DataFrame. Check schema matching or file reading."
+        )
 
     # Normalize the ingested data
-    normalized_df = normalize_df(ingested_df) # Assuming default prefer_source is fine
+    normalized_df = normalize_df(ingested_df)  # Assuming default prefer_source is fine
 
     # --- Assert ---
     # 1. Check if the final columns match the expected standard
-    assert normalized_df.columns.tolist() == FINAL_COLS, \
-        f"Columns mismatch. Expected: {FINAL_COLS}, Got: {normalized_df.columns.tolist()}"
+    assert (
+        normalized_df.columns.tolist() == FINAL_COLS
+    ), f"Columns mismatch. Expected: {FINAL_COLS}, Got: {normalized_df.columns.tolist()}"
 
     # 2. Check if the Owner was correctly assigned
     assert "Owner" in normalized_df.columns, "Owner column is missing"
-    assert normalized_df["Owner"].unique().tolist() == ["Jordyn"], \
-        f"Owner column contains unexpected values: {normalized_df['Owner'].unique().tolist()}"
+    assert (
+        normalized_df["Owner"].unique().tolist() == ["Jordyn"]
+    ), f"Owner column contains unexpected values: {normalized_df['Owner'].unique().tolist()}"
 
     # 3. Check amount sign (should be negative due to flip_if_positive rule)
     assert "Amount" in normalized_df.columns, "Amount column is missing"
-    assert normalized_df["Amount"].iloc[0] < 0, \
-        f"Amount sign rule failed. Expected negative amount, Got: {normalized_df['Amount'].iloc[0]}"
+    assert (
+        normalized_df["Amount"].iloc[0] < 0
+    ), f"Amount sign rule failed. Expected negative amount, Got: {normalized_df['Amount'].iloc[0]}"
 
     # 4. Check number of rows (should match fixture)
-    assert len(normalized_df) == 3, \
-        f"Expected 3 rows, but got {len(normalized_df)}"
+    assert len(normalized_df) == 3, f"Expected 3 rows, but got {len(normalized_df)}"

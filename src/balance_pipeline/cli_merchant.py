@@ -6,12 +6,14 @@ Project: BALANCE-pyexcel
 Description: CLI sub-commands for managing merchant rules.
 ==============================================================================
 """
+
 import argparse
 import csv
 import re
 import sys
 from pathlib import Path
 import logging
+from typing import Optional # Added Optional
 
 # Local application imports
 from . import config
@@ -34,10 +36,11 @@ __all__ = ["add_merchant_rule", "MERCHANT_RULES_FILENAME", "RULES_DIR"]
 #         # or that RULES_DIR is accessible from the current working directory.
 #         # For a poetry script, cwd might be the project root.
 #         # A more robust solution might involve finding the project root based on a known file/dir.
-#         project_root = Path.cwd() 
+#         project_root = Path.cwd()
 #     return project_root / RULES_DIR / MERCHANT_RULES_FILENAME
 
-def add_merchant_rule(pattern: str, canonical_name: str, rules_file: Path = None):
+
+def add_merchant_rule(pattern: str, canonical_name: str, rules_file: Optional[Path] = None) -> None: # Added Optional and -> None
     """
     Adds a new merchant rule to the merchant_lookup.csv file.
 
@@ -47,10 +50,10 @@ def add_merchant_rule(pattern: str, canonical_name: str, rules_file: Path = None
         rules_file (Path, optional): Path to the rules CSV. Defaults to standard location.
     """
     if rules_file is None:
-        rules_file = MERCHANT_LOOKUP_PATH # Use path from config
+        rules_file = MERCHANT_LOOKUP_PATH  # Use path from config
 
     # Sanitize canonical_name: reject if it contains a comma
-    if ',' in canonical_name:
+    if "," in canonical_name:
         log.error("Error: Canonical name cannot contain a comma.")
         print("Error: Canonical name cannot contain a comma.", file=sys.stderr)
         sys.exit(1)
@@ -60,59 +63,68 @@ def add_merchant_rule(pattern: str, canonical_name: str, rules_file: Path = None
         re.compile(pattern)
     except re.error as e:
         log.error(f"Error: Invalid regex pattern: {pattern}. Details: {e}")
-        print(f"Error: Invalid regex pattern: '{pattern}'. Details: {e}", file=sys.stderr)
+        print(
+            f"Error: Invalid regex pattern: '{pattern}'. Details: {e}", file=sys.stderr
+        )
         sys.exit(1)
 
     # Ensure the rules directory exists
     rules_file.parent.mkdir(parents=True, exist_ok=True)
 
     file_exists = rules_file.exists()
-    
+
     try:
-        with open(rules_file, 'a', newline='', encoding='utf-8') as csvfile:
+        with open(rules_file, "a", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
             if not file_exists or rules_file.stat().st_size == 0:
                 writer.writerow(["pattern", "canonical"])
                 log.info(f"Created new rules file with header: {rules_file}")
-            
+
             writer.writerow([pattern, canonical_name])
         log.info(f"Rule added: '{pattern}' -> '{canonical_name}' to {rules_file}")
-        print("Rule added - Refresh in Excel to apply.") # Standard output for user
+        print("Rule added - Refresh in Excel to apply.")  # Standard output for user
     except IOError as e:
         log.error(f"Error writing to rules file {rules_file}: {e}")
-        print(f"Error: Could not write to rules file {rules_file}. Details: {e}", file=sys.stderr)
+        print(
+            f"Error: Could not write to rules file {rules_file}. Details: {e}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 
-def main_merchant():
+def main_merchant() -> None: # Added -> None
     """
     Main entry point for 'balance merchant' sub-commands.
     """
     parser = argparse.ArgumentParser(
         description="Manage merchant lookup rules for BALANCE-pyexcel.",
-        prog="balance merchant" # Ensures help message shows 'balance merchant ...'
+        prog="balance merchant",  # Ensures help message shows 'balance merchant ...'
     )
-    subparsers = parser.add_subparsers(dest="command", title="Available commands", required=True)
+    subparsers = parser.add_subparsers(
+        dest="command", title="Available commands", required=True
+    )
 
     # --- 'add' command ---
     add_parser = subparsers.add_parser(
-        "add", 
+        "add",
         help="Add a new merchant rule.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     add_parser.add_argument("pattern", help="Regex pattern to match the merchant.")
     add_parser.add_argument("canonical", help="Canonical merchant name to assign.")
     # Optional: add --rules-file argument if needed for testing or custom locations
     # add_parser.add_argument("--rules-file", type=Path, help="Custom path to the merchant rules CSV file.")
 
-
     # --- Setup basic logging for the merchant CLI if not already configured ---
     # This is a simple setup. A more robust solution would integrate with cli.py's setup_logging.
-    if not logging.getLogger().hasHandlers(): # Check if root logger has handlers
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    if not logging.getLogger().hasHandlers():  # Check if root logger has handlers
+        logging.basicConfig(
+            level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+        )
 
-
-    args = parser.parse_args() # sys.argv[1:] is default, for subcommands needs careful parsing
+    args = (
+        parser.parse_args()
+    )  # sys.argv[1:] is default, for subcommands needs careful parsing
 
     # Re-parse args specifically for the subcommand if using sys.argv directly
     # For `poetry run balance merchant add ...`, sys.argv will be like:
@@ -126,7 +138,8 @@ def main_merchant():
         cli_rules_file = Path.cwd() / RULES_DIR / MERCHANT_RULES_FILENAME
         add_merchant_rule(args.pattern, args.canonical, rules_file=cli_rules_file)
     else:
-        parser.print_help() # Should not happen if subcommand is required
+        parser.print_help()  # Should not happen if subcommand is required
+
 
 if __name__ == "__main__":
     # This allows running `python src/balance_pipeline/cli_merchant.py add ...`

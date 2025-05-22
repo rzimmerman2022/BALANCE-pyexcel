@@ -18,16 +18,17 @@ Author: Your Name / AI Assistant
 # ==============================================================================
 # 0. IMPORTS
 # ==============================================================================
-from __future__ import annotations # Allows type hint 'pd.DataFrame' before full definition
+from __future__ import (
+    annotations,
+)  # Allows type hint 'pd.DataFrame' before full definition
 
-from pathlib import Path         # For handling file system paths robustly
-import logging                   # For application logging
-import pandas as pd              # For DataFrame operations (used in type hint)
+from pathlib import Path  # For handling file system paths robustly
+import logging  # For application logging
+import pandas as pd  # For DataFrame operations (used in type hint)
 
 # Import core processing functions from other modules within this package
-from .ingest import load_folder    # Function to load data from CSVs
-from .normalize import normalize_df # Function to clean and normalize the data
-from .errors import BalancePipelineError
+from .ingest import load_folder  # Function to load data from CSVs
+from .normalize import normalize_df  # Function to clean and normalize the data
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP (Logging)
@@ -43,6 +44,7 @@ log = logging.getLogger(__name__)
 # ==============================================================================
 # 2. PUBLIC FUNCTIONS (Entry Point)
 # ==============================================================================
+
 
 # ------------------------------------------------------------------------------
 # Function: etl_main
@@ -99,6 +101,7 @@ def etl_main(csv_inbox: str | Path) -> pd.DataFrame:
     # --- Complete ---
     log.info("ETL process finished successfully.")
     return clean_df
+
 
 # ==============================================================================
 # END OF FILE: __init__.py

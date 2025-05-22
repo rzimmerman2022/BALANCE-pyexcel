@@ -28,9 +28,6 @@ sample_data_multi/**/*.csv
 *.xlsx
 *.temp.xlsx
 
-# Large configuration rule files - consider splitting into smaller files later
-rules/schema_registry.yml
-rules/merchant_lookup.csv
 
 # Generated workbook - tracked separately from source code
 workbook/BALANCE-pyexcel.xlsm
