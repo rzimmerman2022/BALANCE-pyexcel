@@ -226,3 +226,9 @@
   sign_rule: as_is
   extra_static_cols:
     Source: TestSource2
+- id: jordyn_wellsfargo_visa_v1
+  file: jordyn_wellsfargo_visa_v1.yaml
+- id: jordyn_chase_checking_v1
+  file: jordyn_chase_checking_v1.yaml
+- id: jordyn_discover_card_v1
+  file: jordyn_discover_card_v1.yaml

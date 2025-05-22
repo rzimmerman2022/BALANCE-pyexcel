@@ -28,11 +28,23 @@ column_map:
   # 'Name' and 'Institution' from CSV are not directly mapped yet,
   # could be used for validation or more complex derivations if needed.
 derived_columns:
-  Owner: Jordyn
-  DataSourceName: WellsFargoVisa
-  AccountType: Credit Card # Assuming this is a credit card statement
-  # We might add AccountLast4 here later if we can parse it from "Account Description"
+  Owner:
+    rule: static_value
+    value: Jordyn
+  DataSourceName:
+    rule: static_value
+    value: WellsFargoVisa
+  AccountType: # Assuming this is a credit card statement
+    rule: static_value
+    value: Credit Card
+  AccountLast4:
+    rule: regex_extract
+    column: Account # Derived from "Account Description"
+    pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Extracts last 4 digits
 transformations:
+  extras_ignore: # Explicitly ignore these CSV columns
+    - Name
+    - Institution
   date_formats:
     Date: "%m/%d/%Y" # Common US date format, adjust if logs show otherwise
     PostDate: "%m/%d/%Y" # Common US date format

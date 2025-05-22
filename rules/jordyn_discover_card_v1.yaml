@@ -1,0 +1,46 @@
+id: jordyn_discover_card_v1
+description: "Schema for Jordyn's Discover It Card statements (CSV format)."
+version: 1
+header_signature:
+  - Name
+  - Institution
+  - Card Type
+  - Statement Period
+  - Date
+  - Post Date
+  - Description
+  - Reference Number
+  - Amount
+  - Category
+column_map:
+  Date: Date
+  "Post Date": PostDate
+  Description: OriginalDescription
+  Amount: Amount
+  Category: Category
+  "Card Type": Account # Contains card name and potentially last 4 digits
+  "Reference Number": ReferenceNumber
+  "Statement Period": StatementPeriodDesc # Map to StatementPeriodDesc
+derived_columns:
+  Owner:
+    rule: static_value
+    value: Jordyn
+  DataSourceName:
+    rule: static_value
+    value: DiscoverCard
+  AccountType: # Explicitly set master schema AccountType
+    rule: static_value
+    value: Credit Card
+  AccountLast4:
+    rule: regex_extract
+    column: Account # Derived from CSV "Card Type"
+    pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Standard pattern
+transformations:
+  extras_ignore:
+    - Name
+    - Institution
+  date_formats:
+    Date: "%Y-%m-%d"
+    PostDate: "%Y-%m-%d"
+  amount_to_numeric: true
+  amount_sign_rule: "invert_sign"
