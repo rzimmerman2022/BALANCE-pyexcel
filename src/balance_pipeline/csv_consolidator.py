@@ -728,12 +728,18 @@ def apply_schema_transformations(
     # if 'rocket_money' in schema_id:
     #    # ... Rocket Money specific logic ...
 
-    # 8. Populate DataSourceName (from schema['id'])
-    ds_name_val = schema_rules.get("id", "UnknownSchema")
-    transformed_df["DataSourceName"] = ds_name_val
-    log.debug(
-        f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: DataSourceName Population | Value: {ds_name_val}"
-    )
+    # 8. Populate DataSourceName (from schema['id']), only if not already set by derived_columns
+    # Check if DataSourceName was already populated by derived_columns
+    if "DataSourceName" not in transformed_df.columns or transformed_df["DataSourceName"].isnull().all():
+        ds_name_val = schema_rules.get("id", "UnknownSchema")
+        transformed_df["DataSourceName"] = ds_name_val
+        log.debug(
+            f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: DataSourceName Population from schema ID | Value: {ds_name_val}"
+        )
+    else:
+        log.debug(
+            f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: DataSourceName Population | Detail: DataSourceName already populated (likely by derived_columns), value: {transformed_df['DataSourceName'].iloc[0] if not transformed_df.empty else 'N/A'}"
+        )
 
     # 9. Add static columns from schema['extra_static_cols']
     extra_static_cols = schema_rules.get("extra_static_cols", {})

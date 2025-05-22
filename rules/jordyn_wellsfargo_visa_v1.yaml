@@ -1,0 +1,43 @@
+id: jordyn_wellsfargo_visa_v1
+description: "Schema for Jordyn's Wells Fargo Visa credit card statements (CSV format)."
+version: 1
+header_signature:
+  - Name
+  - Institution
+  - Account Description
+  - Statement Period Description
+  - Statement Start Date
+  - Statement End Date
+  - Date
+  - Post Date
+  - Description
+  - Reference Number
+  - Amount
+  - Category
+column_map:
+  Date: Date
+  "Post Date": PostDate # Assuming 'Post Date' is the transaction posting date
+  Description: OriginalDescription
+  Amount: Amount
+  Category: Category # This will likely be bank's category, not user's
+  "Account Description": Account # May need further parsing for AccountLast4
+  "Reference Number": ReferenceNumber
+  "Statement Start Date": StatementStart
+  "Statement End Date": StatementEnd
+  "Statement Period Description": StatementPeriodDesc
+  # 'Name' and 'Institution' from CSV are not directly mapped yet,
+  # could be used for validation or more complex derivations if needed.
+derived_columns:
+  Owner: Jordyn
+  DataSourceName: WellsFargoVisa
+  AccountType: Credit Card # Assuming this is a credit card statement
+  # We might add AccountLast4 here later if we can parse it from "Account Description"
+transformations:
+  date_formats:
+    Date: "%m/%d/%Y" # Common US date format, adjust if logs show otherwise
+    PostDate: "%m/%d/%Y" # Common US date format
+    StatementStart: "%m/%d/%Y"
+    StatementEnd: "%m/%d/%Y"
+  amount_to_numeric: true
+  amount_sign_rule: "as_is" # For credit cards, charges are often positive, payments negative.
+                            # We will verify this. If charges are negative, use "invert_sign".

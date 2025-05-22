@@ -21,8 +21,8 @@ import sys
 import os  # os was not used directly, sys.executable and os.getcwd() are in dev_main
 import time  # Added for retry loop
 import io  # io module is no longer used
-from typing import Optional, Any, List, Union, Literal, cast # Added List, Union, Literal, cast
-from datetime import date # Added date
+from typing import Optional, Any, List, Union, cast  # Added List, Union, Literal, cast
+from datetime import date  # Added date
 import importlib  # Added for reload and explicit import
 import click
 from balance_pipeline.errors import BalancePipelineError
@@ -80,6 +80,8 @@ def setup_logging(log_file: Optional[str] = None, verbose: bool = False) -> None
     log_level = getattr(logging, log_level_name.upper(), logging.INFO)
     if verbose:
         log_level = logging.DEBUG  # Override to DEBUG if verbose flag is set
+        logging.getLogger('balance_pipeline').setLevel(logging.DEBUG)
+        logging.getLogger('balance_pipeline.csv_consolidator').setLevel(logging.DEBUG)
 
     log_format = "%(asctime)s - %(levelname)s - %(message)s"
     formatter = logging.Formatter(log_format)
@@ -150,7 +152,7 @@ def setup_logging(log_file: Optional[str] = None, verbose: bool = False) -> None
     except Exception as encoding_err:
         log.warning(f"Could not force UTF-8 encoding on stdout stream: {encoding_err}")
 
-    handlers: List[logging.Handler] = [stdout_handler] # Explicitly type handlers
+    handlers: List[logging.Handler] = [stdout_handler]  # Explicitly type handlers
     # --- End stdout handler configuration ---
 
     # Add file handler if log file path is provided
@@ -179,8 +181,8 @@ def setup_logging(log_file: Optional[str] = None, verbose: bool = False) -> None
 def etl_main(
     inbox_path: Path,
     prefer_source: str = "Rocket",
-    exclude_patterns: Optional[List[str]] = None, # Use Optional[List[str]]
-    only_patterns: Optional[List[str]] = None,    # Use Optional[List[str]]
+    exclude_patterns: Optional[List[str]] = None,  # Use Optional[List[str]]
+    only_patterns: Optional[List[str]] = None,  # Use Optional[List[str]]
 ) -> pd.DataFrame:
     """
     Main ETL function that loads CSVs, normalizes data, and returns a DataFrame.
@@ -197,7 +199,7 @@ def etl_main(
     log.info(f"Starting ETL process for inbox: {inbox_path}")
 
     # 1. Scan for CSV files
-    csv_file_paths: List[Path] = [] # Changed back to List[Path]
+    csv_file_paths: List[Path] = []  # Changed back to List[Path]
     if inbox_path.is_dir():
         for item in inbox_path.rglob("*.csv"):  # Recursive glob
             # Apply exclude patterns
@@ -230,7 +232,7 @@ def etl_main(
     # This function handles schema matching, transformations, TxnID, merchant cleaning, etc.
     # Call using the reloaded module reference
     df = csv_consolidator_module.process_csv_files(
-        cast(List[Union[str, Path]], csv_file_paths) # Cast for process_csv_files
+        cast(List[Union[str, Path]], csv_file_paths)  # Cast for process_csv_files
     )  # prefer_source is not used by this function directly
 
     if df.empty:
@@ -292,7 +294,7 @@ def etl_main(
 # ingest_module is already imported at the top
 
 
-def main(argv: Optional[List[str]] = None) -> None: # Added argv parameter
+def main(argv: Optional[List[str]] = None) -> None:  # Added argv parameter
     """
     Main CLI entry point
     """
@@ -424,7 +426,7 @@ Examples:
         default=Path("artifacts"),
         help="Output directory (used with --raw-dir, or other modes).",
     )
-    args = parser.parse_args(argv) # Pass argv to parse_args
+    args = parser.parse_args(argv)  # Pass argv to parse_args
 
     # --- Setup Logging ---
     # Must happen before any significant logging calls
@@ -482,14 +484,19 @@ Examples:
                 continue
 
             # process_single_raw_csv_file is the refactored function
-            df_single_raw = process_single_raw_csv_file(csv_file_path) # Renamed variable
+            df_single_raw = process_single_raw_csv_file(
+                csv_file_path
+            )  # Renamed variable
             if (
-                df_single_raw is not None and not df_single_raw.empty # Use renamed variable
+                df_single_raw is not None
+                and not df_single_raw.empty  # Use renamed variable
             ):  # Only append if df is valid and has data
-                all_dfs.append(df_single_raw) # Use renamed variable
+                all_dfs.append(df_single_raw)  # Use renamed variable
                 files_processed_count += 1
                 processed_filenames.append(csv_file_path.name)
-            elif df_single_raw is not None and df_single_raw.empty: # Use renamed variable
+            elif (
+                df_single_raw is not None and df_single_raw.empty
+            ):  # Use renamed variable
                 log.info(
                     f"File {csv_file_path.name} resulted in an empty DataFrame (e.g. headers only), not included in final Parquet."
                 )
@@ -563,9 +570,9 @@ Examples:
         sys.exit(1)
 
     # Check inbox path is actually a directory
-    if not inbox.is_dir():
-        log.error(f"Inbox path provided is not a valid directory: {inbox}")
-        sys.exit(1)
+    # if not inbox.is_dir(): # Temporarily commented out for single-file diagnostics
+    #     log.error(f"Inbox path provided is not a valid directory: {inbox}")
+    #     sys.exit(1)
 
     if not workbook.exists() and not args.dry_run:
         log.warning(
@@ -732,7 +739,7 @@ Examples:
 
             # Perform a left merge: keep all rows from df_from_sources, add/update classifications from canonical_df
             # Suffix "_canonical" for columns from canonical_df to distinguish if needed, then coalesce.
-            df_merged = pd.merge( # Renamed variable
+            df_merged = pd.merge(  # Renamed variable
                 df_from_sources,
                 canonical_df[class_cols_from_canonical],
                 on="TxnID",
@@ -744,61 +751,86 @@ Examples:
             )
 
             # Coalesce: If SharedFlag_canonical exists (meaning a match was found), use it. Otherwise, keep original SharedFlag from df_from_sources.
-            if "SharedFlag_canonical" in df_merged.columns: # Use renamed variable
-                df_merged["SharedFlag"] = df_merged["SharedFlag_canonical"].fillna(df_merged["SharedFlag"]) # Use renamed variable
-                df_merged.drop(columns=["SharedFlag_canonical"], inplace=True) # Use renamed variable
+            if "SharedFlag_canonical" in df_merged.columns:  # Use renamed variable
+                df_merged["SharedFlag"] = df_merged["SharedFlag_canonical"].fillna(
+                    df_merged["SharedFlag"]
+                )  # Use renamed variable
+                df_merged.drop(
+                    columns=["SharedFlag_canonical"], inplace=True
+                )  # Use renamed variable
 
-            if "SplitPercent_canonical" in df_merged.columns: # Use renamed variable
+            if "SplitPercent_canonical" in df_merged.columns:  # Use renamed variable
                 # fillna might not be ideal for pd.NA, use combine_first or where
-                df_merged["SplitPercent"] = df_merged["SplitPercent_canonical"].combine_first( # Use renamed variable
-                    df_merged["SplitPercent"] # Use renamed variable
+                df_merged["SplitPercent"] = df_merged[
+                    "SplitPercent_canonical"
+                ].combine_first(  # Use renamed variable
+                    df_merged["SplitPercent"]  # Use renamed variable
                 )
-                df_merged.drop(columns=["SplitPercent_canonical"], inplace=True) # Use renamed variable
+                df_merged.drop(
+                    columns=["SplitPercent_canonical"], inplace=True
+                )  # Use renamed variable
 
             # Ensure SharedFlag/SplitPercent have no NaNs from failed merges (new items in df_from_sources)
             # csv_consolidator.py (via process_csv_files) should ensure these columns exist with correct dtypes.
             # This section is a safeguard, especially after merges which can alter dtypes.
-            if "SharedFlag" in df_merged.columns: # Use renamed variable
+            if "SharedFlag" in df_merged.columns:  # Use renamed variable
                 # Ensure the column is nullable boolean before filling
                 if (
-                    not pd.api.types.is_extension_array_dtype(df_merged["SharedFlag"]) # Use renamed variable
-                    or df_merged["SharedFlag"].dtype != pd.BooleanDtype() # Use renamed variable
+                    not pd.api.types.is_extension_array_dtype(
+                        df_merged["SharedFlag"]
+                    )  # Use renamed variable
+                    or df_merged["SharedFlag"].dtype
+                    != pd.BooleanDtype()  # Use renamed variable
                 ):
                     log.debug(
-                        f"SharedFlag dtype before astype: {df_merged['SharedFlag'].dtype}. Coercing to pd.BooleanDtype()." # Use renamed variable
+                        f"SharedFlag dtype before astype: {df_merged['SharedFlag'].dtype}. Coercing to pd.BooleanDtype()."  # Use renamed variable
                     )
                     # Replace any problematic string placeholders if they somehow got in, before coercing
-                    df_merged["SharedFlag"] = df_merged["SharedFlag"].replace({"?": pd.NA, "": pd.NA}) # Use renamed variable
-                    df_merged["SharedFlag"] = df_merged["SharedFlag"].astype(pd.BooleanDtype()) # Use renamed variable
-                df_merged["SharedFlag"] = df_merged["SharedFlag"].fillna(value=pd.NA) # Use renamed variable
+                    df_merged["SharedFlag"] = df_merged["SharedFlag"].replace(
+                        {"?": pd.NA, "": pd.NA}
+                    )  # Use renamed variable
+                    df_merged["SharedFlag"] = df_merged["SharedFlag"].astype(
+                        pd.BooleanDtype()
+                    )  # Use renamed variable
+                df_merged["SharedFlag"] = df_merged["SharedFlag"].fillna(
+                    value=pd.NA
+                )  # Use renamed variable
             else:
                 log.warning(
                     "SharedFlag column was missing after merge with canonical_df. Creating it with pd.NA and boolean dtype."
                 )
-                df_merged["SharedFlag"] = pd.NA # Use renamed variable
-                df_merged["SharedFlag"] = df_merged["SharedFlag"].astype(pd.BooleanDtype()) # Use renamed variable
+                df_merged["SharedFlag"] = pd.NA  # Use renamed variable
+                df_merged["SharedFlag"] = df_merged["SharedFlag"].astype(
+                    pd.BooleanDtype()
+                )  # Use renamed variable
 
-            if "SplitPercent" in df_merged.columns: # Use renamed variable
+            if "SplitPercent" in df_merged.columns:  # Use renamed variable
                 # Ensure the column is float before filling
                 if (
-                    df_merged["SplitPercent"].dtype != "float64" # Use renamed variable
-                    and df_merged["SplitPercent"].dtype != "float32" # Use renamed variable
+                    df_merged["SplitPercent"].dtype != "float64"  # Use renamed variable
+                    and df_merged["SplitPercent"].dtype
+                    != "float32"  # Use renamed variable
                 ):
                     log.debug(
-                        f"SplitPercent dtype before astype: {df_merged['SplitPercent'].dtype}. Coercing to float." # Use renamed variable
+                        f"SplitPercent dtype before astype: {df_merged['SplitPercent'].dtype}. Coercing to float."  # Use renamed variable
                     )
-                    df_merged["SplitPercent"] = pd.to_numeric( # Use renamed variable
-                        df_merged["SplitPercent"], errors="coerce" # Use renamed variable
+                    df_merged["SplitPercent"] = pd.to_numeric(  # Use renamed variable
+                        df_merged["SplitPercent"],
+                        errors="coerce",  # Use renamed variable
                     )  # Coerce to numeric first
-                df_merged["SplitPercent"] = df_merged["SplitPercent"].fillna(pd.NA) # Use renamed variable
+                df_merged["SplitPercent"] = df_merged["SplitPercent"].fillna(
+                    pd.NA
+                )  # Use renamed variable
             else:
                 log.warning(
                     "SplitPercent column was missing after merge with canonical_df. Creating it with pd.NA and float dtype."
                 )
-                df_merged["SplitPercent"] = pd.NA # Use renamed variable
-                df_merged["SplitPercent"] = df_merged["SplitPercent"].astype("float") # Use renamed variable
-            
-            df = df_merged # Assign back to df
+                df_merged["SplitPercent"] = pd.NA  # Use renamed variable
+                df_merged["SplitPercent"] = df_merged["SplitPercent"].astype(
+                    "float"
+                )  # Use renamed variable
+
+            df = df_merged  # Assign back to df
 
             log.info(
                 "Merged existing classifications. DataFrame now has %s rows.", len(df)
@@ -997,7 +1029,9 @@ Examples:
 
                 # Write main data and Queue_Review template to target/temp file
                 with pd.ExcelWriter(
-                    target_file_path, engine="openpyxl", mode="w" # Use literal 'w'
+                    target_file_path,
+                    engine="openpyxl",
+                    mode="w",  # Use literal 'w'
                 ) as writer:
                     log.info(f"Writing {len(df)} rows to 'Transactions' sheet...")
                     df.to_excel(writer, sheet_name="Transactions", index=False)
@@ -1199,18 +1233,22 @@ def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
 
     log.info(f"[process_single_raw_csv_file] Attempting to process: {src.name}")
     try:
-        df_raw_single = pd.read_csv(src) # Renamed variable
+        df_raw_single = pd.read_csv(src)  # Renamed variable
 
-        if "Amount" in df_raw_single.columns: # Use renamed variable
+        if "Amount" in df_raw_single.columns:  # Use renamed variable
             # Attempt to convert 'Amount' to numeric, coercing errors to NaN
-            original_dtype_amount = df_raw_single["Amount"].dtype # Use renamed variable
+            original_dtype_amount = df_raw_single[
+                "Amount"
+            ].dtype  # Use renamed variable
             # Common practice: remove currency symbols and thousands separators before converting
             # For now, assuming pd.to_numeric can handle reasonably clean numbers or will coerce others.
             # If amounts have '$', ',', this might need pre-cleaning:
             # df["Amount"] = df["Amount"].astype(str).str.replace(r'[$,]', '', regex=True)
-            df_raw_single["Amount"] = pd.to_numeric(df_raw_single["Amount"], errors="coerce") # Use renamed variable
+            df_raw_single["Amount"] = pd.to_numeric(
+                df_raw_single["Amount"], errors="coerce"
+            )  # Use renamed variable
 
-            nan_in_amount = df_raw_single["Amount"].isna().sum() # Use renamed variable
+            nan_in_amount = df_raw_single["Amount"].isna().sum()  # Use renamed variable
             # Only log if there were actual NaNs *after* coercion that weren't already NaN
             # This check is a bit complex; simpler to just log if any NaNs exist post-coercion.
             if nan_in_amount > 0:
@@ -1221,9 +1259,11 @@ def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
                     f"Found {nan_in_amount} NaN value(s) in 'Amount' column for {src.name} after numeric conversion."
                 )
 
-            if original_dtype_amount != df_raw_single["Amount"].dtype: # Use renamed variable
+            if (
+                original_dtype_amount != df_raw_single["Amount"].dtype
+            ):  # Use renamed variable
                 log.debug(
-                    f"Changed 'Amount' column dtype from {original_dtype_amount} to {df_raw_single['Amount'].dtype} for {src.name}." # Use renamed variable
+                    f"Changed 'Amount' column dtype from {original_dtype_amount} to {df_raw_single['Amount'].dtype} for {src.name}."  # Use renamed variable
                 )
         else:
             log.warning(
@@ -1231,19 +1271,27 @@ def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
             )
             # Create an 'Amount' column of float type filled with NaNs if it doesn't exist.
             # This ensures schema consistency when concatenating DataFrames.
-            df_raw_single["Amount"] = pd.Series(dtype="float64", index=df_raw_single.index) # Use renamed variable
+            df_raw_single["Amount"] = pd.Series(
+                dtype="float64", index=df_raw_single.index
+            )  # Use renamed variable
 
-        if "AccountLast4" in df_raw_single.columns: # Use renamed variable
+        if "AccountLast4" in df_raw_single.columns:  # Use renamed variable
             # Convert all values to string, ensuring that original NaN/None values are preserved.
             # .astype(str) would convert NaN to the string "nan".
             # A robust way is to apply a function that converts non-nulls to str.
             # Or, convert to str and then fix "nan" strings that were originally NaN.
-            is_na_before_acct_last4 = df_raw_single["AccountLast4"].isna() # Use renamed variable
-            df_raw_single["AccountLast4"] = df_raw_single["AccountLast4"].astype( # Use renamed variable
+            is_na_before_acct_last4 = df_raw_single[
+                "AccountLast4"
+            ].isna()  # Use renamed variable
+            df_raw_single["AccountLast4"] = df_raw_single[
+                "AccountLast4"
+            ].astype(  # Use renamed variable
                 str
             )  # Converts everything to string, NaN -> "nan"
             # Restore original NaNs to None so PyArrow treats them as nulls
-            df_raw_single.loc[is_na_before_acct_last4, "AccountLast4"] = None # Use renamed variable
+            df_raw_single.loc[is_na_before_acct_last4, "AccountLast4"] = (
+                None  # Use renamed variable
+            )
             log.debug(
                 f"Ensured 'AccountLast4' column is string type for {src.name}, preserving NaNs."
             )
@@ -1251,8 +1299,9 @@ def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
             log.warning(
                 f"'AccountLast4' column not found in {src.name}. Creating it as object type with Nones."
             )
-            df_raw_single["AccountLast4"] = pd.Series( # Use renamed variable
-                dtype="object", index=df_raw_single.index # Use renamed variable
+            df_raw_single["AccountLast4"] = pd.Series(  # Use renamed variable
+                dtype="object",
+                index=df_raw_single.index,  # Use renamed variable
             )  # Fill with None
 
         # If CSV has headers but no data rows, df will be empty.
@@ -1271,12 +1320,14 @@ def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
             "/csvs/jordyn/" in path_str_lower
         ):  # Check for /jordyn/ within the CSVs parent folder
             owner = "Jordyn"
-        df_raw_single["Owner"] = owner  # Assign to all rows (or creates column if df is empty) # Use renamed variable
+        df_raw_single["Owner"] = (
+            owner  # Assign to all rows (or creates column if df is empty) # Use renamed variable
+        )
 
         # Derive DataSourceName and DataSourceDate
         fname = src.name
         ds_name_val = "n/a"  # Default as per user's plan
-        ds_date_val: Optional[date] = None # Default to None, type Optional[date]
+        ds_date_val: Optional[date] = None  # Default to None, type Optional[date]
 
         # Regex for "Monarch Money" or "Rocket Money" followed by an 8-digit date
         # Using re.I for case-insensitivity as specified in user's diff snippet
@@ -1295,23 +1346,29 @@ def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
                 )
                 # ds_date_val remains None
 
-        df_raw_single["DataSourceName"] = ds_name_val # Use renamed variable
-        df_raw_single["DataSourceDate"] = ds_date_val # Assigns datetime.date objects or None # Use renamed variable
+        df_raw_single["DataSourceName"] = ds_name_val  # Use renamed variable
+        df_raw_single["DataSourceDate"] = (
+            ds_date_val  # Assigns datetime.date objects or None # Use renamed variable
+        )
 
         # Log derived info (conditionally accessing iloc[0] if df not empty for safety, though not strictly needed for these assignments)
-        owner_log = df_raw_single["Owner"].iloc[0] if not df_raw_single.empty else owner # Use renamed variable
-        ds_name_log = df_raw_single["DataSourceName"].iloc[0] if not df_raw_single.empty else ds_name_val # Use renamed variable
+        owner_log = (
+            df_raw_single["Owner"].iloc[0] if not df_raw_single.empty else owner
+        )  # Use renamed variable
+        ds_name_log = (
+            df_raw_single["DataSourceName"].iloc[0]
+            if not df_raw_single.empty
+            else ds_name_val
+        )  # Use renamed variable
         # Handle ds_date_val being None for logging
-        ds_date_log_val_for_display = ds_date_val if ds_date_val is not None else "None"
-        ds_date_log_str = (
-            ds_date_val.isoformat() if ds_date_val is not None else "None"
-        )
+        ds_date_log_val_for_display = ds_date_val if ds_date_val is not None else "None"  # noqa: F841
+        ds_date_log_str = ds_date_val.isoformat() if ds_date_val is not None else "None"
 
         log.info(
-            f"Successfully processed {src.name}: Rows={len(df_raw_single)}, Owner='{owner_log}', " # Use renamed variable
+            f"Successfully processed {src.name}: Rows={len(df_raw_single)}, Owner='{owner_log}', "  # Use renamed variable
             f"DataSourceName='{ds_name_log}', DataSourceDate='{ds_date_log_str}'"
         )
-        return df_raw_single # Use renamed variable
+        return df_raw_single  # Use renamed variable
 
     except FileNotFoundError:
         log.error(f"[process_single_raw_csv_file] Source file not found: {src}")
@@ -1329,6 +1386,7 @@ def process_single_raw_csv_file(src: Path) -> pd.DataFrame | None:
             exc_info=True,
         )
         return None
+
 
 if __name__ == "__main__":
     main()
