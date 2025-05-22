@@ -38,14 +38,10 @@ derived_columns:
     rule: regex_extract
     column: Account # Derived from CSV "Account Type" or "Name" - needs verification
     pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Standard pattern, adjust if needed
-transformations:
-  extras_ignore:
-    - Name
-    - Institution
-  date_formats:
-    Date: "%Y-%m-%d"
-    PostDate: "%Y-%m-%d"
-    StatementStart: "%Y-%m-%d" # Assuming this format too, verify if different
-    StatementEnd: "%Y-%m-%d"   # Assuming this format too, verify if different
-  amount_to_numeric: true
-  amount_sign_rule: "invert_sign"
+
+# Top-level transformation rules
+extras_ignore:
+  - Institution
+  - Name
+date_format: "%m/%d/%Y" # User-specified date format
+sign_rule: "credit_negative" # User-specified sign rule

@@ -35,12 +35,10 @@ derived_columns:
     rule: regex_extract
     column: Account # Derived from CSV "Card Type"
     pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Standard pattern
-transformations:
-  extras_ignore:
-    - Name
-    - Institution
-  date_formats:
-    Date: "%Y-%m-%d"
-    PostDate: "%Y-%m-%d"
-  amount_to_numeric: true
-  amount_sign_rule: "invert_sign"
+
+# Top-level transformation rules
+extras_ignore:
+  - Institution
+  - Name
+date_format: "%Y-%m-%d" # User-specified date format
+sign_rule: "invert_sign" # User-specified sign rule

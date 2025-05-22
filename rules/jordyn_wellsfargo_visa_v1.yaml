@@ -41,15 +41,10 @@ derived_columns:
     rule: regex_extract
     column: Account # Derived from "Account Description"
     pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Extracts last 4 digits
-transformations:
-  extras_ignore: # Explicitly ignore these CSV columns
-    - Name
-    - Institution
-  date_formats:
-    Date: "%m/%d/%Y" # Common US date format, adjust if logs show otherwise
-    PostDate: "%m/%d/%Y" # Common US date format
-    StatementStart: "%m/%d/%Y"
-    StatementEnd: "%m/%d/%Y"
-  amount_to_numeric: true
-  amount_sign_rule: "as_is" # For credit cards, charges are often positive, payments negative.
-                            # We will verify this. If charges are negative, use "invert_sign".
+
+# Top-level transformation rules
+extras_ignore:
+  - Institution
+  - Name
+date_format: "%m/%d/%Y"
+sign_rule: "flip_if_positive" # User-specified: charges positive -> negative
