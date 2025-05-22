@@ -98,7 +98,7 @@ def analyze_current_parquet(parquet_path):
 # Run the analysis
 if __name__ == "__main__":
     # Updated path to match project structure
-    parquet_path = "balance_final.parquet" # Path relative to project root
+    parquet_path = "workbook/balance_final.parquet" # Path relative to project root
     
     # Configure logging for pandas if it's chatty (optional)
     # logging.basicConfig(level=logging.INFO)

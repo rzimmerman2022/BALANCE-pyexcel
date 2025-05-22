@@ -42,6 +42,7 @@ from typing import (
 # --- Third-party Libraries ---
 import pandas as pd
 from pandas import BooleanDtype  # For explicit nullable boolean type
+from pandas.api.types import is_numeric_dtype
 import yaml  # For loading schema_registry.yml
 
 # --- Local Application Imports ---
@@ -1097,6 +1098,27 @@ def process_csv_files(
         ascending=[True, True, True],
         na_position="first",
     )
+
+    # Ensure all columns have explicit, non-null data types for Power BI compatibility
+    # This prevents PyArrow from writing columns as null type when all values are NA
+    # and makes the data compatible with Power BI's stricter requirements.
+    log.info("[PROCESS_SUMMARY] Applying defensive data type management for Power BI compatibility.")
+    for col in MASTER_SCHEMA_COLUMNS:
+        if col in final_df.columns: # Check if column exists in final_df
+            is_boolean_col = pd.api.types.is_bool_dtype(final_df[col])
+
+            if final_df[col].isna().all():
+                if not is_boolean_col: # If it's all NA AND NOT boolean, then set to empty string
+                    final_df[col] = ''
+                    log.debug(f"Set all-NA non-boolean column '{col}' to empty strings")
+                # else: If it IS boolean and all NA, do nothing. It remains BooleanDtype with pd.NA values,
+                # which is correctly handled by PyArrow and Power BI.
+            elif not is_numeric_dtype(final_df[col]) and not is_boolean_col: # If not numeric AND NOT boolean
+                # Cast to string to ensure clear typing for other non-numeric/non-boolean columns.
+                final_df[col] = final_df[col].astype(str)
+                log.debug(f"Cast non-numeric, non-boolean column '{col}' to string type")
+        else:
+            log.warning(f"[PROCESS_SUMMARY_WARN] Column '{col}' from MASTER_SCHEMA_COLUMNS not found in final_df during defensive typing. Skipping.")
 
     return final_df
 
