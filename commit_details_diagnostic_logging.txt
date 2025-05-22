@@ -1,0 +1,38 @@
+feat: Implement comprehensive diagnostic logging in CSV consolidator
+
+This commit introduces extensive diagnostic logging into the `csv_consolidator.py` module to enhance observability and facilitate evidence-based debugging of the ETL pipeline's schema matching and data transformation processes. The primary goal is to transform the CSV processing pipeline from a "black box" into a "glass box," providing clear visibility into its internal operations.
+
+Key Changes Implemented:
+
+1.  **Enhanced `apply_schema_transformations` Function:**
+    *   Added a `filename: str` parameter to `apply_schema_transformations` to allow for more precise, file-specific logging throughout the transformation pipeline. This enables better correlation of log entries related to a single input file.
+    *   Instrumented each major transformation step within this function (column mapping, extras handling, date parsing, amount standardization, derived columns, static value population) with detailed `log.debug()` messages.
+    *   Log messages include context such as the current file, the schema being applied, the specific transformation step, and relevant details (e.g., columns involved, rules applied, before/after states where applicable).
+    *   Added `[APPLY_SCHEMA_STATE]` logs at the beginning and end of the function to capture the DataFrame's column structure before and after all transformations.
+    *   Added `[APPLY_SCHEMA_INTEGRITY]` logs to report missing master columns or unexpected surviving columns after transformations.
+
+2.  **Enhanced `process_csv_files` Function:**
+    *   Added `log.info("[PROCESS_FILE_START]")` and `log.info("[PROCESS_FILE_END]")` to clearly delineate the processing block for each CSV file.
+    *   Added `log.debug("[SCHEMA_MATCH_INPUT]")` to log the input CSV filename and its headers before schema matching occurs.
+    *   Modified existing schema selection logs to use `log.info("[SCHEMA_RESULT]")` or `log.warning("[SCHEMA_RESULT]")` for fallback cases, providing clarity on which schema was chosen and why (including missing/extra columns).
+    *   Updated the call to `apply_schema_transformations` to pass the `filename`.
+    *   Converted many existing `log.info()` messages for intermediate processing steps (e.g., owner inference, TxnID generation, merchant cleaning, data type coercion) to `log.debug()` with appropriate categorized prefixes (e.g., `[PROCESS_FILE_DETAIL]`, `[PROCESS_FILE_TRANSFORM]`). This ensures that routine operational summaries remain at `INFO` level, while detailed diagnostics are available at `DEBUG` level.
+    *   Added `log.info("[PROCESS_SUMMARY]")` and `log.info("[PROCESS_SUMMARY_STATS]")` at the end of the function for overall processing statistics.
+
+3.  **Standardized Logging Format and Strategy:**
+    *   Log messages consistently use categorized prefixes (e.g., `[SCHEMA_RESULT]`, `[APPLY_SCHEMA_TRANSFORM]`) to facilitate easier filtering, searching, and analysis of log data.
+    *   Utilized `log.debug()` for granular, step-by-step diagnostic information, intended to be enabled during troubleshooting.
+    *   Utilized `log.info()` and `log.warning()` for key decision points, summaries, and notable events that are relevant during normal operation or indicate potential issues.
+
+Educational Context & Strategic Rationale:
+This instrumentation aligns with the "Observe Before You Intervene" and "evidence-based debugging" principles. By creating a detailed paper trail of the system's decision-making process and data state transitions, future debugging efforts (e.g., for schema detection failures or data integrity problems) can be more targeted and effective. The categorized logging also serves as a form of living documentation, making the system's behavior more understandable for developers.
+
+Files Modified:
+- `src/balance_pipeline/csv_consolidator.py`: Implemented all logging enhancements.
+- `_temp_diag_test.py`: Created as a temporary test script to verify logging (included in this commit as it's relevant to the changes).
+
+Testing:
+- The temporary script `_temp_diag_test.py` was used to verify the logging output by processing `fixtures/min_demo.csv`.
+- The test confirmed that `INFO` and `WARNING` level logs with the new categorized prefixes are generated as expected. (Note: Full visibility of `DEBUG` logs might require explicit logger level setting in test scripts for the `balance_pipeline` logger hierarchy).
+
+This commit significantly improves the maintainability and debuggability of the CSV consolidation process.
