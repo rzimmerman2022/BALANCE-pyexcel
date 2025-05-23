@@ -1,62 +1,33 @@
-id: "ryan_monarch_v1"
-description: "Ryan's Monarch Money export format (v1)"
+schema_name: ryan_monarch_v1
+id: ryan_monarch_v1
 
-# Exact headers from [APPLY_SCHEMA_STATE] log
+date_format: "%Y-%m-%d"
+sign_rule: as_is
+
 header_signature:
-  - "Date"
-  - "Merchant"
-  - "Category"
-  - "Account"
-  - "Original Statement"
-  - "Notes"
-  - "Amount"
-  - "Tags"
+  - Date
+  - Merchant
+  - Category
+  - Account
+  - Original Statement
+  - Notes
+  - Amount
+  - Tags
 
-# Map CSV columns to MASTER_SCHEMA_COLUMNS
 column_map:
-  "Date": "Date"
-  "Merchant": "Merchant" # Will be cleaned later, but map raw merchant here
-  "Category": "Category"
-  "Account": "Account"
-  "Original Statement": "OriginalDescription"
-  "Notes": "Note"
-  "Amount": "Amount"
-  # "Tags" is not directly in MASTER_SCHEMA_COLUMNS, will go to Extras or be ignored
+  Date:             Date
+  Merchant:         Merchant
+  Amount:           Amount
+  Category:         Category
+  Account:          Account
+  Notes:            Notes
+  Tags:             Tags
+  "Original Statement": OriginalStatement
 
-# Derive required fields
 derived_columns:
   Owner:
-    rule: "static_value"
-    value: "Ryan"
+    rule: static_value
+    value: Ryan
   DataSourceName:
-    rule: "static_value"
-    value: "MonarchMoney"
-  # AccountLast4 might be derivable if Account name contains it,
-  # but Monarch exports usually have full account names.
-  # For now, let's assume it's not directly derivable from Monarch's typical 'Account' field.
-  # If AccountLast4 is needed and not in source, it would be blank or from another rule.
-  # Following existing monarch_export, it tries to derive AccountLast4 from "Account"
-  AccountLast4:
-    rule: "regex_extract"
-    column: "Account" # Source column from CSV after mapping (if any)
-    pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Common pattern to find xxxx or (xxxx)
-
-# Date parsing
-date_format: "%m/%d/%Y" # Based on typical Monarch export format
-
-# Amount sign
-sign_rule: "as_is" # Monarch amounts are usually correctly signed
-
-# Handle unmapped columns
-# "Tags" is the main unmapped column from the header_signature.
-# Others like "Institution" are not in Monarch CSV but are in MASTER_SCHEMA_COLUMNS.
-extras_ignore:
-  - "Tags" # Explicitly ignore 'Tags' as per task example, if not needed.
-           # If 'Tags' should be preserved in 'Extras', remove this line.
-           # For now, following the example.
-
-# Optional: if Monarch provides Institution directly, map it.
-# If not, it will be blank unless derived or set by a more general rule.
-# The old 'monarch_export' mapped 'Institution' to 'Institution'.
-# The sample headers are: ['Date', 'Merchant', 'Category', 'Account', 'Original Statement', 'Notes', 'Amount', 'Tags']
-# 'Institution' is not present.
+    rule: static_value
+    value: MonarchMoney
