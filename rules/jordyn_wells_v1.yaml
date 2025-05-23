@@ -1,0 +1,45 @@
+schema_name: jordyn_wells_v1
+id: jordyn_wells_v1
+date_format: "%m/%d/%Y"
+header_signature:
+  - Name
+  - Institution
+  - Account Description
+  - Statement Period Description
+  - Statement Start Date
+  - Statement End Date
+  - Date
+  - Post Date
+  - Description
+  - Reference Number
+  - Amount
+  - Category
+column_map:
+  Date: Date
+  Post Date: PostDate
+  Description: OriginalDescription
+  Reference Number: ReferenceNumber
+  Amount: Amount
+  Account Description: Account
+  Institution: Institution
+  Category: Category
+derived_columns:
+  Owner:
+    rule: static_value
+    value: Jordyn
+  DataSourceName:
+    rule: static_value
+    value: WellsFargoVisa
+  AccountLast4:
+    rule: regex_extract
+    column: Account
+    pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
+  AccountType:
+    rule: static_value
+    value: Credit Card
+sign_rule: flip_if_positive
+extras_ignore:
+  - Name
+  - Statement Period Description
+  - Statement Start Date
+  - Statement End Date
