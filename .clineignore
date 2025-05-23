@@ -53,8 +53,6 @@ Desktop.ini
 !.vscode/launch.json
 
 # Temporary and lock files
-*.log
-*.lock
 ~$*.xls?*
 
 # Large commit summaries

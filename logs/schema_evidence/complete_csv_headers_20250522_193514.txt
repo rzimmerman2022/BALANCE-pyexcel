@@ -1,0 +1,162 @@
+﻿COMPLETE CSV HEADER ANALYSIS  –  05/22/2025 19:35:14
+============================================================
+
+FILE   : Jordyn\Jordyn - Chase Bank - Total Checking x6173 - All.csv
+SIZE   : 32.6 KB
+HEADERS: Name,Institution,Account Type,Statement Start Date,Statement End Date,Transaction Date,Post Date,Description,Reference Number,Amount,Category
+----------------------------------------
+
+FILE   : Jordyn\Jordyn - Discover - Discover It Card x1544 - CSV.csv
+SIZE   : 0.9 KB
+HEADERS: Name,Institution,Card Type,Statement Period,Date,Post Date,Description,Reference Number,Amount,Category
+----------------------------------------
+
+FILE   : Jordyn\Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV.csv
+SIZE   : 76.3 KB
+HEADERS: Name,Institution,Account Description,Statement Period Description,Statement Start Date,Statement End Date,Date,Post Date,Description,Reference Number,Amount,Category
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-01.csv
+SIZE   : 3.3 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-02.csv
+SIZE   : 3.1 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-03.csv
+SIZE   : 0.1 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-04.csv
+SIZE   : 3.7 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-05.csv
+SIZE   : 2.7 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-06.csv
+SIZE   : 3.2 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-07.csv
+SIZE   : 3.1 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-08.csv
+SIZE   : 0.1 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-09.csv
+SIZE   : 3.4 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-10.csv
+SIZE   : 0.2 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2024-11.csv
+SIZE   : 3.6 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2025-01.csv
+SIZE   : 2.5 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - 2025-02.csv
+SIZE   : 0.3 KB
+HEADERS: AccountLast4,TransDate,PostDate,ReferenceNumber,RawMerchant,Amount
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (1).csv
+SIZE   : 3.2 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (10).csv
+SIZE   : 0.6 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (2).csv
+SIZE   : 3 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (3).csv
+SIZE   : 3 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (4).csv
+SIZE   : 3.2 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (5).csv
+SIZE   : 3 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (6).csv
+SIZE   : 3.2 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (7).csv
+SIZE   : 3.3 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (8).csv
+SIZE   : 2.7 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document (9).csv
+SIZE   : 0.8 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\Test\BALANCE - Jordyn PDF - Document.csv
+SIZE   : 2.2 KB
+HEADERS: TransDate,PostDate,ReferenceNumber,RawMerchant,Amount,AccountLast4
+----------------------------------------
+
+FILE   : Jordyn\_Archive\Jordyn - Chase Bank - Total Checking x6173 - All.csv
+SIZE   : 32.6 KB
+HEADERS: Name,Institution,Account Type,Statement Start Date,Statement End Date,Transaction Date,Post Date,Description,Reference Number,Amount,Category
+----------------------------------------
+
+FILE   : Jordyn\_Archive\Jordyn - Discover - Discover It Card x1544 - CSV.csv
+SIZE   : 0.9 KB
+HEADERS: Name,Institution,Card Type,Statement Period,Date,Post Date,Description,Reference Number,Amount,Category
+----------------------------------------
+
+FILE   : Jordyn\_Archive\Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV.csv
+SIZE   : 76.3 KB
+HEADERS: Name,Institution,Account Description,Statement Period Description,Statement Start Date,Statement End Date,Date,Post Date,Description,Reference Number,Amount,Category
+----------------------------------------
+
+FILE   : Ryan\Ryan - Monarch Money - 20250412.csv
+SIZE   : 216.8 KB
+HEADERS: Date,Merchant,Category,Account,Original Statement,Notes,Amount,Tags
+----------------------------------------
+
+FILE   : Ryan\Ryan - Rocket Money - 20250412.csv
+SIZE   : 558.6 KB
+HEADERS: Date,Original Date,Account Type,Account Name,Account Number,Institution Name,Name,Custom Name,Amount,Description,Category,Note,Ignored From,Tax Deductible
+----------------------------------------

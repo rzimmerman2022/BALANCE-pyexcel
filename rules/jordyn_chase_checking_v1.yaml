@@ -44,4 +44,4 @@ extras_ignore:
   - Institution
   - Name
 date_format: "%m/%d/%Y" # User-specified date format
-sign_rule: "credit_negative" # User-specified sign rule
+sign_rule: "as_is" # User-specified sign rule

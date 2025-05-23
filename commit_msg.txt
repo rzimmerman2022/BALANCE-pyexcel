@@ -1,0 +1,8 @@
+chore: consolidate outstanding source updates
+
+* Updated pyproject.toml / poetry.lock after dependency refresh
+* Minor refactors across src/balance_pipeline/* and tests/*
+* Removed generated Parquet from version control (workbook/balance_final.parquet) and expanded .gitignore
+* Staged deletion of previously used commit_message.txt
+
+(No functional logic changes intended in this consolidation.)

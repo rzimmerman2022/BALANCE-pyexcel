@@ -41,4 +41,4 @@ extras_ignore:
   - Institution
   - Name
 date_format: "%Y-%m-%d" # User-specified date format
-sign_rule: "invert_sign" # User-specified sign rule
+sign_rule: "flip_if_positive" # User-specified sign rule

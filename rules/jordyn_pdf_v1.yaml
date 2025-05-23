@@ -1,0 +1,40 @@
+# ---------------------------------------------------------------------
+#  Schema: jordyn_pdf_v1          (PDF-scraper CSVs – “BALANCE - Jordyn”)
+# ---------------------------------------------------------------------
+id: jordyn_pdf_v1
+
+# ─── Header matching ──────────────────────────────────────────────────
+# Core five columns are present (order-agnostic in our router).  
+# `AccountLast4` sometimes appears first, last, or duplicated,  
+# so we treat it as optional.
+header_signature:
+  - TransDate
+  - PostDate
+  - ReferenceNumber
+  - RawMerchant
+  - Amount
+
+optional_headers:
+  - AccountLast4        # may appear 0, 1, or 2× in a few files
+
+# ─── Column mapping ───────────────────────────────────────────────────
+column_map:
+  TransDate:      Date
+  PostDate:       PostDate
+  RawMerchant:    Merchant
+  ReferenceNumber: ReferenceNumber
+  Amount:         Amount
+  AccountLast4:   AccountLast4      # ignored if missing / duplicated
+
+# ─── Derived columns (constant per file type) ─────────────────────────
+derived_columns:
+  Owner:
+    rule: static_value
+    value: Jordyn
+  DataSourceName:
+    rule: static_value
+    value: PDFStatement     # distinguishes scraped PDFs
+
+# ─── Parsing details ──────────────────────────────────────────────────
+date_format: "%m/%d/%Y"             # 01/31/2025  →  2025-01-31
+sign_rule:  flip_if_positive        # PDF totals list debits as  +

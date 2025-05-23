@@ -1,0 +1,23 @@
+Refactor: Standardize YAML schema structure for transformation rules
+
+Problem Diagnosis (Macro):
+The ETL pipeline's `csv_consolidator.py` module expects transformation rules (such as `extras_ignore`, `date_format`, `sign_rule`) to be defined at the top level of each schema's YAML definition file.
+An investigation revealed that three schemas specific to "Jordyn" (`jordyn_wellsfargo_visa_v1.yaml`, `jordyn_chase_checking_v1.yaml`, `jordyn_discover_card_v1.yaml`) had these rules nested under a `transformations:` block.
+The `schema_registry.py` module, which loads these YAMLs, was passing the raw, nested dictionary structure to the consolidator. Consequently, the consolidator was not finding these rules at the expected top-level path, leading to them being silently ignored for these three schemas. This resulted in incorrect data processing (e.g., extras not ignored, incorrect date parsing, incorrect amount signs).
+
+Solution (Micro Changes):
+This commit rectifies the structural inconsistency by modifying the three affected "Jordyn" YAML schema files. In each file:
+1. The `extras_ignore` list has been moved from `transformations.extras_ignore` to the top level.
+2. The `date_formats` dictionary (e.g., `transformations.date_formats.Date`) has been replaced with a single top-level `date_format` string, aligning with `csv_consolidator.py`'s expectation for a global date format per schema. Bank-specific date format strings are preserved.
+3. The `amount_sign_rule` key (e.g., `transformations.amount_sign_rule`) has been moved to the top level and renamed to `sign_rule` to match the key expected by `csv_consolidator.py`. Bank-specific sign rule values are preserved.
+4. The now-empty `transformations:` block has been removed from each of these three files.
+
+Impact & Verification:
+- These changes ensure that `csv_consolidator.py` can correctly locate and apply the intended transformation rules for the "Jordyn" schemas.
+- Test runs after these modifications confirmed that:
+    - `extras_ignore` rules are now applied (e.g., "Institution", "Name" columns are dropped as intended).
+    - The specified `date_format` is used for date parsing.
+    - The specified `sign_rule` is applied to amounts.
+- As a positive side effect observed during testing, the final consolidated DataFrame now consistently includes all 29 `MASTER_SCHEMA_COLUMNS` (including `Description` and `Source`), which were previously intermittently missing in some test outputs. This suggests improved stability in column handling, likely due to more consistent rule application leading to predictable intermediate DataFrames before the final reindexing step in `csv_consolidator.py`.
+
+This standardization improves the reliability and correctness of the ETL process for the affected data sources and makes the schema definition files more consistent across the project.

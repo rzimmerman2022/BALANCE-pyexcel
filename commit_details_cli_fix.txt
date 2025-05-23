@@ -1,0 +1,34 @@
+Fix: Correct CLI syntax error to unblock linters and tests
+
+This commit resolves a critical syntax issue in `src/balance_pipeline/cli.py`
+that was preventing linters (Ruff, MyPy) and test collection (Pytest)
+from running correctly.
+
+The changes in this commit also include other modifications present in the
+working directory at the time of the commit, as per the request to include all
+changed files.
+
+Detailed Changes to `cli.py`:
+- Removed a stray `dev_main()` function and its associated
+  `if __name__ == "__main__":` block from the end of the file.
+- Replaced this with a standard `if __name__ == "__main__": main()`
+  guard to ensure the script's entry point is correctly defined once.
+
+Reason for Change:
+The presence of this duplicate/stray footer code in `cli.py` was identified as the
+source of a syntax error (manifesting as Ruff E999, MyPy
+redeclaration errors, and Pytest import errors). Addressing this was
+a prerequisite for any further linting or testing of the codebase.
+
+Impact of Change:
+- The primary syntax error in `cli.py` is now resolved.
+- Ruff, MyPy, and Pytest can successfully analyze and run against the codebase.
+- The current gate status after this fix is as follows:
+    - Ruff Check: 2 errors remaining in `cli.py` (F401 unused import `typing.Literal`, F841 unused local variable `ds_date_log_val_for_display`).
+    - Ruff Format: 10 files identified as needing reformatting.
+    - MyPy (--strict): 8 errors reported across 4 files (primarily related to missing type parameters for generics like `Series` and `Pattern`, missing function annotations, and operator type issues).
+    - Pytest: Test collection is successful. Results: 42 failed, 41 passed, 9 errors. Notable errors include `ImportError: parent 'balance_pipeline' not in sys.modules` during `test_normalize.py` teardowns and `ImportError: Missing optional dependency 'pyarrow'`.
+
+This commit unblocks the CI/CD pipeline and local development workflows,
+allowing for iterative improvements based on the now-visible linting
+and test feedback.

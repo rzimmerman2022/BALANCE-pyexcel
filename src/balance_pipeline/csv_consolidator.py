@@ -375,23 +375,40 @@ def apply_schema_transformations(
         )
         log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount ToNumeric | Column: {amount_col_name}")
 
-        sign_rule = schema_rules.get("sign_rule")
-        if sign_rule: # Log only if a rule is actually applied
-            log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Column: {amount_col_name} | Rule: {sign_rule}")
+        sign_rule_from_schema = schema_rules.get("sign_rule")
 
-        if sign_rule == "flip_if_positive":
+        # --- BEGIN VALIDATION GUARD ---
+        ALLOWED_SIGN_RULES = {"flip_if_positive", "as_is", "flip_if_withdrawal"}
+        # Determine the effective sign rule. If not specified in schema, it defaults to "as_is".
+        # This effective rule is used for validation. The original sign_rule_from_schema (which can be None)
+        # is used for the actual sign application logic.
+        effective_sign_rule_for_validation = sign_rule_from_schema if sign_rule_from_schema is not None else "as_is"
+
+        if effective_sign_rule_for_validation not in ALLOWED_SIGN_RULES:
+            sorted_allowed_rules_str = ", ".join(sorted(list(ALLOWED_SIGN_RULES)))
+            # schema_id is available in this scope from apply_schema_transformations parameters
+            raise ValueError(
+                f"Unknown sign_rule '{effective_sign_rule_for_validation}' in schema '{schema_id}'. Allowed: {sorted_allowed_rules_str}"
+            )
+        # --- END VALIDATION GUARD ---
+
+        if sign_rule_from_schema: # Log only if a rule is actually applied
+            log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Column: {amount_col_name} | Rule: {sign_rule_from_schema}")
+
+        # Apply the rule using the original value from schema (sign_rule_from_schema)
+        if sign_rule_from_schema == "flip_if_positive":
             transformed_df[amount_col_name] = transformed_df[amount_col_name].apply(
                 lambda x: -abs(x) if pd.notna(x) and x > 0 else x
             )
         elif (
-            sign_rule == "flip_if_negative"
+            sign_rule_from_schema == "flip_if_negative"
         ):  # Not explicitly in task, but good to have
             transformed_df[amount_col_name] = transformed_df[amount_col_name].apply(
                 lambda x: abs(x) if pd.notna(x) and x < 0 else x
             )
-        elif sign_rule == "flip_always":
+        elif sign_rule_from_schema == "flip_always":
             transformed_df[amount_col_name] = -transformed_df[amount_col_name]
-        elif sign_rule == "flip_if_withdrawal":
+        elif sign_rule_from_schema == "flip_if_withdrawal":
             # Specific rule for chase_total_checking
             if "Category" in transformed_df.columns:
                 withdrawal_categories = ["withdrawal", "payment"]
@@ -411,11 +428,11 @@ def apply_schema_transformations(
                 log.warning(
                     f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Rule: flip_if_withdrawal | Detail: 'Category' column not found. Rule not applied."
                 )
-        elif sign_rule == "as_is":
+        elif sign_rule_from_schema == "as_is":
             pass # No change, already logged the rule
         elif (
-            isinstance(sign_rule, dict)
-            and sign_rule.get("type") == "flip_if_column_value_matches"
+            isinstance(sign_rule_from_schema, dict) # Check the original value from schema
+            and sign_rule_from_schema.get("type") == "flip_if_column_value_matches"
         ):
             rule_col_name = sign_rule.get("column")
             debit_values = [
