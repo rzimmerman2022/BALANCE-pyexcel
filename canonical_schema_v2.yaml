@@ -1,0 +1,256 @@
+# BALANCE-pyexcel Canonical Schema v2.0
+# Generated based on comprehensive data analysis of 5 source files
+# Last Updated: 2025-05-22
+
+# This schema represents the evidence-based canonical structure for financial transaction data
+# It replaces the previous 29-column schema with a leaner, more practical approach
+
+canonical_schema_v2:
+  version: "2.0"
+  description: "Evidence-based canonical schema derived from actual data analysis"
+  
+  # CORE FIELDS - Required for all transactions
+  # These fields appear in 100% of sources with >90% completeness
+  required_fields:
+    - name: Date
+      type: date
+      description: "Transaction date when the purchase/event occurred"
+      format: "YYYY-MM-DD"
+      sources: ["all"]
+      completeness: 100%
+      
+    - name: Amount
+      type: float
+      description: "Transaction amount (negative for debits, positive for credits)"
+      sources: ["all"]
+      completeness: 100%
+      
+    - name: Category
+      type: string
+      description: "Transaction category for budgeting/analysis"
+      sources: ["all"]
+      completeness: 100%
+      
+    # These fields are populated differently by source but represent core concepts
+    - name: Description
+      type: string
+      description: "Primary description of the transaction"
+      sources: ["all"]
+      completeness: 100%
+      notes: |
+        - Jordyn sources: Maps from 'OriginalDescription'
+        - Ryan sources: Maps from 'Merchant' (Monarch) or 'Name' (Rocket)
+        This field represents the most meaningful transaction identifier for each source
+      
+    - name: Account
+      type: string
+      description: "Account identifier or name"
+      sources: ["all"]
+      completeness: 100%
+      notes: |
+        - Jordyn sources: Account type (e.g., "Total Checking x6173")
+        - Ryan sources: Full account name from aggregator
+        
+  # COMMON FIELDS - Present in multiple sources with high completeness
+  # Include these as standard fields but allow NULL values
+  common_fields:
+    - name: PostDate
+      type: date
+      description: "Date transaction posted to account (banking sources only)"
+      sources: ["Jordyn-Chase", "Jordyn-Discover", "Jordyn-Wells"]
+      completeness: 99.8%
+      
+    - name: ReferenceNumber
+      type: string
+      description: "Bank reference number for transaction"
+      sources: ["Jordyn-Chase", "Jordyn-Discover", "Jordyn-Wells"]
+      completeness: 96%
+      
+    - name: Institution
+      type: string
+      description: "Financial institution name"
+      sources: ["Jordyn sources", "Ryan-Rocket (as InstitutionName)"]
+      completeness: "100% where provided"
+      notes: "Consolidate Institution and InstitutionName into this field"
+      
+  # SOURCE-SPECIFIC FIELDS - Valuable but limited to specific sources
+  # Include these to preserve important source-specific information
+  optional_fields:
+    # Banking-specific fields (Jordyn's sources)
+    - name: AccountLast4
+      type: string
+      description: "Last 4 digits of account number"
+      sources: ["Jordyn sources (derived)"]
+      derived_from: "Regex extraction from Account field"
+      
+    - name: StatementStart
+      type: date
+      description: "Statement period start date"
+      sources: ["Jordyn-Chase", "Jordyn-Wells"]
+      completeness: 99.8%
+      
+    - name: StatementEnd
+      type: date
+      description: "Statement period end date"
+      sources: ["Jordyn-Chase", "Jordyn-Wells"]
+      completeness: 99.8%
+      
+    - name: StatementPeriodDesc
+      type: string
+      description: "Human-readable statement period"
+      sources: ["Jordyn-Discover", "Jordyn-Wells"]
+      completeness: 100%
+      
+    # Aggregator-specific fields (Ryan's sources)
+    - name: OriginalDate
+      type: date
+      description: "Original transaction date from Rocket Money"
+      sources: ["Ryan-Rocket"]
+      completeness: 100%
+      
+    - name: AccountName
+      type: string
+      description: "Full account name from aggregator"
+      sources: ["Ryan-Rocket"]
+      completeness: 100%
+      
+    - name: AccountNumber
+      type: string
+      description: "Account number from aggregator"
+      sources: ["Ryan-Rocket"]
+      completeness: 100%
+      
+    - name: OriginalStatement
+      type: string
+      description: "Original statement text from Monarch"
+      sources: ["Ryan-Monarch"]
+      completeness: 100%
+      
+    - name: Merchant
+      type: string
+      description: "Cleaned merchant name"
+      sources: ["Ryan sources", "Derived for Jordyn sources"]
+      completeness: 100%
+      notes: "Populated directly for Ryan, derived via cleaning for Jordyn"
+      
+  # METADATA FIELDS - System-generated fields for tracking and deduplication
+  system_fields:
+    - name: TxnID
+      type: string
+      description: "Unique transaction ID (MD5 hash)"
+      generated: true
+      
+    - name: Owner
+      type: string
+      description: "Data owner (Jordyn/Ryan)"
+      derived_from: "File path"
+      
+    - name: DataSourceName
+      type: string
+      description: "Specific data source identifier"
+      values: ["ChaseChecking", "DiscoverCard", "WellsFargoVisa", "MonarchMoney", "RocketMoney"]
+      
+    - name: DataSourceDate
+      type: datetime
+      description: "When this data was extracted"
+      derived_from: "File modification time"
+      
+    - name: AccountType
+      type: string
+      description: "Type of account"
+      values: ["Checking", "Credit Card", "Savings", "Investment"]
+      sources: ["All - derived or provided"]
+      
+  # ENRICHMENT FIELDS - For user additions and workflow
+  enrichment_fields:
+    - name: SharedFlag
+      type: string
+      description: "Shared expense indicator"
+      values: ["X", "?", ""]
+      user_managed: true
+      
+    - name: SplitPercent
+      type: float
+      description: "Percentage of shared expense"
+      user_managed: true
+      
+    - name: Currency
+      type: string
+      description: "Transaction currency"
+      default: "USD"
+      
+    - name: Tags
+      type: string
+      description: "User-defined tags"
+      sources: ["Ryan sources"]
+      completeness: 0.1%
+      notes: "Rarely used, consider removing in v3"
+      
+  # DEPRECATED FIELDS - Remove from schema
+  deprecated_fields:
+    - Notes  # 0% populated
+    - CustomName  # 0% populated
+    - IgnoredFrom  # 0% populated
+    - TaxDeductible  # 0.1% populated
+    - Source  # Never populated
+    - Note  # Duplicate of Notes
+    
+  # FIELD MAPPING RULES
+  mapping_guidelines:
+    description_field:
+      explanation: "The Description field is populated differently by source"
+      rules:
+        - source: "Jordyn-*"
+          map_from: "OriginalDescription"
+          
+        - source: "Ryan-Monarch"
+          map_from: "Merchant"
+          
+        - source: "Ryan-Rocket"
+          map_from: "Name"
+          
+    institution_field:
+      explanation: "Consolidate institution information"
+      rules:
+        - source: "Jordyn-*"
+          map_from: "Institution"
+          
+        - source: "Ryan-Rocket"
+          map_from: "InstitutionName"
+          
+        - source: "Ryan-Monarch"
+          derive_from: "Account parsing or default"
+          
+  # SCHEMA STATISTICS
+  statistics:
+    total_fields: 24  # Down from 29
+    required_fields: 5  # Core fields only
+    common_fields: 3   # High-value shared fields
+    optional_fields: 10  # Source-specific fields
+    system_fields: 5   # Metadata
+    enrichment_fields: 4  # User-managed
+    removed_fields: 6  # Deprecated
+    
+  # IMPLEMENTATION NOTES
+  implementation:
+    backwards_compatibility: |
+      The following fields from v1 are renamed or consolidated:
+      - OriginalDescription → Description (for Jordyn sources)
+      - InstitutionName → Institution (for Ryan sources)
+      - Notes/Note → Removed (use Tags if needed)
+      
+    extras_handling: |
+      Any columns not mapped should still be preserved in an 'Extras' JSON field
+      This provides safety during transition and captures unexpected data
+      
+    validation_rules:
+      - Required fields must be non-null
+      - Amount must be numeric
+      - Dates must be valid date format
+      - TxnID must be unique within the dataset
+      
+    power_bi_considerations: |
+      - All text fields should be cast to string type
+      - Empty numeric fields should be NULL, not empty string
+      - Date fields should use consistent format
+      - Boolean fields should use consistent TRUE/FALSE values

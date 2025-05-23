@@ -1,0 +1,30 @@
+canonical_schema_recommendations:
+  derived_columns:
+  - Notes
+  - CustomName
+  metadata:
+    generated: '2025-05-22T20:43:51.111346'
+    sources_analyzed: 5
+    total_records: 5187
+  optional_columns:
+  - StatementStart
+  - StatementEnd
+  - StatementPeriodDesc
+  - Merchant
+  - OriginalStatement
+  - OriginalDate
+  - AccountType
+  - AccountName
+  - AccountNumber
+  - InstitutionName
+  - Description
+  required_columns:
+  - Name
+  - Institution
+  - Account
+  - Date
+  - PostDate
+  - OriginalDescription
+  - ReferenceNumber
+  - Amount
+  - Category

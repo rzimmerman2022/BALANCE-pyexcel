@@ -1,7 +1,0 @@
-Refactor: Improve project structure and Git configuration
-
-- Moved the main Excel workbook 'BALANCE-pyexcel.xlsm' into a dedicated 'workbook/' subdirectory. This keeps the repository root cleaner and separates the workbook from configuration and source code files.
-
-- Added a '.gitattributes' file to explicitly mark '*.xlsm' files as binary. This helps Git handle the Excel file more efficiently, preventing attempts at text-based diffs which are not meaningful for binary formats and can slow down operations.
-
-- Added an empty '__init__.py' file to the 'tests/' directory. This ensures the directory is consistently treated as a Python package by various tools, aiding test discovery and import mechanisms, especially in different environments or with older tool versions.

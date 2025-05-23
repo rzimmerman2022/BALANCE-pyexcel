@@ -1,0 +1,26 @@
+canonical_name,sources_count,sources,total_records,non_null_count,completeness_pct,primary_type,in_current_master
+Name,3,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV",550,550,100.0,string,False
+Institution,3,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV",550,550,100.0,string,True
+Account,4,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV, Ryan - Monarch Money - 20250412",2248,2248,100.0,string,True
+StatementStart,2,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV",545,544,99.82,date,True
+StatementEnd,2,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV",545,544,99.82,date,True
+Date,5,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV, Ryan - Monarch Money - 20250412, Ryan - Rocket Money - 20250412",5187,5186,99.98,date,True
+PostDate,3,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV",550,549,99.82,date,True
+OriginalDescription,3,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV",550,549,99.82,string,True
+ReferenceNumber,3,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV",550,528,96.0,string,True
+Amount,5,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV, Ryan - Monarch Money - 20250412, Ryan - Rocket Money - 20250412",5187,5185,99.96,float,True
+Category,5,"Jordyn - Chase Bank - Total Checking x6173 - All, Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV, Ryan - Monarch Money - 20250412, Ryan - Rocket Money - 20250412",5187,5185,99.96,string,True
+StatementPeriodDesc,2,"Jordyn - Discover - Discover It Card x1544 - CSV, Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV",361,361,100.0,string,True
+Merchant,2,"Ryan - Monarch Money - 20250412, Ryan - Rocket Money - 20250412",4637,4637,100.0,string,True
+OriginalStatement,1,Ryan - Monarch Money - 20250412,1698,1698,100.0,string,False
+Notes,2,"Ryan - Monarch Money - 20250412, Ryan - Rocket Money - 20250412",4637,0,0.0,unknown,True
+Tags,1,Ryan - Monarch Money - 20250412,1698,1,0.06,string,True
+OriginalDate,1,Ryan - Rocket Money - 20250412,2939,2939,100.0,date,True
+AccountType,1,Ryan - Rocket Money - 20250412,2939,2939,100.0,string,True
+AccountName,1,Ryan - Rocket Money - 20250412,2939,2939,100.0,string,False
+AccountNumber,1,Ryan - Rocket Money - 20250412,2939,2939,100.0,integer,False
+InstitutionName,1,Ryan - Rocket Money - 20250412,2939,2939,100.0,string,False
+CustomName,1,Ryan - Rocket Money - 20250412,2939,0,0.0,unknown,True
+Description,1,Ryan - Rocket Money - 20250412,2939,2939,100.0,string,True
+IgnoredFrom,1,Ryan - Rocket Money - 20250412,2939,1,0.03,string,True
+TaxDeductible,1,Ryan - Rocket Money - 20250412,2939,3,0.1,string,True
