@@ -33,7 +33,8 @@ from balance_pipeline.errors import (
 
 # Local application imports
 from .utils import _clean_desc_single, clean_desc_vectorized  # Updated import
-from .config import MERCHANT_LOOKUP_PATH  # Import merchant lookup file path
+from . import config  # Import config module
+from pathlib import Path # Ensure Path is imported
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP & CONSTANTS
@@ -43,28 +44,67 @@ from .config import MERCHANT_LOOKUP_PATH  # Import merchant lookup file path
 # Get a logger specific to this module for targeted logging.
 log = logging.getLogger(__name__)
 
+# --- Merchant Lookup Path (configurable for testing) ---
+MERCHANT_LOOKUP_PATH: Path = config.MERCHANT_LOOKUP_PATH
+
 # --- Merchant Lookup Cache ---
-_merchant_lookup_data: Optional[List[Tuple[re.Pattern, str]]] = None
+_merchant_lookup_data: Optional[List[Tuple[re.Pattern[str], str]]] = None
 
 
-def _load_merchant_lookup() -> List[Tuple[re.Pattern, str]]:
+def reset_merchant_lookup_cache(new_path: Optional[Path] = None) -> None:
+    """
+    Resets the merchant lookup cache and optionally sets a new lookup file path.
+    This function is primarily intended for testing purposes to allow for
+    isolated test runs with different merchant rule sets.
+    """
+    global _merchant_lookup_data, MERCHANT_LOOKUP_PATH
+    _merchant_lookup_data = None  # Clear the cache
+
+    if new_path is not None and isinstance(new_path, Path):
+        MERCHANT_LOOKUP_PATH = new_path
+        log.info(f"Merchant lookup path set to: {MERCHANT_LOOKUP_PATH}")
+    elif new_path is not None: # If new_path is provided but not a Path object
+        log.warning(f"Invalid new_path provided to reset_merchant_lookup_cache: {new_path}. Path not changed.")
+
+    # Attempt to reload the rules with the current (possibly new) path
+    try:
+        _load_merchant_lookup()
+    except (ValueError, FatalSchemaError) as ve: # More specific catch for re-raising
+        log.error(
+            f"Error ({type(ve).__name__}) in merchant lookup file at {MERCHANT_LOOKUP_PATH} during cache reset: {ve}"
+        )
+        _merchant_lookup_data = [] # Ensure fallback for other parts of the system if test doesn't halt
+        raise # Re-raise ValueError or FatalSchemaError to allow tests to catch it
+    except RecoverableFileError:
+        log.warning(
+            f"Merchant lookup file not found at {MERCHANT_LOOKUP_PATH} during cache reset. Cache remains empty."
+        )
+        _merchant_lookup_data = [] # Ensure fallback to empty list
+    except Exception as e: # Catch other, truly unexpected exceptions
+        log.error(f"Unexpected generic error during merchant lookup cache reset: {e}", exc_info=True)
+        _merchant_lookup_data = [] # Ensure fallback to empty list
+
+
+def _load_merchant_lookup() -> List[Tuple[re.Pattern[str], str]]:
     """
     Loads merchant cleaning rules from a CSV file.
     Validates regex patterns at load time.
     Caches the loaded rules.
     """
-    global _merchant_lookup_data
+    global _merchant_lookup_data, MERCHANT_LOOKUP_PATH # Ensure MERCHANT_LOOKUP_PATH is global here
     if _merchant_lookup_data is not None:
         return _merchant_lookup_data
 
     loaded_rules = []
     try:
-        with open(MERCHANT_LOOKUP_PATH, mode="r", encoding="utf-8") as f:
+        # Ensure MERCHANT_LOOKUP_PATH is a Path object for `open`
+        current_lookup_path = Path(MERCHANT_LOOKUP_PATH)
+        with open(current_lookup_path, mode="r", encoding="utf-8") as f:
             reader = csv.reader(f)
             header = next(reader)  # Skip header row
             if header != ["pattern", "canonical"]:
                 raise FatalSchemaError(
-                    f"Invalid header in merchant lookup file: {MERCHANT_LOOKUP_PATH}. Expected ['pattern', 'canonical'], got {header}"
+                    f"Invalid header in merchant lookup file: {current_lookup_path}. Expected ['pattern', 'canonical'], got {header}"
                 )
 
             for i, row in enumerate(
@@ -72,7 +112,7 @@ def _load_merchant_lookup() -> List[Tuple[re.Pattern, str]]:
             ):  # start=2 for 1-based indexing + header
                 if not row or len(row) != 2:
                     log.warning(
-                        f"Skipping malformed row {i} in {MERCHANT_LOOKUP_PATH}: {row}"
+                        f"Skipping malformed row {i} in {current_lookup_path}: {row}"
                     )
                     continue
                 pattern_str, canonical_name = row
@@ -81,41 +121,56 @@ def _load_merchant_lookup() -> List[Tuple[re.Pattern, str]]:
                     loaded_rules.append((compiled_regex, canonical_name))
                 except re.error as e:
                     err_msg = (
-                        f"Invalid regex pattern found in {MERCHANT_LOOKUP_PATH} at row {i}: "
+                        f"Invalid regex pattern found in {current_lookup_path} at row {i}: "
                         f"'{pattern_str}'. Error: {e}"
                     )
                     log.error(err_msg)
-                    raise ValueError(err_msg) from e
+                    raise ValueError(err_msg) from e # This ValueError will be caught by the initial load block
         _merchant_lookup_data = loaded_rules
         log.info(
-            f"Successfully loaded and compiled {len(_merchant_lookup_data)} merchant lookup rules from {MERCHANT_LOOKUP_PATH}."
+            f"Successfully loaded and compiled {len(_merchant_lookup_data)} merchant lookup rules from {current_lookup_path}."
         )
-    except FileNotFoundError as e:
-        raise RecoverableFileError(
-            f"Merchant lookup file not found: {MERCHANT_LOOKUP_PATH}"
-        ) from e
-    except ValueError:  # Specifically catch ValueErrors raised by header/regex checks
-        raise  # Re-raise these critical ValueErrors to be caught by the module-level try-except
-    except Exception as e:
-        raise RecoverableFileError(
-            f"Failed to load merchant lookup file {MERCHANT_LOOKUP_PATH}: {e}"
-        ) from e
-        # Optionally, re-raise as RuntimeError if any other exception is considered critical
-        # raise RuntimeError(f"Critical unexpected error loading merchant lookup from {MERCHANT_LOOKUP_PATH}: {e}") from e
+    except FileNotFoundError: # Specific exception for file not found
+        log.error(
+            f"Merchant lookup file not found: {current_lookup_path}. Merchant cleaning will use fallback logic."
+        )
+        _merchant_lookup_data = [] # Set to empty list to allow fallback
+    except FatalSchemaError as e: # Catch specific schema error for header
+        log.critical(f"Fatal schema error in merchant lookup file: {e}")
+        _merchant_lookup_data = [] # Fallback on critical error
+        raise # Re-raise to be caught by initial load block if desired, or handled by caller
+    except ValueError as e:  # Catch ValueErrors from regex compilation
+        log.critical(f"Invalid data in merchant lookup file: {e}")
+        _merchant_lookup_data = [] # Fallback on critical error
+        raise # Re-raise to be caught by initial load block
+    except Exception as e: # Catch any other unexpected errors during file processing
+        log.error(
+            f"Unexpected error loading merchant lookup file {current_lookup_path}: {e}", exc_info=True
+        )
+        _merchant_lookup_data = [] # Fallback on unexpected error
+        # Do not re-raise generic Exception here, allow fallback
 
     return _merchant_lookup_data
 
 
-# Attempt to load rules at import time to fail fast if there are errors
+# Attempt to load rules at import time.
+# If RecoverableFileError (e.g., file not found) or other non-critical errors occur,
+# _merchant_lookup_data will be set to [] by _load_merchant_lookup, allowing fallback.
+# Critical errors like ValueError (bad regex/header) will be re-raised by _load_merchant_lookup
+# and then caught here to stop the application.
 try:
     _load_merchant_lookup()
-except ValueError:
-    # ValueError is raised by _load_merchant_lookup for bad regex or header.
-    # This ensures the application fails at startup if the rules are invalid.
+except ValueError: # Catches re-raised ValueError for bad regex or FatalSchemaError for bad header
     log.critical(
-        "Failed to initialize merchant lookup due to invalid regex or CSV format. Application will exit."
+        "Failed to initialize merchant lookup due to invalid regex or CSV format. Application may not function as expected."
     )
-    raise  # Re-raise the ValueError to stop the application
+    # Depending on desired behavior, you might re-raise to stop the app,
+    # or allow it to continue with _merchant_lookup_data as [] (fallback mode).
+    # For now, let's allow fallback, as _load_merchant_lookup already sets _merchant_lookup_data = []
+    # raise # Uncomment to make these errors fatal at startup
+except Exception as e: # Catch any other unexpected error during initial load
+    log.critical(f"Unexpected critical error during initial merchant lookup load: {e}", exc_info=True)
+    _merchant_lookup_data = [] # Ensure fallback
 
 
 def clean_merchant(description: str) -> str:

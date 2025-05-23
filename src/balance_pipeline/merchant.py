@@ -17,7 +17,7 @@ import re
 import csv
 import logging
 from functools import lru_cache
-from typing import List, Tuple, Pattern as TypingPattern # Added List, Tuple, Pattern
+from typing import List, Tuple, Pattern as TypingPattern  # Added List, Tuple, Pattern
 
 # Import config for path settings
 from . import config
@@ -30,7 +30,7 @@ from .utils import _clean_desc_single
 log = logging.getLogger(__name__)
 
 # --- Load Lookup Table ---
-_LOOKUP: List[Tuple[TypingPattern[str], str]] = [] # Updated type hint
+_LOOKUP: List[Tuple[TypingPattern[str], str]] = []  # Updated type hint
 # Use the path defined in config.py
 _LOOKUP_PATH = config.MERCHANT_LOOKUP_PATH
 

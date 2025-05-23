@@ -13,7 +13,7 @@ import re
 import sys
 from pathlib import Path
 import logging
-from typing import Optional # Added Optional
+from typing import Optional  # Added Optional
 
 # Local application imports
 from . import config
@@ -40,7 +40,9 @@ __all__ = ["add_merchant_rule", "MERCHANT_RULES_FILENAME", "RULES_DIR"]
 #     return project_root / RULES_DIR / MERCHANT_RULES_FILENAME
 
 
-def add_merchant_rule(pattern: str, canonical_name: str, rules_file: Optional[Path] = None) -> None: # Added Optional and -> None
+def add_merchant_rule(
+    pattern: str, canonical_name: str, rules_file: Optional[Path] = None
+) -> None:  # Added Optional and -> None
     """
     Adds a new merchant rule to the merchant_lookup.csv file.
 
@@ -92,7 +94,7 @@ def add_merchant_rule(pattern: str, canonical_name: str, rules_file: Optional[Pa
         sys.exit(1)
 
 
-def main_merchant() -> None: # Added -> None
+def main_merchant() -> None:  # Added -> None
     """
     Main entry point for 'balance merchant' sub-commands.
     """

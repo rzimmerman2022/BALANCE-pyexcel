@@ -16,9 +16,10 @@ Author: Ryan Zimmerman / AI Assistant
 # ==============================================================================
 # 0. IMPORTS
 # ==============================================================================
+from __future__ import annotations  # For using type hints before full definition
 import pandas as pd
 import logging
-from typing import Any # Added Any
+from typing import TYPE_CHECKING, Any  # Added TYPE_CHECKING
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP
@@ -26,6 +27,11 @@ from typing import Any # Added Any
 
 # --- Setup Logger ---
 log = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    Series = pd.Series[Any]  # for static typing only
+else:
+    Series = pd.Series  # runtime-safe alias
 
 # --- Define constants for column names used in Queue_Review ---
 # These should match the exact headers you created in the Excel sheet
@@ -129,12 +135,12 @@ def sync_review_decisions(
         # First, handle original None or NaN values directly
         if pd.isna(val):
             return None
-        
-        s_val = str(val).strip() # Convert to string and strip whitespace
-        
-        if not s_val: # Check if string is empty after stripping
+
+        s_val = str(val).strip()  # Convert to string and strip whitespace
+
+        if not s_val:  # Check if string is empty after stripping
             return None
-            
+
         s_val_upper = s_val.upper()
         if s_val_upper in ["Y", "N", "S"]:
             return s_val_upper
@@ -151,29 +157,31 @@ def sync_review_decisions(
 
     # 3. Handle split percentages
     # Only relevant when SharedFlag is 'S', should be between 0 and 100
-    def validate_split_percent(row: pd.Series[Any]) -> float | None: # row is a Series[Any]
+    def validate_split_percent(row: Series) -> float | None:  # row is a Series
         if row["SharedFlag_update"] != "S":
             return None
 
         val_from_queue = row[QUEUE_SPLIT_COL]
 
-        if pd.isna(val_from_queue): # Handles if original cell was empty or unparseable by pd.read_excel's dtype=str
+        if pd.isna(
+            val_from_queue
+        ):  # Handles if original cell was empty or unparseable by pd.read_excel's dtype=str
             log.warning(
                 f"Missing split percentage for split decision on TxnID: {row[QUEUE_TXNID_COL]}. Using 50%."
             )
             return 50.0
 
-        numeric_val = pd.to_numeric(val_from_queue, errors='coerce')
+        numeric_val = pd.to_numeric(val_from_queue, errors="coerce")
 
-        if pd.isna(numeric_val): # pd.to_numeric failed to parse
+        if pd.isna(numeric_val):  # pd.to_numeric failed to parse
             log.warning(
                 f"Invalid split percentage format (could not convert to number) for TxnID: {row[QUEUE_TXNID_COL]}: '{val_from_queue}'. Using 50%."
             )
             return 50.0
-        
+
         # At this point, numeric_val is a float (or an int that can be safely converted to float)
-        val = float(numeric_val) 
-        
+        val = float(numeric_val)
+
         # Clamp to range 0-100
         if val < 0:
             log.warning(

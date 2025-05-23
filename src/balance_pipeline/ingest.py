@@ -70,7 +70,9 @@ _SCHEMA_REGISTRY_PATH = config.SCHEMA_REGISTRY_PATH  # Use path from config
 _SCHEMAS: List[Dict[str, Any]] = []  # Initialize as empty list # Updated type hint
 
 try:
-    _SCHEMAS = load_registry(_SCHEMA_REGISTRY_PATH) # load_registry now returns List[Dict[str, Any]]
+    _SCHEMAS = load_registry(
+        _SCHEMA_REGISTRY_PATH
+    )  # load_registry now returns List[Dict[str, Any]]
     logging.info(
         f"Successfully loaded {_SCHEMA_REGISTRY_PATH} containing {len(_SCHEMAS)} schema(s)."
     )
@@ -96,7 +98,9 @@ except Exception as e:
 # ------------------------------------------------------------------------------
 # Function: _find_schema
 # ------------------------------------------------------------------------------
-def _find_schema(csv_path: Path, df_head: pd.DataFrame) -> Dict[str, Any] | None: # Updated type hint
+def _find_schema(
+    csv_path: Path, df_head: pd.DataFrame
+) -> Dict[str, Any] | None:  # Updated type hint
     """
     Finds the appropriate schema from the loaded registry (_SCHEMAS) that matches
     the given CSV file based on filename patterns and required header columns.
@@ -117,7 +121,9 @@ def _find_schema(csv_path: Path, df_head: pd.DataFrame) -> Dict[str, Any] | None
         )
 
     # Pre-process headers from the CSV preview for reliable matching.
-    df_head.columns = pd.Index([str(col).strip() for col in df_head.columns]) # Use pd.Index
+    df_head.columns = pd.Index(
+        [str(col).strip() for col in df_head.columns]
+    )  # Use pd.Index
     actual_headers = set(df_head.columns)  # Use a set for efficient checking
 
     # Iterate through each defined schema in the registry.
@@ -250,7 +256,9 @@ def _apply_sign_rule(df: pd.DataFrame, rule: str | None) -> pd.DataFrame:
 # ------------------------------------------------------------------------------
 # Function: _derive_columns
 # ------------------------------------------------------------------------------
-def _derive_columns(df: pd.DataFrame, derived_cfg: Dict[str, Any] | None) -> pd.DataFrame: # Updated type hint
+def _derive_columns(
+    df: pd.DataFrame, derived_cfg: Dict[str, Any] | None
+) -> pd.DataFrame:  # Updated type hint
     """
     Derives new columns based on rules defined in the schema's 'derived_columns' section.
     Supports 'static_value' and 'regex_extract' rule types.
@@ -410,10 +418,10 @@ def _derive_columns(df: pd.DataFrame, derived_cfg: Dict[str, Any] | None) -> pd.
 # ------------------------------------------------------------------------------
 def load_folder(
     folder: Path,
-    *_,
+    *_: Any,
     exclude_patterns: list[str] | None = None,
     only_patterns: list[str] | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> pd.DataFrame:
     """
     Loads, processes, and combines all valid CSV transaction files found
@@ -545,7 +553,9 @@ def load_folder(
             # Consider adding parameters like encoding, delimiter if pandas struggles.
             df = pd.read_csv(csv_path, low_memory=False)
             # Clean header whitespace immediately after reading.
-            df.columns = pd.Index([str(col).strip() for col in df.columns]) # Use pd.Index
+            df.columns = pd.Index(
+                [str(col).strip() for col in df.columns]
+            )  # Use pd.Index
             logging.info(f"Read {len(df)} rows using schema '{schema_id}'.")
 
             # --- 3. Apply Schema Rules: Mapping, Derivation, Types, Sign ---

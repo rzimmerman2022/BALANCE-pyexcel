@@ -11,13 +11,20 @@ Last Modified: 2025-05-04
 Author: AI Assistant (Cline)
 """
 
+from __future__ import annotations  # For using type hints before full definition
 import pandas as pd
 import re
 import unicodedata
 import logging
+from typing import TYPE_CHECKING, Any  # Added TYPE_CHECKING and Any
 from balance_pipeline.errors import DataConsistencyError
 
 log = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    Series = pd.Series[Any]  # for static typing only
+else:
+    Series = pd.Series  # runtime-safe alias
 
 
 # ------------------------------------------------------------------------------
@@ -68,7 +75,9 @@ def _clean_desc_single(desc: str | None) -> str:
 # ------------------------------------------------------------------------------
 # Function: clean_desc_vectorized (New, for pandas Series)
 # ------------------------------------------------------------------------------
-def clean_desc_vectorized(desc_series: pd.Series) -> pd.Series: # Changed pd.Series[str] to pd.Series
+def clean_desc_vectorized(
+    desc_series: Series,
+) -> Series:  # Changed pd.Series to Series alias
     """
     Cleans a pandas Series of description strings using vectorized operations.
     """

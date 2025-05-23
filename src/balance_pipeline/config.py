@@ -41,10 +41,10 @@ logging.info(".env file loaded if present.")
 
 def get_resource_path(relative_path: str | Path) -> Path:
     """Get absolute path to resource, works for dev and for PyInstaller"""
-    if hasattr(sys, '_MEIPASS'):
+    if hasattr(sys, "_MEIPASS"):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         # The type of sys._MEIPASS is str, so cast it for Path
-        base_path = Path(getattr(sys, '_MEIPASS'))
+        base_path = Path(getattr(sys, "_MEIPASS"))
         logging.debug(f"Running frozen (PyInstaller), base path: {base_path}")
     else:
         # Not frozen, running in normal Python environment
