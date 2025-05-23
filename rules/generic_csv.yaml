@@ -1,0 +1,35 @@
+id: "generic_csv"
+description: "Generic CSV fallback schema"
+
+# A minimal signature; actual matching for generic is more flexible
+# This signature helps it get picked up by the loader, but true generic matching
+# might not strictly enforce this if it's a true fallback.
+# For now, let's use the fields it previously considered 'required'.
+header_signature:
+  - "Date"
+  - "Amount"
+  - "Merchant" # Or "Description" - generic matching is tricky with a fixed signature
+
+column_map:
+  "Date": "Date"
+  "Amount": "Amount"
+  "Merchant": "Merchant"
+  "Description": "OriginalDescription" # Map 'Description' if found to OriginalDescription
+  # Allow other common master schema columns to be picked up if they exist by chance
+  "Category": "Category"
+  "Account": "Account"
+  "Notes": "Note"
+  "Tags": "Tags"
+  "Original Statement": "OriginalDescription" # If 'Original Statement' is found
+
+derived_columns:
+  Owner:
+    rule: "static_value"
+    value: "UnknownOwner"
+  DataSourceName:
+    rule: "static_value"
+    value: "GenericCSV"
+
+date_format: null # Allow pandas to infer date format for generic CSVs
+sign_rule: "as_is" # Assume amounts are correctly signed for generic
+extras_ignore: [] # Preserve all other columns in Extras by default for generic

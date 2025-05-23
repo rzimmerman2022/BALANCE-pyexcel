@@ -23,11 +23,11 @@ fastparquet = { version = "^2024.5", optional = true }
 camelot-py = "^0.11.0" # For PDF table extraction (removed 'cv' extra)
 pdfplumber = { version = "^0.11", extras = ["no-image"] } # Use no-image extra to avoid pdftopng
 duckdb = "^1.2.2"
-pyarrow = "^16.0.0" # Explicit dependency for Parquet engine
 opencv-python = "^4.11.0.86"
+pyarrow = "^15.0.0"
 
 [tool.poetry.extras] # Keep extras section if other optional dependencies exist or might be added
-# parquet = ["pyarrow"] # pyarrow is now a direct dependency
+parquet = ["pyarrow"] # Re-add pyarrow to extras
 
 [tool.poetry.group.dev.dependencies]
 # Define development-only dependencies under a SINGLE group header
@@ -39,10 +39,13 @@ ruff = "==0.4.*" # Pinning Ruff version
 mkdocs-material = "^9.5"
 mkdocstrings-python = "^1.9"
 pre-commit = "^3.7"
+mypy = "^1.10.0" # Added mypy
+pandas-stubs = "^2.0.0" # Added pandas type stubs
+types-PyYAML = "^6.0.0" # Added PyYAML type stubs
+types-openpyxl = "^3.1.0" # Added openpyxl type stubs
 
 [tool.poetry.scripts]
-balance-pyexcel = "balance_pipeline.cli:main"
-balance-pyexcel-dev = "balance_pipeline.cli:dev_main"
+balance-csv      = "balance_pipeline.cli.__main__:main"
 balance-merchant = "balance_pipeline.cli_merchant:main_merchant"
 
 [build-system]

@@ -2,13 +2,14 @@ import pandas as pd
 from balance_pipeline.ingest import load_folder
 from balance_pipeline.normalize import normalize_df
 import pathlib
-import pytest # Keep pytest import separate for clarity
+import pytest  # Keep pytest import separate for clarity
 
 # Define project root relative to this test file for robust pathing
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # Use a fixture file that's checked into the repo instead of a private file
 WF_FIXTURE = pathlib.Path(__file__).parent / "fixtures" / "wells_fargo_card_sample.csv"
+
 
 def test_txnid_unique_real_file(tmp_path):
     # copy fixture to temp inbox
@@ -21,6 +22,7 @@ def test_txnid_unique_real_file(tmp_path):
     df_norm = normalize_df(df)
     assert df_norm["TxnID"].is_unique
 
+
 @pytest.mark.parametrize(
     "d1,p1,d2,p2",
     [
@@ -30,7 +32,14 @@ def test_txnid_unique_real_file(tmp_path):
 )
 def test_txnid_differs_by_postdate(d1, p1, d2, p2):
     from balance_pipeline.normalize import _txn_id
-    row1 = {"Date": d1, "PostDate": p1, "Amount": 1, "Description": "X",
-            "Bank": "B", "Account": "A"}
+
+    row1 = {
+        "Date": d1,
+        "PostDate": p1,
+        "Amount": 1,
+        "Description": "X",
+        "Bank": "B",
+        "Account": "A",
+    }
     row2 = row1 | {"PostDate": p2}
     assert _txn_id(row1) != _txn_id(row2)

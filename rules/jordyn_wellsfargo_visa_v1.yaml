@@ -1,0 +1,50 @@
+id: jordyn_wellsfargo_visa_v1
+description: "Schema for Jordyn's Wells Fargo Visa credit card statements (CSV format)."
+version: 1
+header_signature:
+  - Name
+  - Institution
+  - Account Description
+  - Statement Period Description
+  - Statement Start Date
+  - Statement End Date
+  - Date
+  - Post Date
+  - Description
+  - Reference Number
+  - Amount
+  - Category
+column_map:
+  Date: Date
+  "Post Date": PostDate # Assuming 'Post Date' is the transaction posting date
+  Description: OriginalDescription
+  Amount: Amount
+  Category: Category # This will likely be bank's category, not user's
+  "Account Description": Account # May need further parsing for AccountLast4
+  "Reference Number": ReferenceNumber
+  "Statement Start Date": StatementStart
+  "Statement End Date": StatementEnd
+  "Statement Period Description": StatementPeriodDesc
+  # 'Name' and 'Institution' from CSV are not directly mapped yet,
+  # could be used for validation or more complex derivations if needed.
+derived_columns:
+  Owner:
+    rule: static_value
+    value: Jordyn
+  DataSourceName:
+    rule: static_value
+    value: WellsFargoVisa
+  AccountType: # Assuming this is a credit card statement
+    rule: static_value
+    value: Credit Card
+  AccountLast4:
+    rule: regex_extract
+    column: Account # Derived from "Account Description"
+    pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Extracts last 4 digits
+
+# Top-level transformation rules
+extras_ignore:
+  - Institution
+  - Name
+date_format: "%m/%d/%Y"
+sign_rule: "flip_if_positive" # User-specified: charges positive -> negative

@@ -1,0 +1,59 @@
+id: "ryan_rocket_v1"
+description: "Ryan's Rocket Money export format (v1)"
+
+header_signature:
+  - "Date"
+  - "Original Date"
+  - "Account Type"
+  - "Account Name"
+  - "Account Number"
+  - "Institution Name"
+  - "Name"
+  - "Custom Name"
+  - "Amount"
+  - "Description"
+  - "Category"
+  - "Note"
+  - "Ignored From"
+  - "Tax Deductible"
+
+column_map:
+  "Date": "Date"
+  "Original Date": "PostDate" # Rocket's "Original Date" seems like a good candidate for PostDate
+  "Account Name": "Account"
+  "Institution Name": "Institution"
+  "Description": "OriginalDescription" # Rocket's "Description" is often more detailed
+  "Name": "Merchant" # Rocket's "Name" field is usually the merchant
+  "Amount": "Amount"
+  "Category": "Category"
+  "Note": "Note"
+  # "Account Type" from CSV can map to AccountType in master
+  "Account Type": "AccountType"
+  # "Account Number" can be used to derive AccountLast4 if not directly available
+
+derived_columns:
+  Owner:
+    rule: "static_value"
+    value: "Ryan"
+  DataSourceName:
+    rule: "static_value"
+    value: "RocketMoney"
+  AccountLast4:
+    rule: "regex_extract"
+    column: "Account Number" # Use "Account Number" from CSV for this
+    pattern: "(\\d{4})$" # Extract last 4 digits
+
+date_format: "%m/%d/%y" # Rocket money often uses m/d/yy
+
+# Rocket money amounts are typically positive for expenses, negative for income/credits.
+# If expenses are positive, they need to be flipped.
+sign_rule: "flip_if_positive"
+
+extras_ignore:
+  - "Custom Name"
+  - "Ignored From"
+  - "Tax Deductible"
+  # "Account Number" is used for AccountLast4, so don't ignore it if it's not mapped elsewhere.
+  # If it's only used for derivation, it can be ignored from final output.
+  # For now, let's assume it's okay to ignore after derivation.
+  - "Account Number"

@@ -2,6 +2,7 @@
 Thin wrappers for exporting pipeline outputs.
 Currently: Parquet via DuckDB (works on Py 3.13 without PyArrow wheels).
 """
+
 from __future__ import annotations
 import duckdb
 import logging
@@ -9,6 +10,7 @@ import pathlib
 import pandas as pd
 
 log = logging.getLogger(__name__)
+
 
 def write_parquet_duckdb(df: pd.DataFrame, out_path: pathlib.Path) -> None:
     """

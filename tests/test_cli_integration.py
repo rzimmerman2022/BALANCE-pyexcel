@@ -2,31 +2,35 @@
 """
 Integration tests for the command-line interface
 """
+
 import os
 import subprocess
 import zipfile
 from pathlib import Path
 import pytest
 import pandas as pd
-from pandas.testing import assert_frame_equal # Added for F821
-import openpyxl # For creating more realistic Excel files
+from pandas.testing import assert_frame_equal  # Added for F821
+import openpyxl  # For creating more realistic Excel files
 
 # Import constants for column names if needed, or define them
 from balance_pipeline.sync import QUEUE_TXNID_COL, QUEUE_DECISION_COL, QUEUE_SPLIT_COL
-from balance_pipeline.normalize import FINAL_COLS # To check output columns
+from balance_pipeline.normalize import FINAL_COLS  # To check output columns
+
 
 @pytest.fixture
 def python_executable():
     """Returns the path to the python executable in the virtual environment or system."""
-    venv_python = Path(os.environ.get('VIRTUAL_ENV', '.')) / "Scripts" / "python.exe"
+    venv_python = Path(os.environ.get("VIRTUAL_ENV", ".")) / "Scripts" / "python.exe"
     if venv_python.exists():
         return str(venv_python)
-    return "python" # Fallback
+    return "python"  # Fallback
+
 
 @pytest.fixture
 def base_cli_command(python_executable):
     """Base command for running the CLI."""
     return [python_executable, "-m", "balance_pipeline.cli"]
+
 
 @pytest.fixture
 def fake_workbook(tmp_path, request):
@@ -41,12 +45,27 @@ def fake_workbook(tmp_path, request):
 
     if is_xlsm:
         # Create a simple ZIP file with a minimal structure for XLSM
-        with zipfile.ZipFile(workbook_path, 'w') as zf:
-            zf.writestr('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/></Types>')
-            zf.writestr('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')
-            zf.writestr('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>')
-            zf.writestr('xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>')
-            zf.writestr('xl/worksheets/sheet1.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData/></worksheet>')
+        with zipfile.ZipFile(workbook_path, "w") as zf:
+            zf.writestr(
+                "[Content_Types].xml",
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/></Types>',
+            )
+            zf.writestr(
+                "_rels/.rels",
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+            )
+            zf.writestr(
+                "xl/workbook.xml",
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>',
+            )
+            zf.writestr(
+                "xl/_rels/workbook.xml.rels",
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+            )
+            zf.writestr(
+                "xl/worksheets/sheet1.xml",
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData/></worksheet>',
+            )
             # Add VBA project part for XLSM if needed for more robust fake
             # zf.writestr('xl/vbaProject.bin', b'dummy vba content') # Requires actual binary content
     else:
@@ -61,7 +80,7 @@ def sample_csv_dir(tmp_path):
     """Create a sample CSV directory with a test CSV file."""
     csv_dir = tmp_path / "csv_inbox" / "user1"
     csv_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # CSV 1: Contains TX1, TX2
     csv_path1 = csv_dir / "data_source1.csv"
     # Using common headers that ingest.py might expect from schema_registry.yml
@@ -78,55 +97,82 @@ def sample_csv_dir(tmp_path):
 2024-01-03,Merchant C TX3,-30.00,Savings,Bank2
 """
     csv_path2.write_text(csv_content2)
-    
-    return csv_dir.parent # Return the root of "csv_inbox"
+
+    return csv_dir.parent  # Return the root of "csv_inbox"
+
 
 # Parametrize for both .xlsx and .xlsm if behavior should be similar
 @pytest.mark.parametrize("fake_workbook", ["xlsx", "xlsm"], indirect=True)
 def test_cli_dry_run(base_cli_command, sample_csv_dir, fake_workbook):
     """Test CLI with --dry-run option."""
-    cmd = base_cli_command + [str(sample_csv_dir), str(fake_workbook), "--dry-run", "--verbose"]
+    cmd = base_cli_command + [
+        str(sample_csv_dir),
+        str(fake_workbook),
+        "--dry-run",
+        "--verbose",
+    ]
     result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
-    
-    assert result.returncode == 0, f"Command failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-    
+
+    assert (
+        result.returncode == 0
+    ), f"Command failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+
     lock_file = fake_workbook.with_suffix(fake_workbook.suffix + ".lock")
-    assert not lock_file.exists(), "Lock file should not be created or should be cleaned up after dry run"
-    
+    assert (
+        not lock_file.exists()
+    ), "Lock file should not be created or should be cleaned up after dry run"
+
     dry_run_csv = fake_workbook.with_suffix(".dry-run.csv")
     assert dry_run_csv.exists(), "Dry run CSV should be created"
-    
+
     df = pd.read_csv(dry_run_csv)
     assert len(df) == 3, "Dry run CSV should contain 3 transactions from sample CSVs"
     assert "TxnID" in df.columns, "Processed data should have TxnID column"
-    assert all(col in df.columns for col in ["SharedFlag", "SplitPercent"]), "Dry run CSV must have classification columns"
+    assert all(
+        col in df.columns for col in ["SharedFlag", "SplitPercent"]
+    ), "Dry run CSV must have classification columns"
 
-@pytest.mark.parametrize("fake_workbook", ["xlsm"], indirect=True) # Test specifically for XLSM
-def test_cli_xlsm_processing_creates_temp_file(base_cli_command, sample_csv_dir, fake_workbook):
+
+@pytest.mark.parametrize(
+    "fake_workbook", ["xlsm"], indirect=True
+)  # Test specifically for XLSM
+def test_cli_xlsm_processing_creates_temp_file(
+    base_cli_command, sample_csv_dir, fake_workbook
+):
     """Test CLI processing of .xlsm files creates a .temp.xlsx file."""
     cmd = base_cli_command + [str(sample_csv_dir), str(fake_workbook), "--verbose"]
     result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
-    
-    assert result.returncode == 0, f"Command failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-    
+
+    assert (
+        result.returncode == 0
+    ), f"Command failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+
     lock_file = fake_workbook.with_suffix(fake_workbook.suffix + ".lock")
     assert not lock_file.exists(), "Lock file should be cleaned up after processing"
-    
+
     temp_xlsx = fake_workbook.with_suffix(".temp.xlsx")
     assert temp_xlsx.exists(), "Temp XLSX should be created for .xlsm files"
-    
+
     try:
         with pd.ExcelFile(temp_xlsx) as xls:
-            assert "Transactions" in xls.sheet_names, "Temp file should have Transactions sheet"
+            assert (
+                "Transactions" in xls.sheet_names
+            ), "Temp file should have Transactions sheet"
             df = pd.read_excel(xls, sheet_name="Transactions")
             assert len(df) == 3, "Transactions sheet should contain 3 txns"
             assert "TxnID" in df.columns
-            assert "Queue_Review" in xls.sheet_names, "Temp file should have Queue_Review sheet"
+            assert (
+                "Queue_Review" in xls.sheet_names
+            ), "Temp file should have Queue_Review sheet"
     except Exception as e:
-        pytest.fail(f"Failed to read temp XLSX file: {e}\nCLI STDOUT:\n{result.stdout}\nCLI STDERR:\n{result.stderr}")
+        pytest.fail(
+            f"Failed to read temp XLSX file: {e}\nCLI STDOUT:\n{result.stdout}\nCLI STDERR:\n{result.stderr}"
+        )
 
 
-def test_cli_sync_flow_with_parquet_and_queue(base_cli_command, sample_csv_dir, tmp_path, caplog):
+def test_cli_sync_flow_with_parquet_and_queue(
+    base_cli_command, sample_csv_dir, tmp_path, caplog
+):
     """Test the full sync flow: initial parquet, new CSVs, Queue_Review overrides."""
     workbook_path = tmp_path / "sync_test_book.xlsx"
     parquet_path = workbook_path.parent / "balance_final.parquet"
@@ -139,11 +185,21 @@ def test_cli_sync_flow_with_parquet_and_queue(base_cli_command, sample_csv_dir, 
     #    or construct a plausible initial Parquet.
     #    Simpler: create parquet with expected columns.
     initial_parquet_data = {
-        "TxnID": ["TX1_hash_placeholder"], # This hash needs to match what normalize_df would generate
-        "Owner": ["user1"], "Date": [pd.to_datetime("2024-01-01")], "Account": ["Checking"], "Bank": ["Bank1"],
-        "Description": ["Merchant A TX1"], "CleanDesc": ["Merchant A Tx1"], "CanonMerchant": ["Merchant A"],
-        "Category": [None], "Amount": [-10.00],
-        "SharedFlag": ["Y"], "SplitPercent": [100.0], "Source": ["data_source1.csv"]
+        "TxnID": [
+            "TX1_hash_placeholder"
+        ],  # This hash needs to match what normalize_df would generate
+        "Owner": ["user1"],
+        "Date": [pd.to_datetime("2024-01-01")],
+        "Account": ["Checking"],
+        "Bank": ["Bank1"],
+        "Description": ["Merchant A TX1"],
+        "CleanDesc": ["Merchant A Tx1"],
+        "CanonMerchant": ["Merchant A"],
+        "Category": [None],
+        "Amount": [-10.00],
+        "SharedFlag": ["Y"],
+        "SplitPercent": [100.0],
+        "Source": ["data_source1.csv"],
     }
     # Add any missing FINAL_COLS with default values
     for col in FINAL_COLS:
@@ -151,7 +207,6 @@ def test_cli_sync_flow_with_parquet_and_queue(base_cli_command, sample_csv_dir, 
             initial_parquet_data[col] = [None] * len(initial_parquet_data["TxnID"])
             if col == "SplitPercent":
                 initial_parquet_data[col] = [pd.NA] * len(initial_parquet_data["TxnID"])
-
 
     # To get the actual TxnID for "Merchant A TX1", we might need to call normalize_df
     # This is tricky for an integration test setup.
@@ -184,33 +239,48 @@ def test_cli_sync_flow_with_parquet_and_queue(base_cli_command, sample_csv_dir, 
 
     # Given the subprocess approach, let's run it once to get TxnIDs, then construct Queue_Review.
     # This is a bit of a hack for testing.
-    cmd_get_ids = base_cli_command + [str(sample_csv_dir), str(workbook_path), "--dry-run"]
-    result_get_ids = subprocess.run(cmd_get_ids, capture_output=True, text=True, encoding="utf-8")
+    cmd_get_ids = base_cli_command + [
+        str(sample_csv_dir),
+        str(workbook_path),
+        "--dry-run",
+    ]
+    result_get_ids = subprocess.run(
+        cmd_get_ids, capture_output=True, text=True, encoding="utf-8"
+    )
     assert result_get_ids.returncode == 0, "Failed to get TxnIDs for test setup"
     dry_run_df = pd.read_csv(workbook_path.with_suffix(".dry-run.csv"))
-    
-    txn_id_map = pd.Series(dry_run_df.TxnID.values, index=dry_run_df.Description).to_dict()
+
+    txn_id_map = pd.Series(
+        dry_run_df.TxnID.values, index=dry_run_df.Description
+    ).to_dict()
     # Expected descriptions from sample_csv_dir: "Merchant A TX1", "Merchant B TX2", "Merchant C TX3"
-    
+
     queue_review_df_data = {
-        QUEUE_TXNID_COL: [txn_id_map.get("Merchant A TX1"), txn_id_map.get("Merchant B TX2")],
-        QUEUE_DECISION_COL: ['S', 'N'],
-        QUEUE_SPLIT_COL: ['30', pd.NA]
+        QUEUE_TXNID_COL: [
+            txn_id_map.get("Merchant A TX1"),
+            txn_id_map.get("Merchant B TX2"),
+        ],
+        QUEUE_DECISION_COL: ["S", "N"],
+        QUEUE_SPLIT_COL: ["30", pd.NA],
     }
     queue_review_df = pd.DataFrame(queue_review_df_data)
 
-    with pd.ExcelWriter(workbook_path, engine='openpyxl') as writer:
+    with pd.ExcelWriter(workbook_path, engine="openpyxl") as writer:
         queue_review_df.to_excel(writer, sheet_name="Queue_Review", index=False)
 
     # 2. Execute CLI
     cmd_sync = base_cli_command + [str(sample_csv_dir), str(workbook_path), "--verbose"]
-    result_sync = subprocess.run(cmd_sync, capture_output=True, text=True, encoding="utf-8")
-    assert result_sync.returncode == 0, f"CLI sync command failed.\nSTDOUT:\n{result_sync.stdout}\nSTDERR:\n{result_sync.stderr}"
+    result_sync = subprocess.run(
+        cmd_sync, capture_output=True, text=True, encoding="utf-8"
+    )
+    assert (
+        result_sync.returncode == 0
+    ), f"CLI sync command failed.\nSTDOUT:\n{result_sync.stdout}\nSTDERR:\n{result_sync.stderr}"
 
     # 3. Assertions
     assert parquet_path.exists(), "balance_final.parquet was not created"
     final_parquet_df = pd.read_parquet(parquet_path)
-    
+
     # Check TX1 (Merchant A TX1)
     tx1_df = final_parquet_df[final_parquet_df["Description"] == "Merchant A TX1"]
     assert not tx1_df.empty, "TX1 not found in final Parquet"
@@ -221,7 +291,7 @@ def test_cli_sync_flow_with_parquet_and_queue(base_cli_command, sample_csv_dir, 
     tx2_df = final_parquet_df[final_parquet_df["Description"] == "Merchant B TX2"]
     assert not tx2_df.empty, "TX2 not found in final Parquet"
     assert tx2_df.iloc[0]["SharedFlag"] == "N"
-    assert pd.isna(tx2_df.iloc[0]["SplitPercent"]) # Or 0.0 if 'N' implies 0%
+    assert pd.isna(tx2_df.iloc[0]["SplitPercent"])  # Or 0.0 if 'N' implies 0%
 
     # Check TX3 (Merchant C TX3) - should have default '?'
     tx3_df = final_parquet_df[final_parquet_df["Description"] == "Merchant C TX3"]
@@ -231,53 +301,77 @@ def test_cli_sync_flow_with_parquet_and_queue(base_cli_command, sample_csv_dir, 
 
     # Check Transactions sheet in Excel
     # If workbook_path is .xlsm, temp file is created. If .xlsx, workbook_path is updated.
-    output_excel_path = workbook_path.with_suffix(".temp.xlsx") if workbook_path.suffix == ".xlsm" else workbook_path
-    if not output_excel_path.exists() and workbook_path.suffix == ".xlsm": # If .xlsm, check original if temp not made
-        output_excel_path = workbook_path # This case should not happen if process runs ok
-    
-    assert output_excel_path.exists(), f"Output Excel file {output_excel_path.name} not found."
+    output_excel_path = (
+        workbook_path.with_suffix(".temp.xlsx")
+        if workbook_path.suffix == ".xlsm"
+        else workbook_path
+    )
+    if (
+        not output_excel_path.exists() and workbook_path.suffix == ".xlsm"
+    ):  # If .xlsm, check original if temp not made
+        output_excel_path = (
+            workbook_path  # This case should not happen if process runs ok
+        )
+
+    assert (
+        output_excel_path.exists()
+    ), f"Output Excel file {output_excel_path.name} not found."
     excel_trans_df = pd.read_excel(output_excel_path, sheet_name="Transactions")
     # Compare relevant columns with final_parquet_df (sorting to ensure order doesn't matter)
     cols_to_compare = ["Description", "SharedFlag", "SplitPercent"]
     assert_frame_equal(
-        final_parquet_df[cols_to_compare].sort_values("Description").reset_index(drop=True),
-        excel_trans_df[cols_to_compare].sort_values("Description").reset_index(drop=True),
-        check_dtype=False # Dtypes can differ slightly (e.g. float64 vs object for NA)
+        final_parquet_df[cols_to_compare]
+        .sort_values("Description")
+        .reset_index(drop=True),
+        excel_trans_df[cols_to_compare]
+        .sort_values("Description")
+        .reset_index(drop=True),
+        check_dtype=False,  # Dtypes can differ slightly (e.g. float64 vs object for NA)
     )
 
 
-@pytest.mark.parametrize("fake_workbook", ["xlsx"], indirect=True) # Use xlsx for this test
-def test_cli_queue_review_missing_required_columns(base_cli_command, sample_csv_dir, fake_workbook, caplog):
+@pytest.mark.parametrize(
+    "fake_workbook", ["xlsx"], indirect=True
+)  # Use xlsx for this test
+def test_cli_queue_review_missing_required_columns(
+    base_cli_command, sample_csv_dir, fake_workbook, caplog
+):
     """Test CLI behavior when Queue_Review sheet is missing required columns."""
-    
+
     # Create Queue_Review with TxnID but missing the decision column
     queue_review_data = {
-        "TxnID": ["TX1_placeholder_id"], # Actual ID doesn't matter much here
+        "TxnID": ["TX1_placeholder_id"],  # Actual ID doesn't matter much here
         # QUEUE_DECISION_COL ("Set Shared? (Y/N/S for Split)") is missing
-        QUEUE_SPLIT_COL: ["50"]
+        QUEUE_SPLIT_COL: ["50"],
     }
     queue_review_df = pd.DataFrame(queue_review_data)
 
-    with pd.ExcelWriter(fake_workbook, engine='openpyxl') as writer:
+    with pd.ExcelWriter(fake_workbook, engine="openpyxl") as writer:
         queue_review_df.to_excel(writer, sheet_name="Queue_Review", index=False)
 
     cmd = base_cli_command + [str(sample_csv_dir), str(fake_workbook), "--verbose"]
     result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
 
-    assert result.returncode == 0, f"CLI command failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-    
+    assert (
+        result.returncode == 0
+    ), f"CLI command failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+
     # Check logs for warning about missing columns and skipping sync
     # The log is in result.stdout or result.stderr depending on logger config
     full_log_output = result.stdout + result.stderr
-    assert f"'{fake_workbook.name}'" # Check workbook name is mentioned, adjust if cli.py logs differently
+    assert (
+        f"'{fake_workbook.name}'"
+    )  # Check workbook name is mentioned, adjust if cli.py logs differently
     assert "'Queue_Review' sheet missing required columns" in full_log_output
     assert "Skipping sync" in full_log_output
-    
+
     # Verify Parquet file contains data with default flags (sync was skipped)
     parquet_path = fake_workbook.parent / "balance_final.parquet"
     assert parquet_path.exists()
     final_df = pd.read_parquet(parquet_path)
-    
-    assert len(final_df) == 3 # 3 transactions from sample_csv_dir
-    assert final_df["SharedFlag"].unique().tolist() == ["?"], "All SharedFlags should be default '?'"
+
+    assert len(final_df) == 3  # 3 transactions from sample_csv_dir
+    assert final_df["SharedFlag"].unique().tolist() == [
+        "?"
+    ], "All SharedFlags should be default '?'"
     assert final_df["SplitPercent"].isna().all(), "All SplitPercents should be NA"

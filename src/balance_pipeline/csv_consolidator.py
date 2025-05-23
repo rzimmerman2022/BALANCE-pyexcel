@@ -25,25 +25,40 @@ from __future__ import annotations  # For using type hints before full definitio
 import logging
 import json
 import re
-import hashlib # Added hashlib import
-from collections import Counter # Added for schema matching smoke test
+import hashlib  # Added hashlib import
+from collections import Counter  # Added for schema matching smoke test
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union # Corrected Union import
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    Pattern as TypingPattern,
+    cast,
+)
 
 # --- Third-party Libraries ---
 import pandas as pd
-import yaml # For loading schema_registry.yml
+from pandas import BooleanDtype  # For explicit nullable boolean type
+from pandas.api.types import is_numeric_dtype
+import yaml  # For loading schema_registry.yml
 
 # --- Local Application Imports ---
-from .config import SCHEMA_REGISTRY_PATH, MERCHANT_LOOKUP_PATH # Default paths
-from .constants import MASTER_SCHEMA_COLUMNS # Added import
+from .config import SCHEMA_REGISTRY_PATH, MERCHANT_LOOKUP_PATH  # Default paths
+from .constants import MASTER_SCHEMA_COLUMNS  # Added import
+
 # We will need _hash_txn and clean_merchant from normalize.py
 # For now, let's assume they might be refactored or directly used.
 # If direct use: from .normalize import _txn_id_like_function, clean_merchant
 # For now, I will re-implement _hash_txn logic as per spec and use clean_merchant from normalize
-from .normalize import clean_merchant as project_clean_merchant # Alias to avoid conflict
-from .errors import BalancePipelineError, RecoverableFileError, FatalSchemaError, DataConsistencyError
+from .normalize import (
+    clean_merchant as project_clean_merchant,
+)  # Alias to avoid conflict
+from balance_pipeline.schema_registry import find_matching_schema as _find_schema
+from .errors import RecoverableFileError
 
 # --- Setup Logger ---
 log = logging.getLogger(__name__)
@@ -53,57 +68,78 @@ log = logging.getLogger(__name__)
 # For now, assuming it might be implicitly handled or defined elsewhere if still used.
 # Based on the prompt, only MASTER_SCHEMA_COLUMNS is the focus.
 MANDATORY_MASTER_COLS = [
-    "TxnID", "Owner", "Date", "Merchant", "Category", "Amount", "Account"
+    "TxnID",
+    "Owner",
+    "Date",
+    "Merchant",
+    "Category",
+    "Amount",
+    "Account",
 ]
 # Placeholder for main processing function and helpers
 # These will be implemented in subsequent steps.
 
 # --- Boolean Parsing Helper ---
-BOOL_TRUE = {'1', 'true', 't', 'yes', 'y'}
-BOOL_FALSE = {'0', 'false', 'f', 'no', 'n', ''} # Empty string often means false
+BOOL_TRUE = {"1", "true", "t", "yes", "y"}
+BOOL_FALSE = {"0", "false", "f", "no", "n", ""}  # Empty string often means false
 
-def coerce_bool(series: pd.Series) -> pd.Series:
+
+def coerce_bool(
+    series: pd.Series[Any],
+) -> pd.Series[BooleanDtype]:  # Updated type hints
     """
     Coerces a pandas Series to nullable boolean dtype ('boolean').
     Maps common string representations of true/false.
     Values not in BOOL_TRUE or BOOL_FALSE become pd.NA.
     """
     if series.empty:
-        return pd.Series(dtype='boolean')
+        return pd.Series(
+            dtype="boolean"
+        )  # This creates a Series of object dtype with pd.BooleanDtype() objects if not careful
 
     # Ensure series is string type and lowercase for mapping
     # Handle cases where series might already contain non-string (e.g. actual bools, numbers)
     # If a value is already a Python bool, str(value).lower() will work ('true'/'false')
     # If a value is numeric (1/0), str(value) will work ('1'/'0')
-    
+
     # Replace non-string NaN-like values (e.g. numpy.nan) with a placeholder that won't match TRUE/FALSE sets
     # but can be identified to be turned into pd.NA later. Using a unique string.
     # Or, better, handle them before .str.lower()
-    
-    def map_value_to_bool(x):
+
+    def map_value_to_bool(
+        x: Any,
+    ) -> bool | None:  # x is str after .astype(str) in caller
         if pd.isna(x):
-            return pd.NA
+            return None  # Mypy prefers None for pd.NA in some contexts with bool
         s = str(x).lower().strip()
         if s in BOOL_TRUE:
             return True
         if s in BOOL_FALSE:
             return False
-        return pd.NA
+        return None  # Changed pd.NA to None
 
-    return series.apply(map_value_to_bool).astype('boolean')
+    # Ensure the result of apply is correctly typed before astype
+    # The .astype("boolean") should correctly produce a Series[BooleanDtype]
+    return series.apply(map_value_to_bool).astype("boolean")  # type: ignore[return-value] # Mypy struggles with pandas extension dtypes
 
 
-def _normalize_csv_header(header: str) -> str:
-    """Normalize a CSV column header."""
+def _normalize_csv_header(
+    header: Any,
+) -> str:  # Allow Any for robustness, will cast to str
+    """Normalizes a CSV column header: lowercase, strip, remove special chars except space, and applies common aliases."""
     if not isinstance(header, str):
-        return ""
-    # Convert to lowercase
-    normalized = header.lower()
-    # Remove special characters except spaces, then strip leading/trailing whitespace
-    normalized = re.sub(r'[^a-z0-9\s]', '', normalized).strip()
-    # Replace multiple spaces with a single space
-    normalized = re.sub(r'\s+', ' ', normalized)
+        header = str(header)  # Attempt to convert to string if not already
 
+    # Ensure header is treated as str for subsequent operations
+    processed_header = cast(str, header) # cast is already imported
+    # Convert to lowercase
+    normalized = processed_header.lower()
+    # Remove special characters except spaces, then strip leading/trailing whitespace
+    normalized = re.sub(r"[^a-z0-9\s]", "", normalized).strip()
+    # Replace multiple spaces with a single space
+    normalized = re.sub(r"\s+", " ", normalized)
+
+    # Alias mapping from main branch
     alias_map = {
         'txn date': 'date',
         'transaction date': 'date',
@@ -113,69 +149,6 @@ def _normalize_csv_header(header: str) -> str:
 
     return alias_map.get(normalized, normalized)
 
-def find_matching_schema(
-    df_headers: List[str],
-    filename: str,
-    schema_registry: Dict[str, List[Dict[str, Any]]]
-) -> Optional[Dict[str, Any]]:
-    """
-    Identifies the correct schema from the registry for a given CSV.
-    Matches first by filename pattern, then by header signature.
-
-    Args:
-        df_headers (List[str]): List of actual (raw) column headers from the CSV.
-        filename (str): The name of the CSV file.
-        schema_registry (Dict[str, List[Dict[str, Any]]]): The loaded schema registry.
-
-    Returns:
-        Optional[Dict[str, Any]]: The matched schema definition, or None if no match.
-    """
-    normalized_df_headers = {_normalize_csv_header(h) for h in df_headers}
-    file_path = Path(filename) # Use Path for robust name matching
-
-    schemas = schema_registry.get('schemas', [])
-    if not schemas:
-        log.warning("Schema registry is empty or not in the expected format.")
-        return None
-
-    # Attempt 1: Match by filename pattern
-    for schema in schemas:
-        match_filename_pattern = schema.get('match_filename')
-        if match_filename_pattern:
-            if file_path.match(match_filename_pattern):
-                log.info(f"Matched schema '{schema.get('id')}' by filename pattern '{match_filename_pattern}' for file '{filename}'.")
-                # Further verify with header signature if present
-                header_signature = schema.get('header_signature')
-                if header_signature:
-                    # Normalize schema's expected headers for comparison
-                    normalized_schema_headers = {_normalize_csv_header(h) for h in header_signature}
-                    if normalized_schema_headers.issubset(normalized_df_headers):
-                        log.info(f"Header signature also matches for schema '{schema.get('id')}'.")
-                        return schema
-                    else:
-                        log.warning(
-                            f"Filename pattern matched schema '{schema.get('id')}' for '{filename}', "
-                            f"but header signature did not. Expected subset: {normalized_schema_headers}, "
-                            f"Got: {normalized_df_headers}. Will continue searching."
-                        )
-                else: # No header signature to check, filename match is enough
-                    return schema
-    
-    log.info(f"No schema matched by filename pattern for '{filename}'. Trying header signature only.")
-
-    # Attempt 2: Match by header signature only (if no filename match)
-    # This is a fallback if filename patterns are not exhaustive or change.
-    for schema in schemas:
-        header_signature = schema.get('header_signature')
-        if header_signature:
-            # Normalize schema's expected headers for comparison
-            normalized_schema_headers = {_normalize_csv_header(h) for h in header_signature}
-            if normalized_schema_headers.issubset(normalized_df_headers):
-                log.info(f"Matched schema '{schema.get('id')}' by header signature for file '{filename}'.")
-                return schema
-                
-    log.warning(f"No schema found for file '{filename}' using filename or header signature.")
-    return None
 
 # --- Helper for TxnID Generation ---
 # Based on normalize.py:_txn_id and task requirements
@@ -187,7 +160,7 @@ def find_matching_schema(
 TXN_ID_HASH_COLS = ["Date", "Amount", "OriginalDescription", "Account"]
 
 
-def _generate_txn_id(row: pd.Series) -> str:
+def _generate_txn_id(row: pd.Series[Any]) -> str:  # Updated type hint
     """
     Generates a unique, deterministic transaction ID (TxnID) for a transaction row.
     Uses MD5 hash of concatenated key fields.
@@ -198,26 +171,27 @@ def _generate_txn_id(row: pd.Series) -> str:
     parts = []
     for col in TXN_ID_HASH_COLS:
         val = row.get(col)
-        if pd.isna(val): # Handles None, pd.NaT, np.nan
+        if pd.isna(val):  # Handles None, pd.NaT, np.nan
             parts.append("")
         else:
             # For datetime objects (like Date, PostDate), convert to ISO format string
             if isinstance(val, (datetime, pd.Timestamp)):
-                parts.append(val.isoformat()[:10]) # YYYY-MM-DD
+                parts.append(val.isoformat()[:10])  # YYYY-MM-DD
             else:
                 parts.append(str(val).strip())
-    
+
     hash_input = "|".join(parts)
-    
+
     # Import hashlib here if not already at module level, or ensure it is.
     # hashlib is now imported at the module level
-    return hashlib.md5(hash_input.encode('utf-8')).hexdigest()[:16]
+    return hashlib.md5(hash_input.encode("utf-8")).hexdigest()[:16]
 
 
 def apply_schema_transformations(
     df: pd.DataFrame,
     schema_rules: Dict[str, Any],
-    merchant_lookup_rules: List[Tuple[re.Pattern, str]]
+    merchant_lookup_rules: List[Tuple[re.Pattern[str], str]],  # Updated type hint
+    filename: str,  # Added filename parameter
 ) -> pd.DataFrame:
     """
     Applies all transformations defined by a schema to a DataFrame.
@@ -227,36 +201,46 @@ def apply_schema_transformations(
         df (pd.DataFrame): The raw DataFrame from a CSV.
         schema_rules (Dict[str, Any]): The specific schema definition to apply.
         merchant_lookup_rules (List[Tuple[re.Pattern, str]]): Loaded merchant lookup rules.
+        filename (str): The name of the CSV file being processed, for logging.
 
     Returns:
         pd.DataFrame: The transformed DataFrame, partially conforming to the master schema.
                       Further processing like TxnID, Owner, final merchant cleaning happens later.
     """
-    log.info(f"Applying schema transformations for schema ID: '{schema_rules.get('id')}'")
+    schema_id = schema_rules.get("id", "UnknownSchema")
+    log.debug(
+        f"[APPLY_SCHEMA_STATE] File: {filename} | Schema: {schema_id} | Stage: Before Transformations | Columns: {list(df.columns)}"
+    )
     transformed_df = df.copy()
 
     # 1. Header Normalization (of DataFrame columns for mapping)
     # The schema's column_map keys are expected to be raw headers from the source CSV.
     # We need to map these raw headers to our internal canonical names.
     # The _normalize_csv_header function is for matching, not for renaming df columns yet.
-    
+
     # Store original column names for 'Extras'
     original_columns = list(transformed_df.columns)
-    
+
     # 2. Apply Column Mapping
-    column_map = schema_rules.get('column_map', {})
+    column_map = schema_rules.get("column_map", {})
     if not column_map:
-        log.warning(f"Schema '{schema_rules.get('id')}' has no column_map. Columns will be as-is.")
+        log.warning(
+            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Column Mapping | Detail: Schema has no column_map. Columns will be as-is."
+        )
         # Proceed, but 'Extras' will include all original columns if they don't match master schema.
-    
+
     # Normalize keys in column_map for matching against normalized df headers
     # However, the task implies column_map keys are the *raw* headers.
     # "Normalize original CSV headers ... before attempting to match them with keys in column_map."
     # This means we should normalize the DataFrame's current headers first.
-    
-    df_normalized_header_map = {col: _normalize_csv_header(col) for col in transformed_df.columns}
+
+    df_normalized_header_map = {
+        col: _normalize_csv_header(col) for col in transformed_df.columns
+    }
     # And normalize the keys in the schema's column_map as well for robust matching
-    normalized_schema_column_map = {_normalize_csv_header(k): v for k, v in column_map.items()}
+    normalized_schema_column_map = {
+        _normalize_csv_header(k): v for k, v in column_map.items()
+    }
 
     rename_dict = {}
     mapped_source_cols_normalized = set()
@@ -273,39 +257,47 @@ def apply_schema_transformations(
     for normalized_schema_key in normalized_schema_column_map.keys():
         if normalized_schema_key not in df_normalized_header_map.values():
             # Find the original raw key from column_map for logging
-            original_raw_key_for_log = "Unknown (normalized key not found back in original map)"
-            for raw_k, raw_v in column_map.items(): # schema_rules.get('column_map', {})
+            original_raw_key_for_log = (
+                "Unknown (normalized key not found back in original map)"
+            )
+            for (
+                raw_k,
+                raw_v,
+            ) in column_map.items():  # schema_rules.get('column_map', {})
                 if _normalize_csv_header(raw_k) == normalized_schema_key:
                     original_raw_key_for_log = raw_k
                     break
             log.warning(
-                f"Column '{original_raw_key_for_log}' (normalized: '{normalized_schema_key}') defined in schema "
-                f"'{schema_rules.get('id')}' column_map not found in the CSV file. It will be missing."
+                f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Column Mapping | Detail: Column '{original_raw_key_for_log}' (normalized: '{normalized_schema_key}') defined in schema column_map not found in CSV."
             )
-            
+
     transformed_df = transformed_df.rename(columns=rename_dict)
-    log.info(f"Applied column mapping. Renamed columns: {rename_dict}")
+    log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Column Mapping | Details: Renamed columns {rename_dict}")
 
     # 3. Handle 'Extras' (unmapped columns)
     # Unmapped columns are those original columns not in rename_dict.keys()
     # Their new names (if they were part of a rename) are not relevant for 'Extras'.
     # We need columns from 'original_columns' that were NOT mapped.
-    
+
     mapped_original_cols = set(rename_dict.keys())
-    unmapped_original_cols = [col for col in original_columns if col not in mapped_original_cols]
-    
+    unmapped_original_cols = [
+        col for col in original_columns if col not in mapped_original_cols
+    ]
+
     if unmapped_original_cols:
         # Create a DataFrame of just the unmapped columns
         extras_df = df[unmapped_original_cols].copy()
         # Convert each row of extras_df to a JSON string
         # Ensure NaN/NaT are handled correctly by converting to None for JSON serialization
-        transformed_df['Extras'] = extras_df.apply(
+        transformed_df["Extras"] = extras_df.apply(
             lambda row: json.dumps(row.dropna().to_dict()), axis=1
         )
-        log.info(f"Collected unmapped columns into 'Extras': {unmapped_original_cols}")
+        # This log will be replaced by a more specific one after extras_ignore logic
+        # log.info(f"Collected unmapped columns into 'Extras': {unmapped_original_cols}")
     else:
-        transformed_df['Extras'] = None # Or pd.NA or empty JSON string '{}'
-        log.info("No unmapped columns found for 'Extras'.")
+        transformed_df["Extras"] = None  # Or pd.NA or empty JSON string '{}'
+        # This log will be replaced
+        # log.info("No unmapped columns found for 'Extras'.")
 
     # 4. Date Parsing
     # The schema can specify multiple date columns to parse, each with its own format string
@@ -314,14 +306,16 @@ def apply_schema_transformations(
     # from the source CSV into datetime objects for Date and PostDate."
     # This implies date_format could be a single string or a dict if multiple date cols have different formats.
     # The current schema_registry.yml shows date_format as a single string.
-    
-    date_columns_to_parse = {} # Stores {col_name: format_str or None}
-    schema_date_format = schema_rules.get('date_format')
+
+    date_columns_to_parse = {}  # Stores {col_name: format_str or None}
+    schema_date_format = schema_rules.get("date_format")
 
     # Identify which of the mapped columns are potential date columns
     # Common date columns are 'Date', 'PostDate'.
     # The column_map would have mapped source columns to these canonical names.
-    potential_date_cols_in_df = [col for col in ['Date', 'PostDate'] if col in transformed_df.columns]
+    potential_date_cols_in_df = [
+        col for col in ["Date", "PostDate"] if col in transformed_df.columns
+    ]
 
     for date_col_name in potential_date_cols_in_df:
         # If a global date_format is provided in the schema, use it.
@@ -334,67 +328,99 @@ def apply_schema_transformations(
                 # Ensure the column is string type before parsing, if it's not already datetime
                 if not pd.api.types.is_datetime64_any_dtype(transformed_df[col_name]):
                     transformed_df[col_name] = pd.to_datetime(
-                        transformed_df[col_name], format=fmt_str, errors='coerce'
+                        transformed_df[col_name], format=fmt_str, errors="coerce"
                     )
-                    log.info(f"Parsed date column '{col_name}' using format '{fmt_str if fmt_str else 'inferred'}'.")
+                    log.debug(
+                        f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Date Parsing | Column: {col_name} | Format: {fmt_str if fmt_str else 'inferred'}"
+                    )
                 else:
-                    log.info(f"Column '{col_name}' is already datetime type. Skipping parsing.")
+                    log.debug(
+                        f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Date Parsing | Column: {col_name} | Detail: Already datetime type, skipping parsing."
+                    )
             except Exception as e:
-                log.warning(f"Could not parse date column '{col_name}' with format '{fmt_str}': {e}. Column left as is or NaT.")
+                log.warning(
+                    f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Date Parsing | Column: {col_name} | Format: {fmt_str} | Error: {e}. Column left as is or NaT."
+                )
                 # If errors='coerce', unparseable dates become NaT (Not a Time)
         else:
-            log.warning(f"Date column '{col_name}' specified for parsing not found in DataFrame after mapping.")
+            log.warning(
+                f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Date Parsing | Column: {col_name} | Detail: Specified for parsing but not found in DataFrame after mapping."
+            )
 
     # 5. Amount Sign Standardization & Numeric Conversion
-    amount_col_name = 'Amount' # Assuming 'Amount' is the canonical name after mapping
+    amount_col_name = "Amount"  # Assuming 'Amount' is the canonical name after mapping
     if amount_col_name in transformed_df.columns:
         # Apply amount_regex if present
-        amount_regex_str = schema_rules.get('amount_regex')
+        amount_regex_str = schema_rules.get("amount_regex")
         if amount_regex_str:
             try:
                 # Extract the numeric part using regex. Expects one capturing group.
                 # Ensure it handles cases where the column might already be numeric or partly clean.
-                transformed_df[amount_col_name] = transformed_df[amount_col_name].astype(str).str.extract(f'({amount_regex_str})', expand=False)
-                log.info(f"Applied amount_regex '{amount_regex_str}' to column '{amount_col_name}'.")
+                transformed_df[amount_col_name] = (
+                    transformed_df[amount_col_name]
+                    .astype(str)
+                    .str.extract(f"({amount_regex_str})", expand=False)
+                )
+                log.debug(
+                    f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Regex | Column: {amount_col_name} | Regex: {amount_regex_str}"
+                )
             except Exception as e:
-                log.error(f"Error applying amount_regex to '{amount_col_name}': {e}. Amount column may be incorrect.")
-        
-        # Convert to numeric, coercing errors to NaN
-        transformed_df[amount_col_name] = pd.to_numeric(transformed_df[amount_col_name], errors='coerce')
+                log.error(
+                    f"[APPLY_SCHEMA_ERROR] File: {filename} | Schema: {schema_id} | Step: Amount Regex | Column: {amount_col_name} | Error: {e}. Amount column may be incorrect."
+                )
 
-        sign_rule = schema_rules.get('sign_rule')
-        if sign_rule == 'flip_if_positive':
+        # Convert to numeric, coercing errors to NaN
+        transformed_df[amount_col_name] = pd.to_numeric(
+            transformed_df[amount_col_name], errors="coerce"
+        )
+        log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount ToNumeric | Column: {amount_col_name}")
+
+        sign_rule = schema_rules.get("sign_rule")
+        if sign_rule: # Log only if a rule is actually applied
+            log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Column: {amount_col_name} | Rule: {sign_rule}")
+
+        if sign_rule == "flip_if_positive":
             transformed_df[amount_col_name] = transformed_df[amount_col_name].apply(
                 lambda x: -abs(x) if pd.notna(x) and x > 0 else x
             )
-            log.info(f"Applied sign_rule 'flip_if_positive' to '{amount_col_name}'.")
-        elif sign_rule == 'flip_if_negative': # Not explicitly in task, but good to have
-             transformed_df[amount_col_name] = transformed_df[amount_col_name].apply(
+        elif (
+            sign_rule == "flip_if_negative"
+        ):  # Not explicitly in task, but good to have
+            transformed_df[amount_col_name] = transformed_df[amount_col_name].apply(
                 lambda x: abs(x) if pd.notna(x) and x < 0 else x
             )
-             log.info(f"Applied sign_rule 'flip_if_negative' to '{amount_col_name}'.")
-        elif sign_rule == 'flip_always':
+        elif sign_rule == "flip_always":
             transformed_df[amount_col_name] = -transformed_df[amount_col_name]
-            log.info(f"Applied sign_rule 'flip_always' to '{amount_col_name}'.")
-        elif sign_rule == 'flip_if_withdrawal':
+        elif sign_rule == "flip_if_withdrawal":
             # Specific rule for chase_total_checking
-            if 'Category' in transformed_df.columns:
-                withdrawal_categories = ['withdrawal', 'payment']
+            if "Category" in transformed_df.columns:
+                withdrawal_categories = ["withdrawal", "payment"]
                 # Apply to rows where Category matches and Amount is positive
                 mask = (
-                    transformed_df['Category'].astype(str).str.lower().isin(withdrawal_categories) &
-                    (transformed_df[amount_col_name] > 0) &
-                    pd.notna(transformed_df[amount_col_name])
+                    transformed_df["Category"]
+                    .astype(str)
+                    .str.lower()
+                    .isin(withdrawal_categories)
+                    & (transformed_df[amount_col_name] > 0)
+                    & pd.notna(transformed_df[amount_col_name])
                 )
-                transformed_df.loc[mask, amount_col_name] = -transformed_df.loc[mask, amount_col_name]
-                log.info(f"Applied sign_rule 'flip_if_withdrawal' to '{amount_col_name}' based on 'Category'.")
+                transformed_df.loc[mask, amount_col_name] = -transformed_df.loc[
+                    mask, amount_col_name
+                ]
             else:
-                log.warning("Sign_rule 'flip_if_withdrawal' specified, but 'Category' column not found. Rule not applied.")
-        elif sign_rule == 'as_is':
-            log.info(f"Sign_rule for '{amount_col_name}' is 'as_is'. No changes to sign.")
-        elif isinstance(sign_rule, dict) and sign_rule.get('type') == 'flip_if_column_value_matches':
-            rule_col_name = sign_rule.get('column')
-            debit_values = [str(v).lower() for v in sign_rule.get('debit_values', [])] # Normalize to lower string
+                log.warning(
+                    f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Rule: flip_if_withdrawal | Detail: 'Category' column not found. Rule not applied."
+                )
+        elif sign_rule == "as_is":
+            pass # No change, already logged the rule
+        elif (
+            isinstance(sign_rule, dict)
+            and sign_rule.get("type") == "flip_if_column_value_matches"
+        ):
+            rule_col_name = sign_rule.get("column")
+            debit_values = [
+                str(v).lower() for v in sign_rule.get("debit_values", [])
+            ]  # Normalize to lower string
 
             actual_col_to_check = None
             if rule_col_name in transformed_df.columns:
@@ -407,59 +433,86 @@ def apply_schema_transformations(
                 # Let's assume rule_col_name refers to a column name that *should* exist in transformed_df.
                 # If it was mapped, it's the target name. If it's an original unmapped name, it's that.
                 # The most robust is to check existence directly.
-                log.warning(f"Column '{rule_col_name}' for complex sign rule not directly found. This rule might not apply correctly.")
-
+                log.warning(
+                    f"Column '{rule_col_name}' for complex sign rule not directly found. This rule might not apply correctly."
+                )
 
             if actual_col_to_check and debit_values:
-                log.info(f"Applying complex sign_rule 'flip_if_column_value_matches' on column '{actual_col_to_check}' with debit_values: {debit_values}.")
                 # Log unique values from the column that drives the sign_rule
                 if actual_col_to_check in transformed_df.columns:
-                    unique_sign_rule_values = transformed_df[actual_col_to_check].astype(str).unique().tolist()
-                    log.info(f"Unique values in '{actual_col_to_check}' (for sign_rule): {unique_sign_rule_values}")
-                
+                    unique_sign_rule_values = (
+                        transformed_df[actual_col_to_check]
+                        .astype(str)
+                        .unique()
+                        .tolist()
+                    )
+                    log.debug(
+                        f"[APPLY_SCHEMA_TRANSFORM_DETAIL] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule (Complex) | Detail: Unique values in '{actual_col_to_check}' for rule: {unique_sign_rule_values}"
+                    )
+
                 def adjust_sign(row):
                     amount = row[amount_col_name]
                     type_val_series = row[actual_col_to_check]
-                    
+
                     if pd.isna(amount) or pd.isna(type_val_series):
-                        return amount # Don't change NaN amounts or if type is NaN
+                        return amount  # Don't change NaN amounts or if type is NaN
 
                     type_val = str(type_val_series).lower().strip()
-                    
-                    is_debit_type = type_val in debit_values
-                    
-                    if is_debit_type: # Should be negative
-                        return -abs(amount) if amount > 0 else amount
-                    else: # Should be positive (credit/inflow)
-                        return abs(amount) if amount < 0 else amount
-                
-                transformed_df[amount_col_name] = transformed_df.apply(adjust_sign, axis=1)
-            elif not actual_col_to_check:
-                 log.warning(f"Column '{rule_col_name}' specified in complex sign_rule not found in DataFrame. Rule not applied.")
-            else: # no debit_values
-                 log.warning("No 'debit_values' provided for complex sign_rule. Rule not applied effectively.")
 
-        elif sign_rule: # Any other non-empty sign rule not recognized (includes simple strings not caught above)
-            log.warning(f"Unrecognized or improperly structured sign_rule: '{sign_rule}'. Amount signs may be incorrect.")
-        
+                    is_debit_type = type_val in debit_values
+
+                    if is_debit_type:  # Should be negative
+                        return -abs(amount) if amount > 0 else amount
+                    else:  # Should be positive (credit/inflow)
+                        return abs(amount) if amount < 0 else amount
+
+                transformed_df[amount_col_name] = transformed_df.apply(
+                    adjust_sign, axis=1
+                )
+            elif not actual_col_to_check:
+                log.warning(
+                    f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule (Complex) | Detail: Column '{rule_col_name}' not found. Rule not applied."
+                )
+            else:  # no debit_values
+                log.warning(
+                    f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule (Complex) | Detail: No 'debit_values' provided. Rule not applied effectively."
+                )
+
+        elif sign_rule and sign_rule not in ["as_is", "flip_if_positive", "flip_if_negative", "flip_always", "flip_if_withdrawal"]: # Unrecognized simple string rule
+            log.warning(
+                f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Detail: Unrecognized sign_rule '{sign_rule}'. Amount signs may be incorrect."
+            )
+
         # Ensure 'Amount' is float
-        transformed_df[amount_col_name] = transformed_df[amount_col_name].astype(float, errors='ignore')
+        transformed_df[amount_col_name] = transformed_df[amount_col_name].astype(
+            float, errors="ignore"
+        )
+        log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Astype Float | Column: {amount_col_name}")
 
     else:
-        log.warning(f"Amount column '{amount_col_name}' not found after mapping. Cannot apply sign rules or ensure numeric type.")
+        log.warning(
+            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Processing | Detail: Amount column '{amount_col_name}' not found after mapping. Cannot apply sign rules or ensure numeric type."
+        )
 
     # 6. Derived Columns
-    derived_cfg = schema_rules.get('derived_columns', {}) # Use derived_cfg to match ingest.py
+    derived_cfg = schema_rules.get(
+        "derived_columns", {}
+    )  # Use derived_cfg to match ingest.py
     if derived_cfg:
-        log.info(f"Applying derived_columns rules: {derived_cfg}")
-        for new_col_name, rule_cfg in derived_cfg.items(): # Use new_col_name and rule_cfg
+        # log.info(f"Applying derived_columns rules: {derived_cfg}") # Too verbose for info, individual steps will be debug
+        for (
+            new_col_name,
+            rule_cfg,
+        ) in derived_cfg.items():  # Use new_col_name and rule_cfg
             if not isinstance(rule_cfg, dict):
-                log.warning(f"Skipping invalid derived_column config for '{new_col_name}': Expected a dictionary, got {type(rule_cfg)}. Config: {rule_cfg}")
+                log.warning(
+                    f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Detail: Invalid config, expected dict, got {type(rule_cfg)}. Config: {rule_cfg}"
+                )
                 transformed_df[new_col_name] = pd.NA
                 continue
 
-            rule_type = rule_cfg.get("rule") # Shape A: get 'rule'
-            rule_details = rule_cfg # For Shape A, rule_cfg itself contains all details
+            rule_type = rule_cfg.get("rule")  # Shape A: get 'rule'
+            rule_details = rule_cfg  # For Shape A, rule_cfg itself contains all details
 
             # Back-compat for old Shape B (nested keys)
             if rule_type is None:
@@ -468,76 +521,110 @@ def apply_schema_transformations(
                     rule_details = rule_cfg["regex_extract"]
                 elif "static_value" in rule_cfg:
                     rule_type = "static_value"
-                    rule_details = rule_cfg["static_value"] 
-            
+                    rule_details = rule_cfg["static_value"]
+
             if rule_type is None:
-                log.warning(f"Unknown rule type for derived column '{new_col_name}'. Rule config: {rule_cfg}. Skipping.")
+                log.warning(
+                    f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Detail: Unknown rule type. Config: {rule_cfg}. Skipping."
+                )
                 transformed_df[new_col_name] = pd.NA
                 continue
             
+            log_details_for_derived = f"Rule Type: {rule_type}"
             try:
                 if rule_type == "static_value":
-                    if isinstance(rule_details, dict): # Shape A
+                    if isinstance(rule_details, dict):  # Shape A
                         static_val = rule_details.get("value")
-                    else: # Old Shape B
+                    else:  # Old Shape B
                         static_val = rule_details
-                    
+                    log_details_for_derived += f" | Value: {static_val}"
+
                     if static_val is None:
-                        log.warning(f"Skipping static_value for '{new_col_name}': 'value' not found or is None. Details: {rule_details}")
+                        log.warning(
+                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (static_value) | New Column: {new_col_name} | Detail: 'value' not found or is None. Details: {rule_details}"
+                        )
                         transformed_df[new_col_name] = pd.NA
                         continue
                     transformed_df[new_col_name] = static_val
-                    log.info(f"Derived column '{new_col_name}' with static value: '{static_val}'")
 
                 elif rule_type == "regex_extract":
                     if not isinstance(rule_details, dict):
-                        log.warning(f"Skipping regex_extract for '{new_col_name}': rule details not a dict. Details: {rule_details}")
+                        log.warning(
+                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (regex_extract) | New Column: {new_col_name} | Detail: Rule details not a dict. Details: {rule_details}"
+                        )
                         transformed_df[new_col_name] = pd.NA
                         continue
 
                     source_col = rule_details.get("column")
                     pattern_str = rule_details.get("pattern")
-                    
+                    log_details_for_derived += f" | Source Column: {source_col} | Pattern: {pattern_str}"
+
+
                     if not source_col or not pattern_str:
-                        log.warning(f"Skipping regex_extract for '{new_col_name}': missing 'column' or 'pattern' in details. Details: {rule_details}")
+                        log.warning(
+                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (regex_extract) | New Column: {new_col_name} | Detail: Missing 'column' or 'pattern'. Details: {rule_details}"
+                        )
                         transformed_df[new_col_name] = pd.NA
                         continue
-                    
+
                     if source_col not in transformed_df.columns:
-                        log.warning(f"Skipping regex_extract for '{new_col_name}': source column '{source_col}' not found in DataFrame.")
+                        log.warning(
+                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (regex_extract) | New Column: {new_col_name} | Detail: Source column '{source_col}' not found."
+                        )
                         transformed_df[new_col_name] = pd.NA
                         continue
 
                     regex = re.compile(pattern_str)
-                    capture_group_name = list(regex.groupindex.keys())[0] if regex.groupindex else None
+                    capture_group_name = (
+                        list(regex.groupindex.keys())[0] if regex.groupindex else None
+                    )
+                    log_details_for_derived += f" | Capture Group: {capture_group_name or '1st unnamed'}"
+
 
                     def extract_with_regex(text_to_search: Any) -> Any:
                         if pd.isna(text_to_search):
                             return pd.NA
                         match = regex.search(str(text_to_search))
                         if match:
-                            if capture_group_name and capture_group_name in match.groupdict():
+                            if (
+                                capture_group_name
+                                and capture_group_name in match.groupdict()
+                            ):
                                 return match.group(capture_group_name)
-                            elif match.groups(): 
-                                return match.group(1) 
+                            elif match.groups():
+                                return match.group(1)
                         return pd.NA
 
-                    transformed_df[new_col_name] = transformed_df[source_col].apply(extract_with_regex)
-                    log.info(f"Derived column '{new_col_name}' from '{source_col}' using regex: '{pattern_str}' (capture group: '{capture_group_name or '1st unnamed'}')")
-                
-                else:
-                    log.warning(f"Unknown rule type '{rule_type}' specified for derived column '{new_col_name}'. Config: {rule_cfg}. Skipping.")
+                    transformed_df[new_col_name] = transformed_df[source_col].apply(
+                        extract_with_regex
+                    )
+
+                else: # Should have been caught by rule_type is None check earlier
+                    log.warning(
+                        f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Detail: Unknown rule type '{rule_type}'. Config: {rule_cfg}. Skipping."
+                    )
                     transformed_df[new_col_name] = pd.NA
+                    continue # Skip the common log for this iteration
+
+                log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Details: {log_details_for_derived}")
 
             except Exception as e:
-                log.error(f"Error deriving column '{new_col_name}' with rule_type '{rule_type}': {e}", exc_info=True)
+                log.error(
+                    f"[APPLY_SCHEMA_ERROR] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Rule Type: {rule_type} | Error: {e}",
+                    exc_info=True,
+                )
                 transformed_df[new_col_name] = pd.NA
-    
+
     # Alias OriginalDescription to Description if Description is missing
-    if "OriginalDescription" in transformed_df.columns and "Description" not in transformed_df.columns:
+    if (
+        "OriginalDescription" in transformed_df.columns
+        and "Description" not in transformed_df.columns
+    ):
         transformed_df["Description"] = transformed_df["OriginalDescription"]
-        log.info("Aliased 'OriginalDescription' to 'Description' as 'Description' was missing.")
-    
+        log.debug(
+            f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Alias OriginalDescription | Detail: Aliased 'OriginalDescription' to 'Description' as 'Description' was missing."
+        )
+
     # Handle extras_ignore: remove specified columns if they exist
     # This should happen after all columns (original, mapped, derived) are settled.
     extras_to_ignore = schema_rules.get("extras_ignore", [])
@@ -554,17 +641,17 @@ def apply_schema_transformations(
         # Given the `schema_registry.yml` has `extras_ignore: ["Name", ...]` and "Name" is an *original* column
         # that is *not* in `column_map` for the affected schemas, it means we should check `extras_to_ignore`
         # against the columns currently in `transformed_df`.
-        
+
         # Let's re-evaluate: extras_ignore should refer to columns as they are *named in the source CSV*
         # or as they are *after mapping if they were mapped to something that should then be ignored*.
         # The user's schema_registry.yml has `extras_ignore: ["Name"]` etc. "Name" is an original column.
         # The current `transformed_df` might still have "Name" if it wasn't mapped, or it might have been mapped.
         # The simplest interpretation that matches `ingest.py`'s apparent behavior is to check against current df columns.
-        
+
         # However, the log "Unexpected column survived mapping: Name" suggests "Name" *is* still in the df
         # after mapping (because it wasn't in column_map).
         # So, the list in extras_ignore should contain names as they are in the DataFrame *at the point of ignoring*.
-        
+
         # The `extras_ignore` in `schema_registry.yml` lists original column names.
         # These original names might still exist in `transformed_df` if they were not part of `rename_dict`.
         # Or, if an original column listed in `extras_ignore` *was* mapped, we should ignore its *new* name.
@@ -573,7 +660,7 @@ def apply_schema_transformations(
         # This assumes `extras_ignore` contains names that are currently present in the DataFrame.
         # Let's stick to the user's `schema_registry.yml` where `extras_ignore` lists original names.
         # We need to find which of these original names are still present (i.e., were not mapped and renamed).
-        
+
         # The `unmapped_original_cols` list contains original column names that were not mapped.
         # The `Extras` column now holds a JSON of these.
         # The `extras_ignore` from schema should refer to original column names.
@@ -587,7 +674,7 @@ def apply_schema_transformations(
         # mapped_original_cols = set(rename_dict.keys())
         # unmapped_original_cols = [col for col in original_columns if col not in mapped_original_cols]
         # extras_df = df[unmapped_original_cols].copy() ...
-        
+
         # New approach for extras_ignore:
         # 1. Identify columns to be put into 'Extras': these are `unmapped_original_cols`.
         # 2. From this list, remove any columns specified in `extras_ignore`.
@@ -597,70 +684,106 @@ def apply_schema_transformations(
 
         # First, drop any columns listed in extras_ignore that are currently actual columns in transformed_df.
         # These would be original names that were NOT mapped by `rename_dict`.
-        cols_to_drop_directly = [col for col in extras_to_ignore if col in transformed_df.columns]
+        cols_to_drop_directly = [
+            col for col in extras_to_ignore if col in transformed_df.columns
+        ]
         if cols_to_drop_directly:
-            transformed_df.drop(columns=cols_to_drop_directly, inplace=True, errors='ignore')
-            log.info(f"Dropped columns directly based on 'extras_ignore': {cols_to_drop_directly}")
+            transformed_df.drop(
+                columns=cols_to_drop_directly, inplace=True, errors="ignore"
+            )
+            log.debug(
+                f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Extras Ignore | Details: Dropped columns directly {cols_to_drop_directly}"
+            )
             # Update unmapped_original_cols if any were dropped directly
-            unmapped_original_cols = [col for col in unmapped_original_cols if col not in cols_to_drop_directly]
+            unmapped_original_cols = [
+                col
+                for col in unmapped_original_cols
+                if col not in cols_to_drop_directly
+            ]
 
         # Re-create 'Extras' column logic, considering extras_ignore for what goes into JSON.
         # `original_columns` are the raw headers from the input CSV `df`.
         # `rename_dict` maps raw headers to canonical names.
-        
+
         # Columns that were mapped:
         mapped_raw_headers = set(rename_dict.keys())
         # Columns from original CSV that were NOT mapped:
-        unmapped_raw_headers = [col for col in original_columns if col not in mapped_raw_headers]
-        
+        unmapped_raw_headers = [
+            col for col in original_columns if col not in mapped_raw_headers
+        ]
+
         # From these unmapped raw headers, filter out those listed in extras_ignore:
-        final_cols_for_extras_json = [col for col in unmapped_raw_headers if col not in extras_to_ignore]
-        
+        final_cols_for_extras_json = [
+            col for col in unmapped_raw_headers if col not in extras_to_ignore
+        ]
+
         if final_cols_for_extras_json:
             # Create a DataFrame of just these columns from the *original* df
             extras_df_filtered = df[final_cols_for_extras_json].copy()
-            transformed_df['Extras'] = extras_df_filtered.apply(
+            transformed_df["Extras"] = extras_df_filtered.apply(
                 lambda row: json.dumps(row.dropna().to_dict()), axis=1
             )
-            log.info(f"Collected unmapped columns (after extras_ignore) into 'Extras' JSON: {final_cols_for_extras_json}")
+            log.debug(
+                f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Extras Collection | Details: Unmapped original columns for Extras JSON (after extras_ignore): {final_cols_for_extras_json}"
+            )
         else:
-            transformed_df['Extras'] = None 
-            log.info("No unmapped columns left for 'Extras' JSON after applying extras_ignore.")
-            
+            transformed_df["Extras"] = None
+            log.debug(
+                f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Extras Collection | Details: No unmapped columns left for 'Extras' JSON after applying extras_ignore."
+            )
+
     # 7. Specific source pre-processing (e.g., Rocket Money) - Placeholder
     # This should be minimized by making YAML expressive.
     # schema_id = schema_rules.get('id', '').lower()
     # if 'rocket_money' in schema_id:
     #    # ... Rocket Money specific logic ...
 
-    # 8. Populate DataSourceName (from schema['id'])
-    transformed_df['DataSourceName'] = schema_rules.get('id', 'UnknownSchema')
-    log.info(f"Populated 'DataSourceName' with '{transformed_df['DataSourceName'].iloc[0]}'.")
+    # 8. Populate DataSourceName (from schema['id']), only if not already set by derived_columns
+    # Check if DataSourceName was already populated by derived_columns
+    if "DataSourceName" not in transformed_df.columns or transformed_df["DataSourceName"].isnull().all():
+        ds_name_val = schema_rules.get("id", "UnknownSchema")
+        transformed_df["DataSourceName"] = ds_name_val
+        log.debug(
+            f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: DataSourceName Population from schema ID | Value: {ds_name_val}"
+        )
+    else:
+        log.debug(
+            f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: DataSourceName Population | Detail: DataSourceName already populated (likely by derived_columns), value: {transformed_df['DataSourceName'].iloc[0] if not transformed_df.empty else 'N/A'}"
+        )
 
     # 9. Add static columns from schema['extra_static_cols']
-    extra_static_cols = schema_rules.get('extra_static_cols', {})
+    extra_static_cols = schema_rules.get("extra_static_cols", {})
     if extra_static_cols:
         for col_name, static_value in extra_static_cols.items():
             transformed_df[col_name] = static_value
-            log.info(f"Added static column '{col_name}' with value '{static_value}'.")
-    
+            log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Static Column | Column: {col_name} | Value: {static_value}")
+
     # TODO: Implement remaining transformations:
-    # - Complex sign_rule (e.g. based on another column's value)
+    # - Complex sign_rule (e.g. based on another column's value) # This was implemented above
     # - Specific source pre-processing (if unavoidable by YAML)
 
     # Verify apply_schema_transformations returns only canonical + extras
-    expected_cols = set(MASTER_SCHEMA_COLUMNS) | {"Extras"}
-    for col in transformed_df.columns:
-        if col not in expected_cols:
-            log.warning("Unexpected column survived mapping: %s", col)
+    final_master_cols_missing = [col for col in MASTER_SCHEMA_COLUMNS if col not in transformed_df.columns]
+    if final_master_cols_missing:
+        log.warning(f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | Missing Master Columns After Transformations: {final_master_cols_missing}")
+    # else: # No need for an else if all are present, less noise
+        # log.debug(f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | All Master Columns Present After Transformations.")
 
+    unexpected_survivors = [
+        col for col in transformed_df.columns if col not in MASTER_SCHEMA_COLUMNS and col != "Extras"
+    ]
+    if unexpected_survivors:
+        log.warning(f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | Unexpected columns survived mapping: {unexpected_survivors}")
+
+    log.debug(
+        f"[APPLY_SCHEMA_STATE] File: {filename} | Schema: {schema_id} | Stage: After Transformations | Columns: {list(transformed_df.columns)}"
+    )
     return transformed_df
 
 
-def _clean_merchant_column(
-    df: pd.DataFrame,
-    merchant_lookup_rules: List[Tuple[re.Pattern, str]]
-) -> pd.Series:
+def _clean_merchant_column(  # Added return type hint
+    df: pd.DataFrame, merchant_lookup_rules: List[Tuple[re.Pattern[str], str]]
+) -> pd.Series[str]:  # type: ignore[no-untyped-def]
     """
     Cleans the merchant names in a DataFrame.
     Uses 'OriginalDescription' as the primary source for cleaning,
@@ -668,33 +791,45 @@ def _clean_merchant_column(
     Applies regex lookup rules and then a fallback general cleaner.
     """
     # Determine the source column for merchant cleaning
-    if 'OriginalDescription' in df.columns and not df['OriginalDescription'].isna().all():
-        source_merchant_col = 'OriginalDescription'
-    elif 'Merchant' in df.columns: # Fallback to Merchant if OriginalDescription is not good
-        source_merchant_col = 'Merchant'
-        log.info("Using 'Merchant' column as source for merchant cleaning as 'OriginalDescription' is unavailable/empty.")
+    if (
+        "OriginalDescription" in df.columns
+        and not df["OriginalDescription"].isna().all()
+    ):
+        source_merchant_col = "OriginalDescription"
+    elif (
+        "Merchant" in df.columns
+    ):  # Fallback to Merchant if OriginalDescription is not good
+        source_merchant_col = "Merchant"
+        # This log is more of a detail for a specific file, will be covered by process_csv_files logs
+        # log.info(
+        #     "Using 'Merchant' column as source for merchant cleaning as 'OriginalDescription' is unavailable/empty."
+        # )
     else:
-        log.warning("Neither 'OriginalDescription' nor 'Merchant' column found for merchant cleaning. Returning empty Series.")
+        # This log is also more of a detail for a specific file
+        # log.warning(
+        #     "Neither 'OriginalDescription' nor 'Merchant' column found for merchant cleaning. Returning empty Series."
+        # )
         return pd.Series([None] * len(df), index=df.index, dtype=str)
 
     def clean_single_merchant(merchant_string: Any) -> str:
         if not isinstance(merchant_string, str) or pd.isna(merchant_string):
-            return "Unknown Merchant" # Default for missing/invalid input
+            return "Unknown Merchant"  # Default for missing/invalid input
 
         for pattern, canonical_name in merchant_lookup_rules:
             if pattern.search(merchant_string):
                 return canonical_name
-        
-        # Fallback to project's general merchant cleaner
-        return project_clean_merchant(merchant_string)
 
-    return df[source_merchant_col].apply(clean_single_merchant)
+        # Fallback to project's general merchant cleaner
+        return project_clean_merchant(merchant_string)  # This returns str
+
+    # The apply will result in a Series of strings
+    return df[source_merchant_col].apply(clean_single_merchant).astype(str)
 
 
 def process_csv_files(
     csv_files: List[Union[str, Path]],
     schema_registry_override_path: Optional[Path] = None,
-    merchant_lookup_override_path: Optional[Path] = None
+    merchant_lookup_override_path: Optional[Path] = None,
 ) -> pd.DataFrame:
     """
     Main public function to ingest, process, and consolidate multiple CSV files.
@@ -708,152 +843,214 @@ def process_csv_files(
     Returns:
         pd.DataFrame: A single DataFrame containing all consolidated and normalized transactions.
     """
-    schema_reg_path = schema_registry_override_path or SCHEMA_REGISTRY_PATH
+    # schema_reg_path = schema_registry_override_path or SCHEMA_REGISTRY_PATH # Unused
     merchant_lkp_path = merchant_lookup_override_path or MERCHANT_LOOKUP_PATH
 
-    try:
-        schema_registry = load_and_parse_schema_registry(schema_reg_path)
-    except Exception as exc:
-        raise FatalSchemaError(f"Failed to load schema registry: {exc}") from exc
+    # schema_registry variable was unused. _find_schema handles registry loading.
+    # try:
+    #     schema_registry = load_and_parse_schema_registry(schema_reg_path)
+    # except Exception as exc:
+    #     raise FatalSchemaError(f"Failed to load schema registry: {exc}") from exc
 
     try:
         merchant_rules = load_merchant_lookup_rules(merchant_lkp_path)
     except Exception as exc:
-        raise RecoverableFileError(f"Failed to load merchant lookup rules: {exc}") from exc
+        raise RecoverableFileError(
+            f"Failed to load merchant lookup rules: {exc}"
+        ) from exc
 
     all_processed_dfs: List[pd.DataFrame] = []
-    schema_ids_found: List[str] = [] # For schema matching smoke test
+    schema_ids_found: List[str] = []  # For schema matching smoke test
 
     for csv_file_path_obj in [Path(p) for p in csv_files]:
-        log.info(f"Processing CSV file: {csv_file_path_obj.name}")
+        filename_for_logs = csv_file_path_obj.name
+        log.info(f"[PROCESS_FILE_START] File: {filename_for_logs}")
         try:
-            raw_df = pd.read_csv(csv_file_path_obj, dtype=str)  # Read all as string initially
+            raw_df = pd.read_csv(
+                csv_file_path_obj, dtype=str
+            )  # Read all as string initially
             if raw_df.empty:
-                log.warning(f"CSV file {csv_file_path_obj.name} is empty. Skipping.")
+                log.warning(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: CSV file is empty.")
                 continue
         except Exception as exc:
-            raise RecoverableFileError(f"Failed to read CSV {csv_file_path_obj.name}: {exc}") from exc
+            # Log before raising, so the file context is captured
+            log.error(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Failed | Reason: Failed to read CSV: {exc}")
+            raise RecoverableFileError(
+                f"Failed to read CSV {filename_for_logs}: {exc}"
+            ) from exc
+        
+        log.debug(f"[SCHEMA_MATCH_INPUT] File: {filename_for_logs} | Headers: {list(raw_df.columns)}")
 
         # Infer Owner (e.g., from subfolder name "Jordyn"/"Ryan")
-        wanted_owners_map = {"ryan": "Ryan", "jordyn": "Jordyn"} # Map lowercase dir name to capitalized Owner name
+        wanted_owners_map = {
+            "ryan": "Ryan",
+            "jordyn": "Jordyn",
+        }  # Map lowercase dir name to capitalized Owner name
         current_path_segment = csv_file_path_obj.parent
         owner = None  # Default if not found by walking
 
         # Walk up a few levels (e.g., up to 4) to find a directory named Ryan or Jordyn (case-insensitive)
         for _ in range(4):  # Check current parent and up to 3 levels higher
             if not current_path_segment or not current_path_segment.name:
-                break # Should not happen with Path objects, but defensive
-            
+                break  # Should not happen with Path objects, but defensive
+
             dir_name_lower = current_path_segment.name.lower()
             if dir_name_lower in wanted_owners_map:
-                owner = wanted_owners_map[dir_name_lower] # Assign the capitalized version
+                owner = wanted_owners_map[
+                    dir_name_lower
+                ]  # Assign the capitalized version
                 break
-            
+
             # Stop if we hit a directory named 'BALANCE-pyexcel' (repo root) or filesystem root
-            if current_path_segment.name == 'BALANCE-pyexcel' or current_path_segment == current_path_segment.parent:
+            if (
+                current_path_segment.name == "BALANCE-pyexcel"
+                or current_path_segment == current_path_segment.parent
+            ):
                 break
             current_path_segment = current_path_segment.parent
-        
+
         # --- tweak: try filename token before UnknownOwner fallback ---
         if owner is None:
             stem_parts = csv_file_path_obj.stem.split(" - ", 1)
-            filename_token = stem_parts[0] # Get the first part (e.g., "Ryan" or "Jordyn")
-            
-            if filename_token in {"Ryan", "Jordyn"}: 
+            filename_token = stem_parts[
+                0
+            ]  # Get the first part (e.g., "Ryan" or "Jordyn")
+
+            if filename_token in {"Ryan", "Jordyn"}:
                 owner = filename_token
-        
+
         if owner is None:
             owner = "UnknownOwner"
-        log.info(f"Inferred Owner: '{owner}' from path.")
+        log.debug(f"[PROCESS_FILE_DETAIL] File: {filename_for_logs} | Detail: Inferred Owner '{owner}' from path.")
 
         # DataSourceDate (file modification date)
         try:
             ds_date = datetime.fromtimestamp(csv_file_path_obj.stat().st_mtime)
         except Exception as e:
-            log.warning(f"Could not get file modification date for {csv_file_path_obj.name}: {e}. Using current time.")
+            log.warning(
+                f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Detail: Could not get file modification date: {e}. Using current time."
+            )
             ds_date = datetime.now()
-        
+        log.debug(f"[PROCESS_FILE_DETAIL] File: {filename_for_logs} | Detail: DataSourceDate set to {ds_date}")
+
         # Identify Schema
         # Use raw_df.columns.tolist() for header matching
-        matched_schema = find_matching_schema(raw_df.columns.tolist(), csv_file_path_obj.name, schema_registry)
+        from balance_pipeline.schema_types import MatchResult  # Import for cast
+        from typing import cast  # Import for cast
 
-        if not matched_schema:
-            log.error(f"No matching schema found for {csv_file_path_obj.name}. Skipping file.")
-            schema_ids_found.append('None (no match)') # For smoke test
+        match_result_union = _find_schema(
+            list(raw_df.columns)
+        )  # _find_schema is aliased to the new engine
+
+        if match_result_union is None:
+            log.error(
+                f"[SCHEMA_RESULT] File: {filename_for_logs} | Selected schema: None | Reason: No schema could be determined by _find_schema. Skipping file."
+            )
+            log.info(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: No schema determined.")
             continue
-        
-        schema_id_for_file = matched_schema.get('id', 'None (id missing in schema)')
-        schema_ids_found.append(schema_id_for_file) # For smoke test
-        log.info(f"Using schema '{schema_id_for_file}' for {csv_file_path_obj.name}.")
 
-        # Apply schema transformations (column mapping, basic types, derived, static, etc.)
-        processed_df = apply_schema_transformations(raw_df, matched_schema, merchant_rules)
+        match_result = cast(MatchResult, match_result_union)
+        schema_object = match_result.schema
+        rules_dict = match_result.rules
+        missing_required = match_result.missing
+        extra_unknown = match_result.extras
+
+        if schema_object.name == "generic_csv":
+            log.warning(
+                f"[SCHEMA_RESULT] File: {filename_for_logs} | Selected schema: {schema_object.name} (Fallback) | Reason: Fallback. Missing required: {', '.join(sorted(missing_required)) if missing_required else 'None'}, Extra unknown: {', '.join(sorted(extra_unknown)) if extra_unknown else 'None'}"
+            )
+        else:
+            log.info(
+                f"[SCHEMA_RESULT] File: {filename_for_logs} | Selected schema: {schema_object.name} | Matched with missing: {', '.join(sorted(missing_required)) if missing_required else 'None'}, extras: {', '.join(sorted(extra_unknown)) if extra_unknown else 'None'}"
+            )
+        schema_ids_found.append(schema_object.name)
+
+        processed_df = apply_schema_transformations(raw_df, rules_dict, merchant_rules, filename_for_logs)
 
         # Populate initial metadata fields
-        processed_df['Owner'] = owner
-        processed_df['DataSourceDate'] = ds_date
+        processed_df["Owner"] = owner
+        log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate Owner | Value: {owner}")
+        processed_df["DataSourceDate"] = ds_date
+        log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate DataSourceDate | Value: {ds_date}")
 
-        # Merchant Cleaning (final step for Merchant column)
-        # This uses the merchant_rules and the project's fallback cleaner.
-        # The result should go into the 'Merchant' column of the master schema.
-        # apply_schema_transformations might have mapped a column to 'Merchant' or 'OriginalDescription'.
-        # _clean_merchant_column will use 'OriginalDescription' preferably.
-        processed_df['Merchant'] = _clean_merchant_column(processed_df, merchant_rules)
-        log.info("Applied final merchant cleaning.")
+        # Merchant Cleaning
+        processed_df["Merchant"] = _clean_merchant_column(processed_df, merchant_rules)
+        log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Final Merchant Cleaning")
 
-        # Log merchant blanks for the current file
-        if 'Merchant' in processed_df.columns and not processed_df.empty:
-            blanks = processed_df['Merchant'].isna().sum()
+        if "Merchant" in processed_df.columns and not processed_df.empty:
+            blanks = processed_df["Merchant"].isna().sum()
             percentage_blanks = (blanks / len(processed_df)) * 100 if len(processed_df) > 0 else 0
-            log.info(f"🛒 Merchant blanks after clean for file {csv_file_path_obj.name}: {blanks} ({percentage_blanks:.2f}%)")
+            log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks after clean: {blanks} ({percentage_blanks:.2f}%)")
         elif processed_df.empty:
-            log.info(f"🛒 Merchant blanks after clean for file {csv_file_path_obj.name}: N/A (empty DataFrame)")
-        else:
-            log.info(f"🛒 Merchant column not found after clean for file {csv_file_path_obj.name}, cannot count blanks.")
+            log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks after clean: N/A (empty DataFrame)")
+        else: # Merchant column not found
+            log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant column not found after clean, cannot count blanks.")
 
 
         # Generate TxnID
-        # The _generate_txn_id function now handles potentially missing columns from TXN_ID_HASH_COLS
-        # by using an empty string for hashing if a column is missing or its value is NA.
-        # Thus, the explicit check for missing_hash_cols here is no longer strictly necessary
-        # as long as apply_schema_transformations ensures the columns in TXN_ID_HASH_COLS exist
-        # (even if all NA) or _generate_txn_id correctly uses .get().
-        # The current _generate_txn_id uses .get(), so it's robust.
-        processed_df['TxnID'] = processed_df.apply(_generate_txn_id, axis=1)
-        log.info("Generated 'TxnID' column.")
-        if processed_df['TxnID'].isnull().any(): # This check is fine, as apply might return None if input is weird
-             log.warning(f"Some TxnIDs are null for {csv_file_path_obj.name} (this might be due to all hashable fields being empty/NA for a row).")
-
+        processed_df["TxnID"] = processed_df.apply(_generate_txn_id, axis=1)
+        log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: TxnID Generation")
+        if processed_df["TxnID"].isnull().any():
+            log.warning(
+                f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Detail: Some TxnIDs are null (this might be due to all hashable fields being empty/NA for a row)."
+            )
 
         # Populate Remaining Master Schema Fields (Defaults)
-        processed_df['Currency'] = "USD"
-        if 'SharedFlag' not in processed_df.columns: # Default if not set by derived or mapping
-            processed_df['SharedFlag'] = None # Per spec: default to None/False
-        if 'SplitPercent' not in processed_df.columns:
-            processed_df['SplitPercent'] = None # Per spec: default to None
+        log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate Default Master Fields (Currency, SharedFlag, etc.)")
+        processed_df["Currency"] = "USD"
+        if "SharedFlag" not in processed_df.columns:
+            processed_df["SharedFlag"] = None
+        if "SplitPercent" not in processed_df.columns:
+            processed_df["SplitPercent"] = None
 
-        # Ensure all master schema columns exist, fill with NA if not already present
+        # Ensure all master schema columns exist
+        cols_added_for_master = []
         for col in MASTER_SCHEMA_COLUMNS:
             if col not in processed_df.columns:
-                processed_df[col] = pd.NA # Use pd.NA for pandas-idiomatic null
-
-        # Data Type Coercion for final master schema columns
-        # This is a crucial step to ensure consistency.
+                cols_added_for_master.append(col)
+                processed_df[col] = pd.NA
+        if cols_added_for_master:
+            log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Ensure Master Columns | Added missing master columns: {cols_added_for_master}")
+        # else: # No need to log if all were present, less noise
+            # log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Ensure Master Columns | All master columns already present.")
+        
+        log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Data Type Coercion for Master Schema")
         dtype_map = {
-            "TxnID": str, "Owner": str, "Date": "datetime64[ns]", "PostDate": "datetime64[ns]",
-            "Merchant": str, "OriginalDescription": str, "Category": str, "Amount": float,
-            "Tags": str, "Institution": str, "Account": str, "AccountLast4": str,
-            "AccountType": str, "SharedFlag": bool, "SplitPercent": float,
-            "StatementStart": "datetime64[ns]", "StatementEnd": "datetime64[ns]",
-            "StatementPeriodDesc": str, "DataSourceName": str, "DataSourceDate": "datetime64[ns]",
-            "ReferenceNumber": str, "Note": str, "IgnoredFrom": str,
-            "TaxDeductible": bool, "CustomName": str, "Currency": str, "Extras": str,
+            "TxnID": str,
+            "Owner": str,
+            "Date": "datetime64[ns]",
+            "PostDate": "datetime64[ns]",
+            "Merchant": str,
+            "OriginalDescription": str,
+            "Category": str,
+            "Amount": float,
+            "Tags": str,
+            "Institution": str,
+            "Account": str,
+            "AccountLast4": str,
+            "AccountType": str,
+            "SharedFlag": bool,
+            "SplitPercent": float,
+            "StatementStart": "datetime64[ns]",
+            "StatementEnd": "datetime64[ns]",
+            "StatementPeriodDesc": str,
+            "DataSourceName": str,
+            "DataSourceDate": "datetime64[ns]",
+            "ReferenceNumber": str,
+            "Note": str,
+            "IgnoredFrom": str,
+            "TaxDeductible": bool,
+            "CustomName": str,
+            "Currency": str,
+            "Extras": str,
         }
         for col, dtype_str in dtype_map.items():
             if col in processed_df.columns:
                 try:
                     if dtype_str == "datetime64[ns]":
-                        processed_df[col] = pd.to_datetime(processed_df[col], errors='coerce')
+                        processed_df[col] = pd.to_datetime(
+                            processed_df[col], errors="coerce"
+                        )
                     elif dtype_str == bool:
                         # Handle boolean conversion carefully: map common strings to bool, others to NA
                         # Example: 'true', 'yes', '1' -> True; 'false', 'no', '0' -> False
@@ -863,73 +1060,93 @@ def process_csv_files(
                         processed_df[col] = coerce_bool(processed_df[col])
 
                     elif dtype_str == float:
-                         # Ensure any non-convertible values become NaN, then cast to float
-                         processed_df[col] = pd.to_numeric(processed_df[col], errors='coerce')
-                         # Explicitly cast to float64 if not already, to avoid object dtype with mixed NaNs/floats
-                         if not pd.api.types.is_float_dtype(processed_df[col]):
+                        processed_df[col] = pd.to_numeric(processed_df[col], errors="coerce")
+                        if not pd.api.types.is_float_dtype(processed_df[col]):
                             processed_df[col] = processed_df[col].astype(float)
-
-                    else: # typically str or int (though int needs similar care to float for errors)
-                        if dtype_str == int: # Example for int, though not in current master schema as primary
-                            processed_df[col] = pd.to_numeric(processed_df[col], errors='coerce').astype('Int64') # Nullable Int
-                        else: # primarily str
-                            processed_df[col] = processed_df[col].astype(str, errors='ignore').fillna(pd.NA)
-                            # Replace "nan" strings that might result from .astype(str) on NaN numerics
-                            processed_df.loc[processed_df[col].str.lower() == 'nan', col] = pd.NA
+                    else: # str or int
+                        if dtype_str == int:
+                            processed_df[col] = pd.to_numeric(processed_df[col], errors="coerce").astype("Int64")
+                        else: # str
+                            processed_df[col] = processed_df[col].astype(str, errors="ignore").fillna(pd.NA)
+                            processed_df.loc[processed_df[col].astype(str).str.lower() == "nan", col] = pd.NA
                 except Exception as e:
-                    log.warning(f"Could not coerce column '{col}' to type '{dtype_str}': {e}. Column may have mixed types or errors.")
-            # If column is missing, it was already added with pd.NA
+                    log.warning(
+                        f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Detail: Could not coerce column '{col}' to type '{dtype_str}': {e}. Column may have mixed types or errors."
+                    )
 
-        # Final Column Selection & Ordering (with fill_value as per manual fix step)
-        # Use the imported MASTER_SCHEMA_COLUMNS directly.
-        log.info("Applying reindex to MASTER_SCHEMA_COLUMNS (element 3: {}) with fill_value=pd.NA for {}".format(
-            MASTER_SCHEMA_COLUMNS[3] if len(MASTER_SCHEMA_COLUMNS) > 3 else 'N/A',
-            csv_file_path_obj.name
-        ))
-        processed_df = processed_df.reindex(columns=MASTER_SCHEMA_COLUMNS, fill_value=pd.NA)
-        
+        log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Reindex to Master Schema Columns")
+        processed_df = processed_df.reindex(
+            columns=MASTER_SCHEMA_COLUMNS,
+            fill_value=None,
+        )
+
         all_processed_dfs.append(processed_df)
-        log.info(f"Finished processing {csv_file_path_obj.name}. {len(processed_df)} rows added.")
+        log.info(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Success | Rows processed: {len(processed_df)}")
 
     if not all_processed_dfs:
-        log.warning("No CSV files were processed successfully. Returning an empty DataFrame.")
-        # Log schema matching smoke test results even if no DFs were processed
-        log.info(f"Schema matching smoke test - Counts of schema_ids found: {Counter(schema_ids_found)}")
+        log.warning("[PROCESS_SUMMARY] No CSV files were processed successfully. Returning an empty DataFrame.")
+        log.info(f"[PROCESS_SUMMARY] Schema matching counts: {Counter(schema_ids_found)}")
         return pd.DataFrame(columns=MASTER_SCHEMA_COLUMNS)
 
-    # Log schema matching smoke test results
-    log.info(f"Schema matching smoke test - Counts of schema_ids found: {Counter(schema_ids_found)}")
-
+    log.info(f"[PROCESS_SUMMARY] Schema matching counts: {Counter(schema_ids_found)}")
     final_df = pd.concat(all_processed_dfs, ignore_index=True)
-    log.info(f"Successfully consolidated {len(all_processed_dfs)} CSV files into a single DataFrame with {len(final_df)} total rows.")
-    
-    # Log total merchant blanks in final_df
-    if not final_df.empty and 'Merchant' in final_df.columns:
-        total_merchant_blanks = final_df['Merchant'].isna().sum()
-        total_percentage_blanks = (total_merchant_blanks / len(final_df)) * 100 if len(final_df) > 0 else 0
-        log.info(f"🛒 Total merchant blanks in final_df after concatenation: {total_merchant_blanks} ({total_percentage_blanks:.2f}%)")
-    elif final_df.empty:
-        log.info("🛒 Total merchant blanks in final_df: N/A (final DataFrame is empty)")
-    else:
-        log.info("🛒 Merchant column not found in final_df, cannot count total blanks.")
+    log.info(f"[PROCESS_SUMMARY] Consolidated {len(all_processed_dfs)} CSV files into DataFrame with {len(final_df)} total rows.")
 
-    # Final sort by Date (and perhaps Owner/Account for stability)
-    final_df = final_df.sort_values(by=['Date', 'Owner', 'Amount'], ascending=[True, True, True], na_position='first')
-    
+    if not final_df.empty and "Merchant" in final_df.columns:
+        total_merchant_blanks = final_df["Merchant"].isna().sum()
+        total_percentage_blanks = (total_merchant_blanks / len(final_df)) * 100 if len(final_df) > 0 else 0
+        log.info(f"[PROCESS_SUMMARY_STATS] Total merchant blanks in final_df: {total_merchant_blanks} ({total_percentage_blanks:.2f}%)")
+    elif final_df.empty:
+        log.info("[PROCESS_SUMMARY_STATS] Total merchant blanks in final_df: N/A (final DataFrame is empty)")
+    else: # Merchant column not found
+        log.info("[PROCESS_SUMMARY_STATS] Merchant column not found in final_df, cannot count total blanks.")
+
+    log.debug("[PROCESS_SUMMARY] Sorting final DataFrame.")
+    final_df = final_df.sort_values(
+        by=["Date", "Owner", "Amount"],
+        ascending=[True, True, True],
+        na_position="first",
+    )
+
+    # Ensure all columns have explicit, non-null data types for Power BI compatibility
+    # This prevents PyArrow from writing columns as null type when all values are NA
+    # and makes the data compatible with Power BI's stricter requirements.
+    log.info("[PROCESS_SUMMARY] Applying defensive data type management for Power BI compatibility.")
+    for col in MASTER_SCHEMA_COLUMNS:
+        if col in final_df.columns: # Check if column exists in final_df
+            is_boolean_col = pd.api.types.is_bool_dtype(final_df[col])
+
+            if final_df[col].isna().all():
+                if not is_boolean_col: # If it's all NA AND NOT boolean, then set to empty string
+                    final_df[col] = ''
+                    log.debug(f"Set all-NA non-boolean column '{col}' to empty strings")
+                # else: If it IS boolean and all NA, do nothing. It remains BooleanDtype with pd.NA values,
+                # which is correctly handled by PyArrow and Power BI.
+            elif not is_numeric_dtype(final_df[col]) and not is_boolean_col: # If not numeric AND NOT boolean
+                # Cast to string to ensure clear typing for other non-numeric/non-boolean columns.
+                final_df[col] = final_df[col].astype(str)
+                log.debug(f"Cast non-numeric, non-boolean column '{col}' to string type")
+        else:
+            log.warning(f"[PROCESS_SUMMARY_WARN] Column '{col}' from MASTER_SCHEMA_COLUMNS not found in final_df during defensive typing. Skipping.")
+
     return final_df
 
 
-def load_and_parse_schema_registry(yaml_path: Path) -> dict:
+def load_and_parse_schema_registry(
+    yaml_path: Path,
+) -> Dict[str, Any]:  # Updated type hint
     """Loads and parses the schema_registry.yml file."""
     log.info(f"Loading schema registry from: {yaml_path}")
     try:
-        with open(yaml_path, 'r', encoding='utf-8') as f:
+        with open(yaml_path, "r", encoding="utf-8") as f:
             registry = yaml.safe_load(f)
-        if not isinstance(registry, list): # Expecting a list of schema dicts
-            log.error(f"Schema registry at {yaml_path} is not a list. Found type: {type(registry)}")
+        if not isinstance(registry, list):  # Expecting a list of schema dicts
+            log.error(
+                f"Schema registry at {yaml_path} is not a list. Found type: {type(registry)}"
+            )
             raise ValueError("Schema registry must be a list of schema definitions.")
         log.info(f"Successfully loaded {len(registry)} schema definitions.")
-        return {'schemas': registry} # Wrap in a dict for easier access if needed
+        return {"schemas": registry}  # Wrap in a dict for easier access if needed
     except FileNotFoundError:
         log.error(f"Schema registry file not found: {yaml_path}")
         raise
@@ -937,8 +1154,11 @@ def load_and_parse_schema_registry(yaml_path: Path) -> dict:
         log.error(f"Error parsing YAML from {yaml_path}: {e}")
         raise
     except Exception as e:
-        log.error(f"An unexpected error occurred while loading schema registry {yaml_path}: {e}")
+        log.error(
+            f"An unexpected error occurred while loading schema registry {yaml_path}: {e}"
+        )
         raise
+
 
 def load_merchant_lookup_rules(csv_path: Path) -> List[Tuple[re.Pattern, str]]:
     """
@@ -946,11 +1166,11 @@ def load_merchant_lookup_rules(csv_path: Path) -> List[Tuple[re.Pattern, str]]:
     Similar to _load_merchant_lookup in normalize.py but adapted for this module.
     """
     log.info(f"Loading merchant lookup rules from: {csv_path}")
-    rules: List[Tuple[re.Pattern, str]] = []
+    rules: List[Tuple[re.Pattern[str], str]] = []  # Updated type hint
     try:
-        with open(csv_path, mode='r', encoding='utf-8') as f:
-            reader = pd.read_csv(f) # Using pandas to read CSV for simplicity here
-            if list(reader.columns) != ['pattern', 'canonical']:
+        with open(csv_path, mode="r", encoding="utf-8") as f:
+            reader = pd.read_csv(f)  # Using pandas to read CSV for simplicity here
+            if list(reader.columns) != ["pattern", "canonical"]:
                 err_msg = (
                     f"Invalid header in {csv_path}. "
                     f"Expected ['pattern', 'canonical'], got {list(reader.columns)}"
@@ -959,37 +1179,52 @@ def load_merchant_lookup_rules(csv_path: Path) -> List[Tuple[re.Pattern, str]]:
                 raise ValueError(err_msg)
 
             for index, row in reader.iterrows():
-                pattern_str, canonical_name = row['pattern'], row['canonical']
-                if not isinstance(pattern_str, str) or not isinstance(canonical_name, str):
-                    log.warning(f"Skipping row {index + 2} in {csv_path} due to invalid data types: {row.to_dict()}")
+                pattern_str, canonical_name = row["pattern"], row["canonical"]
+                if not isinstance(pattern_str, str) or not isinstance(
+                    canonical_name, str
+                ):
+                    log.warning(
+                        f"Skipping row {str(int(cast(Any, index)) + 2)} in {csv_path} due to invalid data types: {row.to_dict()}"  # str(int(cast(Any, index)) + 2)
+                    )
                     continue
                 try:
-                    compiled_regex = re.compile(pattern_str, re.IGNORECASE)
+                    compiled_regex: re.Pattern[str] = re.compile(  # type: ignore[type-arg]
+                        pattern_str, re.IGNORECASE
+                    )  # Added type hint
                     rules.append((compiled_regex, canonical_name))
                 except re.error as e:
                     err_msg = (
-                        f"Invalid regex pattern in {csv_path} at row {index + 2}: "
+                        f"Invalid regex pattern in {csv_path} at row {str(int(cast(Any, index)) + 2)}: "  # str(int(cast(Any, index)) + 2)
                         f"'{pattern_str}'. Error: {e}"
                     )
                     log.error(err_msg)
                     raise ValueError(err_msg) from e
-        log.info(f"Successfully loaded and compiled {len(rules)} merchant lookup rules from {csv_path}.")
+        log.info(
+            f"Successfully loaded and compiled {len(rules)} merchant lookup rules from {csv_path}."
+        )
     except FileNotFoundError:
-        log.error(f"Merchant lookup file not found: {csv_path}. Proceeding without custom merchant rules.")
+        log.error(
+            f"Merchant lookup file not found: {csv_path}. Proceeding without custom merchant rules."
+        )
         # Return empty list, merchant cleaning will rely on fallback.
-    except ValueError as e: # Catch ValueErrors from header/regex checks
+    except ValueError as e:  # Catch ValueErrors from header/regex checks
         log.error(f"ValueError during merchant lookup loading: {e}")
         raise
     except Exception as e:
-        log.error(f"Unexpected error loading merchant lookup {csv_path}: {e}", exc_info=True)
+        log.error(
+            f"Unexpected error loading merchant lookup {csv_path}: {e}", exc_info=True
+        )
         # Fallback to empty list on other errors
     return rules
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # This section can be used for basic testing of the module if run directly.
     # For example, to test loading configurations.
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s')
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+    )
     log.info("CSV Consolidator module direct execution (for testing).")
 
     try:

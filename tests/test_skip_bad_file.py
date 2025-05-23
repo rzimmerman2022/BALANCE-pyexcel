@@ -1,8 +1,6 @@
-import pytest
 import pandas as pd
-from pathlib import Path
 from balance_pipeline.csv_consolidator import process_csv_files
-from balance_pipeline.errors import RecoverableFileError
+
 
 def test_skip_bad_and_process_good(tmp_path):
     # Create a good CSV with required headers
@@ -23,8 +21,7 @@ def test_skip_bad_and_process_good(tmp_path):
     # Call process_csv_files: bad file should raise RecoverableFileError and get skipped internally
     # Good file should succeed
     df = process_csv_files(
-        [str(bad), str(good)],
-        schema_registry_override_path=registry
+        [str(bad), str(good)], schema_registry_override_path=registry
     )
     # Only the good row should be in the output
     assert isinstance(df, pd.DataFrame)

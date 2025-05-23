@@ -22,7 +22,7 @@ data = {
     "Amount": [-12.34, -45.67],
     "AccountLast4": ["1234", "5678"],
     "ReferenceNumber": ["REF123", "REF456"],
-    "Owner": ["TestOwner", "TestOwner"]
+    "Owner": ["TestOwner", "TestOwner"],
 }
 test_df = pd.DataFrame(data)
 
@@ -36,23 +36,24 @@ print(f"Parquet file exists after append: {os.path.exists(parquet_file)}")
 # Now read the Parquet file back to confirm it contains our test data
 try:
     import duckdb
+
     con = duckdb.connect(":memory:")
     query = f"SELECT COUNT(*) as row_count FROM '{parquet_file}'"
     result = con.execute(query).fetchall()
     print(f"Row count in Parquet file: {result[0][0]}")
-    
+
     query = f"SELECT * FROM '{parquet_file}'"
     data = con.execute(query).fetchall()
     print("\nData in Parquet file:")
     for row in data:
         print(row)
-        
+
     # Describe schema
     query = f"DESCRIBE SELECT * FROM '{parquet_file}'"
     schema = con.execute(query).fetchall()
     print("\nSchema:")
     for col in schema:
         print(f"{col[0]}: {col[1]}")
-        
+
 except Exception as e:
     print(f"Error reading Parquet file: {e}")

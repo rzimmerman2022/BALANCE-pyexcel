@@ -1,0 +1,47 @@
+id: jordyn_chase_checking_v1
+description: "Schema for Jordyn's Chase Checking account statements (CSV format)."
+version: 1
+header_signature:
+  - Name
+  - Institution
+  - Account Type
+  - Statement Start Date
+  - Statement End Date
+  - Transaction Date
+  - Post Date
+  - Description
+  - Reference Number
+  - Amount
+  - Category
+column_map:
+  "Transaction Date": Date
+  "Post Date": PostDate
+  Description: OriginalDescription
+  Amount: Amount
+  Category: Category
+  "Account Type": Account # This might be 'Checking', 'Savings', etc. or part of the account name.
+                         # We'll use it for 'Account' for now and derive AccountLast4 from it if possible.
+  "Reference Number": ReferenceNumber
+  "Statement Start Date": StatementStart
+  "Statement End Date": StatementEnd
+derived_columns:
+  Owner:
+    rule: static_value
+    value: Jordyn
+  DataSourceName:
+    rule: static_value
+    value: ChaseChecking
+  AccountType: # Explicitly set master schema AccountType
+    rule: static_value
+    value: Checking
+  AccountLast4:
+    rule: regex_extract
+    column: Account # Derived from CSV "Account Type" or "Name" - needs verification
+    pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Standard pattern, adjust if needed
+
+# Top-level transformation rules
+extras_ignore:
+  - Institution
+  - Name
+date_format: "%m/%d/%Y" # User-specified date format
+sign_rule: "credit_negative" # User-specified sign rule

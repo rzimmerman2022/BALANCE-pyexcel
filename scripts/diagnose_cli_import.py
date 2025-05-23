@@ -3,6 +3,7 @@ import sys
 
 try:
     import balance_pipeline.cli as bpcli
+
     print("cli imported OK:", bpcli.__file__)
 except Exception:
     print("cli import failed:")

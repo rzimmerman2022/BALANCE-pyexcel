@@ -1,5 +1,0 @@
-docs: add Development Notes and update nav
-
-- new file: docs/development_notes.md
-- mkdocs.yml: added "Development Notes" under Developer Guide
-- small copy edits for clarity

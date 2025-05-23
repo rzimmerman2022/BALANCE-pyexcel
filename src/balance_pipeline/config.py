@@ -17,12 +17,12 @@ Author: Your Name / AI Assistant
 # ==============================================================================
 # 0. IMPORTS
 # ==============================================================================
-from __future__ import annotations # Allows using Path hint before full definition
-from pathlib import Path         # For object-oriented path manipulation
-import os                        # For accessing environment variables
-import sys                       # For checking if running as frozen executable
-import logging                   # For configuring application logging
-from dotenv import load_dotenv   # For loading .env files
+from __future__ import annotations  # Allows using Path hint before full definition
+from pathlib import Path  # For object-oriented path manipulation
+import os  # For accessing environment variables
+import sys  # For checking if running as frozen executable
+import logging  # For configuring application logging
+from dotenv import load_dotenv  # For loading .env files
 
 # ==============================================================================
 # 1. LOAD ENVIRONMENT VARIABLES
@@ -38,19 +38,22 @@ logging.info(".env file loaded if present.")
 # 2. CORE CONSTANTS & RESOURCE PATH HELPER
 # ==============================================================================
 
+
 def get_resource_path(relative_path: str | Path) -> Path:
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    if hasattr(sys, "_MEIPASS"):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = Path(sys._MEIPASS)
+        # The type of sys._MEIPASS is str, so cast it for Path
+        base_path = Path(getattr(sys, "_MEIPASS"))
         logging.debug(f"Running frozen (PyInstaller), base path: {base_path}")
-    except AttributeError:
+    else:
         # Not frozen, running in normal Python environment
         # Calculate PROJECT_ROOT relative to this file's location
         base_path = Path(__file__).resolve().parents[2]
         logging.debug(f"Running from source, base path: {base_path}")
 
     return base_path / relative_path
+
 
 # --- Project Root Directory (for reference when not frozen) ---
 # This is mainly for logging or non-frozen context now.
@@ -99,7 +102,9 @@ logging.info(f"Merchant Lookup Path configured to: {MERCHANT_LOOKUP_PATH}")
 
 # --- Output Parquet Filename ---
 # Defines the canonical name for the final Parquet output.
-BALANCE_FINAL_PARQUET_FILENAME = os.getenv("BALANCE_FINAL_PARQUET_FILENAME", "balance_final.parquet")
+BALANCE_FINAL_PARQUET_FILENAME = os.getenv(
+    "BALANCE_FINAL_PARQUET_FILENAME", "balance_final.parquet"
+)
 logging.info(f"Final Parquet Filename configured to: {BALANCE_FINAL_PARQUET_FILENAME}")
 
 
@@ -124,7 +129,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=LOG_LEVEL,
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-    datefmt='%Y-%m-%d %H:%M:%S' # Added specific date format
+    datefmt="%Y-%m-%d %H:%M:%S",  # Added specific date format
 )
 # Example of getting a logger specific to this module
 # logger = logging.getLogger(__name__)
