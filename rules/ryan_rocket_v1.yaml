@@ -1,9 +1,15 @@
-schema_name: ryan_rocket_v1
+# rules/ryan_rocket_v1.yaml
+# Schema for Rocket Money CSV exports
+# Updated for Canonical Schema v2.0 on 2025-05-22
+
+schema_name: Ryan - Rocket Money
 id: ryan_rocket_v1
+notes: Schema for Rocket Money CSV exports (Ryan's aggregated financial data)
 
+# Date format for parsing date columns
 date_format: "%Y-%m-%d"
-sign_rule: as_is
 
+# Headers that identify this as a Rocket Money export
 header_signature:
   - Date
   - Original Date
@@ -20,26 +26,52 @@ header_signature:
   - Ignored From
   - Tax Deductible
 
+# Column mappings - Updated for Schema v2.0
 column_map:
-  Date:              Date
-  Original Date:     OriginalDate
-  Name:              Merchant
-  Custom Name:       CustomName
-  Amount:            Amount
-  Description:       Description
-  Category:          Category
-  Note:              Notes
-  Account Type:      AccountType
-  Account Name:      AccountName
-  Account Number:    AccountNumber
-  Institution Name:  InstitutionName
-  Ignored From:      IgnoredFrom
-  Tax Deductible:    TaxDeductible
+  # Core fields
+  Date: Date
+  Amount: Amount
+  Category: Category
+  
+  # Map Name to both Description and Merchant
+  # Description is the primary field in v2 schema
+  Name: Merchant
+  
+  # Account information
+  Account Type: AccountType
+  Account Name: AccountName
+  Account Number: AccountNumber
+  
+  # Institution mapping changed from InstitutionName to Institution
+  Institution Name: Institution
+  
+  # Rocket-specific fields
+  Original Date: OriginalDate
+  Description: Description
+  
+  # Fields with minimal usage - removed from explicit mapping
+  # These will automatically go to Extras field:
+  # - Custom Name (0% populated)
+  # - Note (0% populated)
+  # - Tax Deductible (0.1% populated)
+  # - Ignored From (0% populated)
 
+# Amount configuration
+amount_regex: null
+sign_rule: as_is  # Rocket Money provides correct signs
+
+# Derived columns - must be dictionary format for pipeline compatibility
 derived_columns:
   Owner:
-    rule: static_value
+    type: static_value
     value: Ryan
+    
   DataSourceName:
-    rule: static_value
+    type: static_value
     value: RocketMoney
+
+# No columns to explicitly ignore
+extras_ignore: []
+
+# No additional static columns needed
+extra_static_cols: {}

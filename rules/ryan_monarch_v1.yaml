@@ -1,9 +1,15 @@
-schema_name: ryan_monarch_v1
+# rules/ryan_monarch_v1.yaml
+# Schema for Monarch Money CSV exports
+# Updated for Canonical Schema v2.0 on 2025-05-22
+
+schema_name: Ryan - Monarch Money
 id: ryan_monarch_v1
+notes: Schema for Monarch Money CSV exports (Ryan's aggregated financial data)
 
+# Date format for parsing date columns
 date_format: "%Y-%m-%d"
-sign_rule: as_is
 
+# Headers that identify this as a Monarch Money export
 header_signature:
   - Date
   - Merchant
@@ -14,20 +20,46 @@ header_signature:
   - Amount
   - Tags
 
+# Column mappings - Updated for Schema v2.0
 column_map:
-  Date:             Date
-  Merchant:         Merchant
-  Amount:           Amount
-  Category:         Category
-  Account:          Account
-  Notes:            Notes
-  Tags:             Tags
-  "Original Statement": OriginalStatement
+  # Core fields
+  Date: Date
+  Amount: Amount
+  Category: Category
+  Account: Account
+  
+  # In v2, Merchant becomes our primary Description
+  # But we also keep it as Merchant for compatibility
+  Merchant: Merchant
+  
+  # Monarch-specific fields
+  Original Statement: OriginalStatement
+  Tags: Tags
+  
+  # Notes field removed from mapping (0% usage)
+  # Will go to Extras if populated
 
+# Amount configuration
+amount_regex: null
+sign_rule: as_is  # Monarch Money provides correct signs
+
+# Derived columns - must be dictionary format for pipeline compatibility
 derived_columns:
   Owner:
-    rule: static_value
+    type: static_value
     value: Ryan
+    
   DataSourceName:
-    rule: static_value
+    type: static_value
     value: MonarchMoney
+    
+  Description:
+    type: copy_from
+    source_column: Merchant
+    notes: In v2 schema, Description is populated from Merchant
+
+# No columns to explicitly ignore
+extras_ignore: []
+
+# No additional static columns needed
+extra_static_cols: {}
