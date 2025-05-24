@@ -1,6 +1,15 @@
+# rules/jordyn_discover_card_v1.yaml
+# Schema for Discover Card CSV exports
+# Updated for Canonical Schema v2.0 on 2025-05-22
+
+schema_name: Jordyn - Discover Card
 id: jordyn_discover_card_v1
-description: "Schema for Jordyn's Discover It Card statements (CSV format)."
-version: 1
+notes: Schema for Discover It Card CSV exports
+
+# Date format for parsing date columns
+date_format: "%m/%d/%Y"
+
+# Headers that identify this as a Discover card export
 header_signature:
   - Name
   - Institution
@@ -9,36 +18,63 @@ header_signature:
   - Date
   - Post Date
   - Description
-  - Reference Number
   - Amount
   - Category
+  - Reference Number # Added based on audit showing it as unmapped (i.e., present in CSV)
+
+# Column mappings - Updated for Schema v2.0
 column_map:
+  # Core fields
   Date: Date
-  "Post Date": PostDate
-  Description: OriginalDescription
   Amount: Amount
   Category: Category
-  "Card Type": Account # Contains card name and potentially last 4 digits
-  "Reference Number": ReferenceNumber
-  "Statement Period": StatementPeriodDesc # Map to StatementPeriodDesc
+  Card Type: Account
+  Institution: Institution # Added mapping
+  
+  # Banking-specific fields
+  Post Date: PostDate
+  Description: OriginalDescription
+  Statement Period: StatementPeriodDesc
+  Reference Number: ReferenceNumber # Added mapping
+  
+  # Note: Discover doesn't provide Reference Number in this format # Comment might be outdated if CSV now has it
+
+# Amount configuration
+amount_regex: null
+sign_rule: flip_if_positive  # Discover shows charges as positive
+
+# Derived columns - dictionary format for compatibility
 derived_columns:
   Owner:
-    rule: static_value
+    type: static_value
     value: Jordyn
+    
   DataSourceName:
-    rule: static_value
+    type: static_value
     value: DiscoverCard
-  AccountType: # Explicitly set master schema AccountType
-    rule: static_value
+    
+  AccountType:
+    type: static_value
     value: Credit Card
+    
   AccountLast4:
-    rule: regex_extract
-    column: Account # Derived from CSV "Card Type"
-    pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Standard pattern
+    type: regex_extract
+    column: Account # Changed from source_column
+    pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$' # capture_group not needed
+    
+  # ReferenceNumber: # Removed derived static value as it's now mapped
+  #   type: static_value
+  #   value: ""
+  #   notes: Discover CSV format doesn't include reference numbers
 
-# Top-level transformation rules
+# Create Description field (alias for OriginalDescription)
+alias_columns:
+  OriginalDescription: Description
+
+# Columns to explicitly ignore (won't go to Extras)
 extras_ignore:
-  - Institution
+  # - Institution # Removed from ignore, now mapped
   - Name
-date_format: "%Y-%m-%d" # User-specified date format
-sign_rule: "flip_if_positive" # User-specified sign rule
+
+# No additional static columns needed
+extra_static_cols: {}

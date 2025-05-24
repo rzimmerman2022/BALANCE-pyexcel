@@ -7,7 +7,7 @@ id: ryan_rocket_v1
 notes: Schema for Rocket Money CSV exports (Ryan's aggregated financial data)
 
 # Date format for parsing date columns
-date_format: "%Y-%m-%d"
+date_format: "%m/%d/%Y"  # Corrected based on audit sample "9/15/2022"
 
 # Headers that identify this as a Rocket Money export
 header_signature:
@@ -35,11 +35,11 @@ column_map:
   
   # Map Name to both Description and Merchant
   # Description is the primary field in v2 schema
-  Name: Merchant
+  Name: Merchant # Raw 'Name' from Rocket is their merchant field
   
   # Account information
   Account Type: AccountType
-  Account Name: AccountName
+  Account Name: Account # Mapped to canonical Account
   Account Number: AccountNumber
   
   # Institution mapping changed from InstitutionName to Institution
@@ -47,12 +47,11 @@ column_map:
   
   # Rocket-specific fields
   Original Date: OriginalDate
-  Description: Description
+  Description: OriginalDescription # Mapped to canonical OriginalDescription
+  Note: Note # Mapped raw Note to canonical Note
   
-  # Fields with minimal usage - removed from explicit mapping
-  # These will automatically go to Extras field:
+  # Fields with minimal usage - will go to Extras as not explicitly mapped or ignored:
   # - Custom Name (0% populated)
-  # - Note (0% populated)
   # - Tax Deductible (0.1% populated)
   # - Ignored From (0% populated)
 
@@ -69,9 +68,18 @@ derived_columns:
   DataSourceName:
     type: static_value
     value: RocketMoney
+    
+  AccountLast4:
+    type: regex_extract
+    column: AccountNumber # Derived from canonical AccountNumber
+    pattern: '^(\d{1,4})$' # Assumes AccountNumber contains 1-4 digits (last 4)
 
-# No columns to explicitly ignore
-extras_ignore: []
+# No columns to explicitly ignore by default, they will go to Extras.
+# If specific low-use columns should be completely dropped, add them here.
+extras_ignore: 
+  - Custom Name
+  - Ignored From
+  - Tax Deductible
 
 # No additional static columns needed
 extra_static_cols: {}

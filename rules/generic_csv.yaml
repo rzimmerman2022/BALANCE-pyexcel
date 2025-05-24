@@ -12,22 +12,27 @@ header_signature:
 
 column_map:
   "Date": "Date"
+  "Transaction Date": "Date" # Added alias
   "Amount": "Amount"
+  "Transaction Amount": "Amount" # Added alias
   "Merchant": "Merchant"
   "Description": "OriginalDescription" # Map 'Description' if found to OriginalDescription
+  "Transaction Description": "OriginalDescription" # Added alias
+  "Original Statement": "OriginalDescription" # If 'Original Statement' is found
   # Allow other common master schema columns to be picked up if they exist by chance
   "Category": "Category"
   "Account": "Account"
+  "Account Name": "Account" # Added alias
+  "Card Type": "Account" # Added alias
   "Notes": "Note"
   "Tags": "Tags"
-  "Original Statement": "OriginalDescription" # If 'Original Statement' is found
 
 derived_columns:
   Owner:
-    rule: "static_value"
+    type: "static_value" # Standardized to 'type'
     value: "UnknownOwner"
   DataSourceName:
-    rule: "static_value"
+    type: "static_value" # Standardized to 'type'
     value: "GenericCSV"
 
 date_format: null # Allow pandas to infer date format for generic CSVs

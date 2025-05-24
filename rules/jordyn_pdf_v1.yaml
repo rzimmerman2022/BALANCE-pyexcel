@@ -1,40 +1,64 @@
-# ---------------------------------------------------------------------
-#  Schema: jordyn_pdf_v1          (PDF-scraper CSVs – “BALANCE - Jordyn”)
-# ---------------------------------------------------------------------
+# rules/jordyn_pdf_v1.yaml
+# Schema for PDF-extracted transaction data
+# Updated for Canonical Schema v2.0 on 2025-05-22
+
+schema_name: Jordyn - PDF Extractions
 id: jordyn_pdf_v1
+notes: Schema for transactions extracted from PDF statements
 
-# ─── Header matching ──────────────────────────────────────────────────
-# Core five columns are present (order-agnostic in our router).  
-# `AccountLast4` sometimes appears first, last, or duplicated,  
-# so we treat it as optional.
+# Date format for parsing date columns
+date_format: "%m/%d/%Y"
+
+# Headers that identify PDF-extracted data
+# These are typically simpler than native exports
 header_signature:
-  - TransDate
-  - PostDate
-  - ReferenceNumber
-  - RawMerchant
+  - Date
+  - Description
   - Amount
+  - Balance
 
-optional_headers:
-  - AccountLast4        # may appear 0, 1, or 2× in a few files
-
-# ─── Column mapping ───────────────────────────────────────────────────
+# Column mappings - Updated for Schema v2.0
 column_map:
-  TransDate:      Date
-  PostDate:       PostDate
-  RawMerchant:    Merchant
-  ReferenceNumber: ReferenceNumber
-  Amount:         Amount
-  AccountLast4:   AccountLast4      # ignored if missing / duplicated
+  # Core fields
+  Date: Date
+  Amount: Amount
+  Description: OriginalDescription
+  
+  # PDF extractions rarely have categories
+  # Balance column is typically present but not needed
 
-# ─── Derived columns (constant per file type) ─────────────────────────
+# Amount configuration
+amount_regex: null
+sign_rule: smart_infer  # PDFs may vary in sign convention
+
+# Derived columns - dictionary format for compatibility
 derived_columns:
   Owner:
-    rule: static_value
+    type: static_value
     value: Jordyn
+    
   DataSourceName:
-    rule: static_value
-    value: PDFStatement     # distinguishes scraped PDFs
+    type: static_value
+    value: PDFExtraction
+    
+  Category:
+    type: static_value
+    value: Uncategorized
+    notes: PDF extractions don't include categories
+    
+  Account:
+    type: filename_extract
+    pattern: 'BALANCE - Jordyn PDF - (.+)\.csv'
+    default: PDF Account
+    notes: Extract account info from filename if possible
 
-# ─── Parsing details ──────────────────────────────────────────────────
-date_format: "%m/%d/%Y"             # 01/31/2025  →  2025-01-31
-sign_rule:  flip_if_positive        # PDF totals list debits as  +
+# Create Description field (alias for OriginalDescription)
+alias_columns:
+  OriginalDescription: Description
+
+# Columns to explicitly ignore (won't go to Extras)
+extras_ignore:
+  - Balance  # Running balance not needed for transaction analysis
+
+# No additional static columns needed
+extra_static_cols: {}

@@ -7,7 +7,7 @@ id: ryan_monarch_v1
 notes: Schema for Monarch Money CSV exports (Ryan's aggregated financial data)
 
 # Date format for parsing date columns
-date_format: "%Y-%m-%d"
+date_format: "%m/%d/%Y"  # Corrected based on audit sample "4/11/2025"
 
 # Headers that identify this as a Monarch Money export
 header_signature:
@@ -28,17 +28,15 @@ column_map:
   Category: Category
   Account: Account
   
-  # In v2, Merchant becomes our primary Description
+  # In v2, Merchant becomes our primary Description # This comment seems to refer to a conceptual v2
   # But we also keep it as Merchant for compatibility
-  Merchant: Merchant
+  Merchant: Merchant # Maps raw Monarch 'Merchant' to canonical 'Merchant'
   
   # Monarch-specific fields
-  Original Statement: OriginalStatement
+  Original Statement: OriginalDescription # Corrected mapping
   Tags: Tags
+  Notes: Note # Added mapping for Notes
   
-  # Notes field removed from mapping (0% usage)
-  # Will go to Extras if populated
-
 # Amount configuration
 amount_regex: null
 sign_rule: as_is  # Monarch Money provides correct signs
@@ -53,10 +51,24 @@ derived_columns:
     type: static_value
     value: MonarchMoney
     
-  Description:
-    type: copy_from
-    source_column: Merchant
-    notes: In v2 schema, Description is populated from Merchant
+  # Description: # Removed non-standard copy_from. Merchant is already mapped.
+  #   type: copy_from
+  #   source_column: Merchant
+  #   notes: In v2 schema, Description is populated from Merchant
+
+  Institution:
+    type: regex_extract
+    column: Account # Source for extraction
+    pattern: "^([^\\(]+)" # Extracts text before an opening parenthesis
+    
+  AccountLast4:
+    type: regex_extract
+    column: Account # Source for extraction
+    pattern: "\\((?:[^\\d]*?)(\\d{4})\\)$" # Extracts 4 digits from within parentheses at the end
+    
+  AccountType:
+    type: static_value
+    value: "Aggregated" # Monarch aggregates various account types
 
 # No columns to explicitly ignore
 extras_ignore: []

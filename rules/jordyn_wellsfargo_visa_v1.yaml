@@ -1,6 +1,16 @@
+# rules/jordyn_wellsfargo_visa_v1.yaml
+# Schema for Wells Fargo Visa Card CSV exports (alternate name)
+# Updated for Canonical Schema v2.0 on 2025-05-22
+# Note: This is essentially the same as jordyn_wells_v1.yaml
+
+schema_name: Jordyn - Wells Fargo Visa (Alternate)
 id: jordyn_wellsfargo_visa_v1
-description: "Schema for Jordyn's Wells Fargo Visa credit card statements (CSV format)."
-version: 1
+notes: Schema for Wells Fargo Active Cash Visa Signature Card exports (alternate schema name)
+
+# Date format for parsing date columns
+date_format: "%m/%d/%Y"
+
+# Headers that identify this as a Wells Fargo card export
 header_signature:
   - Name
   - Institution
@@ -14,37 +24,57 @@ header_signature:
   - Reference Number
   - Amount
   - Category
+
+# Column mappings - Updated for Schema v2.0
 column_map:
+  # Core fields
   Date: Date
-  "Post Date": PostDate # Assuming 'Post Date' is the transaction posting date
-  Description: OriginalDescription
   Amount: Amount
-  Category: Category # This will likely be bank's category, not user's
-  "Account Description": Account # May need further parsing for AccountLast4
-  "Reference Number": ReferenceNumber
-  "Statement Start Date": StatementStart
-  "Statement End Date": StatementEnd
-  "Statement Period Description": StatementPeriodDesc
-  # 'Name' and 'Institution' from CSV are not directly mapped yet,
-  # could be used for validation or more complex derivations if needed.
+  Category: Category
+  Account Description: Account
+  
+  # Banking-specific fields
+  Post Date: PostDate
+  Description: OriginalDescription
+  Reference Number: ReferenceNumber
+  Institution: Institution
+  
+  # Statement period information
+  Statement Start Date: StatementStart
+  Statement End Date: StatementEnd
+  Statement Period Description: StatementPeriodDesc
+
+# Amount configuration
+amount_regex: null
+sign_rule: flip_if_positive  # Wells Fargo shows charges as positive
+
+# Derived columns - dictionary format for compatibility
 derived_columns:
   Owner:
-    rule: static_value
+    type: static_value
     value: Jordyn
+    
   DataSourceName:
-    rule: static_value
+    type: static_value
     value: WellsFargoVisa
-  AccountType: # Assuming this is a credit card statement
-    rule: static_value
-    value: Credit Card
+    
   AccountLast4:
-    rule: regex_extract
-    column: Account # Derived from "Account Description"
-    pattern: "(?:x|\\.{3}|\\()(?P<last4>\\d{4})\\)?$" # Extracts last 4 digits
+    type: regex_extract
+    source_column: Account
+    pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+    capture_group: last4
+    
+  AccountType:
+    type: static_value
+    value: Credit Card
 
-# Top-level transformation rules
+# Create Description field (alias for OriginalDescription)
+alias_columns:
+  OriginalDescription: Description
+
+# Columns to explicitly ignore (won't go to Extras)
 extras_ignore:
-  - Institution
   - Name
-date_format: "%m/%d/%Y"
-sign_rule: "flip_if_positive" # User-specified: charges positive -> negative
+
+# No additional static columns needed
+extra_static_cols: {}

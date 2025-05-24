@@ -1,0 +1,69 @@
+# ryan_monarch_v2.yaml
+# Schema for Monarch Money exports - maps ONLY what actually exists
+id: ryan_monarch_v2
+
+# Source file pattern
+file_pattern: 'ryan.*monarch.*\.csv'
+
+# Column mappings - based on actual CSV analysis
+column_map:
+  # Core fields that exist
+  Date: Date
+  Amount: Amount
+  Merchant: Merchant           # This is Monarch's description field
+  Category: Category
+  Account: Account
+  Original Statement: Description  # The full transaction text
+  
+  # Monarch doesn't have these, so we DON'T map them:
+  # - PostDate (aggregators don't track this)
+  # - ReferenceNumber (not a concept in Monarch)
+  # - Institution (embedded in Account name)
+  # - StatementStart/End (aggregators don't think in statements)
+
+# Date parsing configuration
+date_columns:
+  - column: Date
+    format: "%m/%d/%Y"  # Based on diagnostic showing 4/11/2025 format
+
+# Amount parsing
+amount_columns:
+  - Amount
+
+# Derived fields that make sense for Monarch
+derived_columns:
+  Owner:
+    type: constant
+    value: "Ryan"
+  
+  DataSourceName:
+    type: constant
+    value: "ryan_monarch_v2"
+  
+  Institution:
+    type: extract_from_account
+    pattern: "^([^\\(]+)"  # Extract "CapitalOne Savor" from "CapitalOne Savor (...2463)"
+  
+  AccountLast4:
+    type: extract_from_account
+    pattern: "\\.\\.\\.(\\d{4})\\)"  # Extract "2463" from "(...2463)"
+
+# Validation rules
+validation:
+  required_fields:
+    - Date
+    - Amount
+    - Merchant
+    - Category
+    - Account
+  
+  date_sanity:
+    min_date: "2020-01-01"
+    max_date: "2030-01-01"
+  
+  amount_sanity:
+    min_amount: -10000
+    max_amount: 10000
+
+# What to do with extra columns
+extra_columns: ignore  # Don't pollute output with unmapped fields

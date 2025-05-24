@@ -527,22 +527,31 @@ def apply_schema_transformations(
                 )
                 transformed_df[new_col_name] = pd.NA
                 continue
+            
+            # Prioritize 'type' key for rule type, fallback to 'rule' for compatibility
+            rule_type = rule_cfg.get("type") 
+            if not rule_type:
+                rule_type = rule_cfg.get("rule") # Fallback for older 'rule:' syntax
 
-            rule_type = rule_cfg.get("rule")  # Shape A: get 'rule'
-            rule_details = rule_cfg  # For Shape A, rule_cfg itself contains all details
+            rule_details = rule_cfg # rule_cfg itself contains parameters like 'value', 'column', 'pattern'
 
-            # Back-compat for old Shape B (nested keys)
-            if rule_type is None:
-                if "regex_extract" in rule_cfg:
+            # Further fallback for very old structures if rule_type is still None
+            # This part handles cases where rule_cfg might be {'static_value': 'ActualValue'}
+            if not rule_type:
+                if "regex_extract" in rule_cfg and isinstance(rule_cfg["regex_extract"], dict):
                     rule_type = "regex_extract"
-                    rule_details = rule_cfg["regex_extract"]
-                elif "static_value" in rule_cfg:
+                    rule_details = rule_cfg["regex_extract"] # rule_details becomes the nested dict
+                elif "static_value" in rule_cfg: # This could be rule_cfg: {'static_value': 'ActualValue'} or {'static_value': {'value': 'ActualValue'}}
                     rule_type = "static_value"
-                    rule_details = rule_cfg["static_value"]
+                    # If rule_cfg['static_value'] is not a dict, rule_details remains rule_cfg, and 'value' is extracted from rule_details['static_value']
+                    # If rule_cfg['static_value'] IS a dict (e.g. {'value': 'ActualValue'}), then rule_details should become that dict.
+                    if isinstance(rule_cfg["static_value"], dict):
+                         rule_details = rule_cfg["static_value"]
+                    # else rule_details remains rule_cfg, and 'value' will be sought from rule_details['static_value']
 
-            if rule_type is None:
+            if rule_type is None: # If still no rule_type, then it's an unknown configuration
                 log.warning(
-                    f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Detail: Unknown rule type. Config: {rule_cfg}. Skipping."
+                    f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Detail: Unknown rule type or invalid rule structure. Config: {rule_cfg}. Skipping."
                 )
                 transformed_df[new_col_name] = pd.NA
                 continue
@@ -550,36 +559,38 @@ def apply_schema_transformations(
             log_details_for_derived = f"Rule Type: {rule_type}"
             try:
                 if rule_type == "static_value":
-                    if isinstance(rule_details, dict):  # Shape A
-                        static_val = rule_details.get("value")
-                    else:  # Old Shape B
-                        static_val = rule_details
+                    # For static_value, the value can be directly under rule_details['value']
+                    # or, for very old format, it might be rule_details['static_value']
+                    static_val = rule_details.get("value")
+                    if static_val is None and rule_type == "static_value" and "static_value" in rule_details: # Check for old format like {'static_value': 'ActualValue'}
+                        static_val = rule_details.get("static_value")
+                    
                     log_details_for_derived += f" | Value: {static_val}"
 
-                    if static_val is None:
+                    if static_val is None: # After checking both .get('value') and .get('static_value') for static_value type
                         log.warning(
-                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (static_value) | New Column: {new_col_name} | Detail: 'value' not found or is None. Details: {rule_details}"
+                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (static_value) | New Column: {new_col_name} | Detail: 'value' not found or is None in rule_details. Config: {rule_cfg}"
                         )
                         transformed_df[new_col_name] = pd.NA
                         continue
                     transformed_df[new_col_name] = static_val
 
                 elif rule_type == "regex_extract":
+                    # rule_details should be a dict containing 'column' and 'pattern'
                     if not isinstance(rule_details, dict):
                         log.warning(
-                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (regex_extract) | New Column: {new_col_name} | Detail: Rule details not a dict. Details: {rule_details}"
+                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (regex_extract) | New Column: {new_col_name} | Detail: Rule details for regex_extract not a dict. Config: {rule_cfg}"
                         )
                         transformed_df[new_col_name] = pd.NA
                         continue
 
-                    source_col = rule_details.get("column")
+                    source_col = rule_details.get("column") # This is the source column for regex
                     pattern_str = rule_details.get("pattern")
                     log_details_for_derived += f" | Source Column: {source_col} | Pattern: {pattern_str}"
 
-
                     if not source_col or not pattern_str:
                         log.warning(
-                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (regex_extract) | New Column: {new_col_name} | Detail: Missing 'column' or 'pattern'. Details: {rule_details}"
+                            f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (regex_extract) | New Column: {new_col_name} | Detail: Missing 'column' or 'pattern' in rule_details. Config: {rule_cfg}"
                         )
                         transformed_df[new_col_name] = pd.NA
                         continue

@@ -928,6 +928,16 @@ Examples:
         # Path is sibling to the workbook, using filename from config
         parquet_path = workbook.parent / config.BALANCE_FINAL_PARQUET_FILENAME
 
+        # Ensure output directory exists before writing
+        if not args.dry_run:
+            try:
+                workbook.parent.mkdir(parents=True, exist_ok=True)
+                log.info(f"Ensured output directory exists: {workbook.parent}")
+            except Exception as e_mkdir:
+                log.error(f"Could not create output directory {workbook.parent}: {e_mkdir}")
+                # Depending on severity, might want to sys.exit(1) here
+                # For now, let the write attempts fail and log those errors.
+
         # Confirm the DataFrame shape before write
         if not df.empty:
             log.info("⚙️  Final DF columns (%d): %s", len(df.columns), list(df.columns))

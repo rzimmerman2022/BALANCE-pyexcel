@@ -1,6 +1,15 @@
-schema_name: jordyn_wells_v1
+# rules/jordyn_wells_v1.yaml
+# Schema for Wells Fargo Visa Card CSV exports
+# Updated for Canonical Schema v2.0 on 2025-05-22
+
+schema_name: Jordyn - Wells Fargo Visa
 id: jordyn_wells_v1
+notes: Schema for Wells Fargo Active Cash Visa Signature Card exports
+
+# Date format for parsing date columns
 date_format: "%m/%d/%Y"
+
+# Headers that identify this as a Wells Fargo card export
 header_signature:
   - Name
   - Institution
@@ -14,32 +23,57 @@ header_signature:
   - Reference Number
   - Amount
   - Category
+
+# Column mappings - Updated for Schema v2.0
 column_map:
+  # Core fields
   Date: Date
+  Amount: Amount
+  Category: Category
+  Account Description: Account
+  
+  # Banking-specific fields
   Post Date: PostDate
   Description: OriginalDescription
   Reference Number: ReferenceNumber
-  Amount: Amount
-  Account Description: Account
   Institution: Institution
-  Category: Category
+  
+  # Statement period information - Wells Fargo provides both formats
+  Statement Start Date: StatementStart
+  Statement End Date: StatementEnd
+  Statement Period Description: StatementPeriodDesc
+
+# Amount configuration
+amount_regex: null
+sign_rule: flip_if_positive  # Wells Fargo shows charges as positive
+
+# Derived columns - dictionary format for compatibility
 derived_columns:
   Owner:
-    rule: static_value
+    type: static_value
     value: Jordyn
+    
   DataSourceName:
-    rule: static_value
+    type: static_value
     value: WellsFargoVisa
+    
   AccountLast4:
-    rule: regex_extract
-    column: Account
-    pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
+    type: regex_extract
+    column: Account  # Changed from source_column
+    pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$' # capture_group not needed if pattern has named group
+    
   AccountType:
-    rule: static_value
+    type: static_value
     value: Credit Card
-sign_rule: flip_if_positive
+
+# Create Description field (alias for OriginalDescription)
+alias_columns:
+  OriginalDescription: Description
+
+# Columns to explicitly ignore (won't go to Extras)
 extras_ignore:
   - Name
-  - Statement Period Description
-  - Statement Start Date
-  - Statement End Date
+  # Note: We keep Statement Period Description as it provides value
+
+# No additional static columns needed
+extra_static_cols: {}
