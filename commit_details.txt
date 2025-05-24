@@ -1,53 +1,26 @@
-Refactor: Implement evidence-based schema normalization for ETL pipeline
+feat: Implement Flexible Schema System
 
-This commit overhauls the ETL pipeline's schema handling to be driven by
-evidence-based analysis of source data, improving robustness and accuracy.
+This commit introduces a flexible schema system to the BALANCE-pyexcel pipeline, addressing the issue of "phantom columns" in outputs.
 
 Key Changes:
 
-1.  **Schema Discovery & Definition:**
-    *   Introduced `audit_all_sources.py` to perform comprehensive analysis
-        of source CSVs, reporting on column coverage, data types, and
-        population statistics.
-    *   Defined a new canonical schema in `rules/canonical_schema.yml` based
-        on the audit findings. This schema includes metadata, required, and
-        optional columns with clear rationale.
-    *   Updated `MASTER_SCHEMA_COLUMNS` in `src/balance_pipeline/constants.py`
-        to reflect the new 25-column canonical schema.
+1.  **Configuration (`src/balance_pipeline/config.py`):**
+    *   Introduced `SCHEMA_MODE` environment variable ("strict" or "flexible", defaulting to "strict") to control schema enforcement.
+    *   Defined `CORE_REQUIRED_COLUMNS`: A list of essential columns that must always be present (TxnID, Owner, Date, Amount, Merchant, Account).
+    *   Defined `OPTIONAL_COLUMN_GROUPS`: A dictionary grouping other master schema columns by relevance (e.g., banking, statements, aggregator, descriptive, metadata).
+    *   (Note: This section was largely pre-existing but confirmed to align with the implementation guide.)
 
-2.  **Individual Schema Refinements (`rules/*.yaml`):**
-    *   Reviewed and updated all source-specific schemas:
-        - `jordyn_chase_checking_v1.yaml`
-        - `jordyn_discover_card_v1.yaml`
-        - `jordyn_wells_v1.yaml`
-        - `ryan_monarch_v1.yaml`
-        - `ryan_rocket_v1.yaml`
-        - `generic_csv.yaml`
-    *   Adjustments include corrected `column_map` entries to align with the
-        new canonical names, mapping of previously unmapped fields identified
-        by the audit, standardization of derived column syntax, and updates
-        to `extras_ignore` lists.
-    *   Fixed `id` field and `file_pattern` quoting in `ryan_monarch_v2.yaml`
-        and `ryan_rocket_v2.yaml` to ensure proper loading by the schema registry.
+2.  **CSV Consolidator (`src/balance_pipeline/csv_consolidator.py`):**
+    *   Helper functions for schema flexibility (`get_required_columns_for_mode`, `identify_relevant_column_groups`, `get_columns_to_retain`, `remove_empty_columns`) were confirmed to be in place.
+    *   Modified column addition logic: Ensures only required columns (per mode) are added if missing, using `cols_added_for_required`. The outdated `cols_added_for_master` logic and references were removed.
+    *   Updated reindexing logic: In "strict" mode, reindexes to full `MASTER_SCHEMA_COLUMNS`. In "flexible" mode, reorders to `columns_to_retain` plus any other existing columns, without adding missing ones beyond core requirements. Obsolete comments around this section were cleaned up.
+    *   Revised final DataFrame processing:
+        *   In "strict" mode, defensive typing applies to all `MASTER_SCHEMA_COLUMNS`.
+        *   In "flexible" mode, defensive typing applies to existing columns, and then `remove_empty_columns` is called to strip out fully empty columns (except core ones) before returning the final DataFrame.
+    *   Refactored to use `config.SCHEMA_MODE`, `config.CORE_REQUIRED_COLUMNS`, and `config.OPTIONAL_COLUMN_GROUPS` directly from the `config` module (by changing `from .config import VAR` to `from . import config` and using `config.VAR`). This ensures that runtime changes to `SCHEMA_MODE` (e.g., via environment variables for testing) are correctly picked up by `csv_consolidator.py`.
 
-3.  **Pipeline Code Enhancements:**
-    *   Modified `src/balance_pipeline/csv_consolidator.py` to correctly
-        parse the `type` key for derived column rules in schema YAMLs,
-        resolving previous processing errors.
-    *   Updated `src/balance_pipeline/cli.py` to ensure the output directory
-        is created before writing Parquet or Excel files, preventing file
-        save errors.
+3.  **Testing (`test_flexible_schema.py`):**
+    *   Added a new test script to validate both "strict" and "flexible" modes.
+    *   The script creates sample CSVs, processes them under each mode by dynamically setting the `SCHEMA_MODE` environment variable and reloading the `config` module, and then checks for the expected column counts and absence/presence of phantom columns.
 
-4.  **Validation & Output:**
-    *   The pipeline now successfully processes source CSVs using the updated
-        schemas and generates `output/balance_final.parquet` conforming to
-        the new canonical schema.
-    *   Introduced `audit_parquet_output.py` to validate the schema of the
-        generated Parquet file against `rules/canonical_schema.yml`. This
-        confirms adherence to the defined metadata, required, and optional
-        columns, and checks for unexpected columns.
-    *   Added `check_parquet.py` as a utility to quickly inspect the
-        generated Parquet file.
-
-This refactoring establishes a more data-driven and maintainable approach
-to schema management within the ETL pipeline.
+This implementation allows for cleaner data outputs in "flexible" mode by only including columns that are meaningful for the processed data, while "strict" mode maintains backward compatibility. The test script confirms this dual behavior.
