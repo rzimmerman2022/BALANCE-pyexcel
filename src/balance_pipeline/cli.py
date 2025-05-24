@@ -29,15 +29,18 @@ from balance_pipeline.errors import BalancePipelineError
 
 
 # Now import the modules, hopefully freshly
-from balance_pipeline import config  # Import full config module
+from balance_pipeline import config  # Import full config module (old config, for BALANCE_FINAL_PARQUET_FILENAME)
 from balance_pipeline import (
     ingest as ingest_module,
-)  # Import the module itself for reloading
+)  # Import the module itself for reloading (may become less relevant)
 from balance_pipeline import (
     csv_consolidator as csv_consolidator_module,
-)  # Import for reloading
+)  # Import for reloading (may become less relevant for etl_main)
 
-# from balance_pipeline.csv_consolidator import process_csv_files # Will call as csv_consolidator_module.process_csv_files
+# New imports for Unified Pipeline
+from .pipeline_v2 import UnifiedPipeline
+from .config_v2 import pipeline_config_v2 # For log level default
+
 from balance_pipeline.sync import sync_review_decisions
 # Removed: from balance_pipeline.export import write_parquet_duckdb
 
@@ -73,15 +76,18 @@ def setup_logging(log_file: Optional[str] = None, verbose: bool = False) -> None
     Uses force=True to ensure configuration is applied even if other modules have
     already configured logging. Includes workaround for UTF-8 encoding on stdout.
     """
-    # Use log level from config module
-    log_level_name = (
-        config.LOG_LEVEL if isinstance(config.LOG_LEVEL, str) else "INFO"
-    )  # Default to INFO
-    log_level = getattr(logging, log_level_name.upper(), logging.INFO)
+    # Use log level from config_v2 module, allow verbose override
+    log_level_name = pipeline_config_v2.log_level # Default from new config
     if verbose:
-        log_level = logging.DEBUG  # Override to DEBUG if verbose flag is set
+        log_level_name = "DEBUG" # Override to DEBUG if verbose flag is set
+    
+    log_level = getattr(logging, log_level_name.upper(), logging.INFO)
+    
+    if verbose: # Ensure sub-loggers also get DEBUG if verbose
         logging.getLogger('balance_pipeline').setLevel(logging.DEBUG)
-        logging.getLogger('balance_pipeline.csv_consolidator').setLevel(logging.DEBUG)
+        # Add other specific sub-loggers if needed, e.g.:
+        # logging.getLogger('balance_pipeline.csv_consolidator').setLevel(logging.DEBUG)
+        # logging.getLogger('balance_pipeline.pipeline_v2').setLevel(logging.DEBUG)
 
     log_format = "%(asctime)s - %(levelname)s - %(message)s"
     formatter = logging.Formatter(log_format)
@@ -228,20 +234,35 @@ def etl_main(
         f"Found {len(csv_file_paths)} CSV files to process: {[p.name for p in csv_file_paths]}"
     )
 
-    # 2. Process CSV files using the new consolidator module
-    # This function handles schema matching, transformations, TxnID, merchant cleaning, etc.
-    # Call using the reloaded module reference
-    df = csv_consolidator_module.process_csv_files(
-        cast(List[Union[str, Path]], csv_file_paths)  # Cast for process_csv_files
-    )  # prefer_source is not used by this function directly
+    # 2. Process CSV files using the UnifiedPipeline
+    log.info("Initializing UnifiedPipeline for CSV processing.")
+    # For this legacy CLI, default to "flexible" mode.
+    # Schema registry and merchant lookup paths will be taken from config_v2.py defaults
+    # by UnifiedPipeline if None is passed for overrides.
+    pipeline = UnifiedPipeline(schema_mode="flexible") 
+
+    # UnifiedPipeline.process_files expects List[str]
+    csv_file_paths_str = [str(p) for p in csv_file_paths]
+
+    try:
+        df = pipeline.process_files(
+            file_paths=csv_file_paths_str,
+            schema_registry_override_path=None, # Use config_v2 default
+            merchant_lookup_override_path=None    # Use config_v2 default
+        )
+    except Exception as e_pipeline:
+        log.error(f"UnifiedPipeline processing failed: {e_pipeline}", exc_info=True)
+        # Depending on desired error handling, might return empty df or re-raise
+        return pd.DataFrame()
+
 
     if df.empty:
         log.warning(
-            "CSV processing resulted in an empty DataFrame before deduplication."
+            "UnifiedPipeline processing resulted in an empty DataFrame before deduplication."
         )
         return df
 
-    log.info(f"Consolidated data from CSVs into {len(df)} rows before deduplication.")
+    log.info(f"UnifiedPipeline processed CSVs into {len(df)} rows before deduplication.")
 
     # 3. Deduplication based on TxnID and prefer_source
     # This logic is adapted from the original normalize_df function.
@@ -301,15 +322,14 @@ def main(argv: Optional[List[str]] = None) -> None:  # Added argv parameter
     # Attempt to reload the ingest module to pick up changes
     # This should happen AFTER setup_logging if it logs, or ensure logging is configured first.
     # For now, let's assume logging is configured by setup_logging called later.
+    # TODO: Review if these reloads are still necessary. They were primarily for development.
+    # ingest_module is not directly used by etl_main anymore.
+    # csv_consolidator_module is not directly called by etl_main anymore.
     try:
-        # Re-import and reload ingest_module specifically within main's scope if needed,
-        # or rely on the top-level import and reload.
-        # To be safe, let's ensure ingest_module is the one from the top.
         importlib.reload(ingest_module)
         print(
             "INFO: Reloaded balance_pipeline.ingest module in main().", file=sys.stderr
         )
-        # Also reload csv_consolidator to pick up its internal changes like MASTER_SCHEMA_COLUMNS
         importlib.reload(csv_consolidator_module)
         print(
             "INFO: Reloaded balance_pipeline.csv_consolidator module in main().",
@@ -319,6 +339,12 @@ def main(argv: Optional[List[str]] = None) -> None:  # Added argv parameter
         print(
             f"WARNING: Could not reload modules in main(): {e_reload}", file=sys.stderr
         )
+    
+    # --- Deprecation Warning ---
+    print("\nWARNING: This CLI (balance-pyexcel or python -m balance_pipeline.cli) is part of the legacy interface.", file=sys.stderr)
+    print("It is recommended to migrate to the new 'balance-pipe' CLI for future use.", file=sys.stderr)
+    print("Example: 'poetry run balance-pipe process ...' or 'python -m balance_pipeline.main process ...'\n", file=sys.stderr)
+
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(

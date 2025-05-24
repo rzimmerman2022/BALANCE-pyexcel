@@ -45,8 +45,9 @@ types-PyYAML = "^6.0.0" # Added PyYAML type stubs
 types-openpyxl = "^3.1.0" # Added openpyxl type stubs
 
 [tool.poetry.scripts]
-balance-csv      = "balance_pipeline.cli.__main__:main"
-balance-merchant = "balance_pipeline.cli_merchant:main_merchant"
+balance-pipe         = "balance_pipeline.main:balance_pipe_cli"
+balance-legacy-cli   = "balance_pipeline.cli:main" # Points to main function in cli.py
+balance-merchant     = "balance_pipeline.cli_merchant:main_merchant"
 
 [build-system]
 # Standard build system configuration for Poetry projects

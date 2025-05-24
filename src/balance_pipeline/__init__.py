@@ -27,8 +27,9 @@ import logging  # For application logging
 import pandas as pd  # For DataFrame operations (used in type hint)
 
 # Import core processing functions from other modules within this package
-from .ingest import load_folder  # Function to load data from CSVs
-from .normalize import normalize_df  # Function to clean and normalize the data
+# from .ingest import load_folder # Replaced by UnifiedPipeline
+# from .normalize import normalize_df # Replaced by UnifiedPipeline
+from .pipeline_v2 import UnifiedPipeline # New import
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP (Logging)
@@ -79,28 +80,68 @@ def etl_main(csv_inbox: str | Path) -> pd.DataFrame:
     """
     # --- Prepare Input Path ---
     # Convert input string path to a Path object for robust handling.
-    # .expanduser() handles '~' correctly (e.g., on Linux/Mac).
-    # .resolve() makes the path absolute and resolves any symlinks.
     inbox_path = Path(csv_inbox).expanduser().resolve()
-    log.info("ETL process starting for inbox: %s", inbox_path)
+    log.info("Legacy etl_main (from __init__.py) process starting for inbox: %s", inbox_path)
+    log.warning("This etl_main (from balance_pipeline/__init__.py) is a legacy interface. "
+                "Consider using the new CLI 'balance-pipe' or directly using UnifiedPipeline for programmatic access.")
 
-    # --- Step 1: Ingest Data ---
-    # Call the function from ingest.py to find, read, map, and combine CSVs.
-    # This now handles multiple schemas and owner subfolders.
-    # It returns a DataFrame with columns matching ingest.STANDARD_COLS.
-    raw_df = load_folder(inbox_path)
-    log.info("Ingestion complete. Loaded %s raw rows.", len(raw_df))
+    # --- Step 1: Scan for CSV files ---
+    # This logic is similar to what was in cli.py's etl_main or ingest.load_folder
+    csv_file_paths: list[Path] = []
+    if inbox_path.is_dir():
+        for item in inbox_path.rglob("*.csv"):  # Recursive glob
+            csv_file_paths.append(item)
+    elif inbox_path.is_file() and inbox_path.suffix.lower() == ".csv":
+        csv_file_paths.append(inbox_path)
+    else:
+        log.error(f"Inbox path {inbox_path} is not a valid directory or CSV file.")
+        return pd.DataFrame()
 
-    # --- Step 2: Normalize Data ---
-    # Call the function from normalize.py to perform further cleaning,
-    # generate TxnID, add SharedFlag, select/order final columns.
-    # REVIEW: Ensure the normalize_df function handles the columns produced by the new ingest.py
-    clean_df = normalize_df(raw_df)
-    log.info("Normalization complete. Result has %s rows.", len(clean_df))
+    if not csv_file_paths:
+        log.warning(f"No CSV files found to process in {inbox_path}.")
+        return pd.DataFrame()
+
+    log.info(
+        f"Found {len(csv_file_paths)} CSV files to process: {[p.name for p in csv_file_paths]}"
+    )
+
+    # --- Step 2: Process files using UnifiedPipeline ---
+    log.info("Initializing UnifiedPipeline for CSV processing (schema_mode='flexible' for legacy __init__.etl_main).")
+    # For this legacy interface (e.g., Excel calls), default to "flexible" mode.
+    # Schema registry and merchant lookup paths will be taken from config_v2.py defaults.
+    pipeline = UnifiedPipeline(schema_mode="flexible")
+
+    csv_file_paths_str = [str(p) for p in csv_file_paths]
+    processed_df: pd.DataFrame = pd.DataFrame()
+
+    try:
+        processed_df = pipeline.process_files(
+            file_paths=csv_file_paths_str,
+            schema_registry_override_path=None, # Use config_v2 default
+            merchant_lookup_override_path=None    # Use config_v2 default
+        )
+    except Exception as e_pipeline:
+        log.error(f"UnifiedPipeline processing failed within __init__.etl_main: {e_pipeline}", exc_info=True)
+        return pd.DataFrame() # Return empty DataFrame on error
+
+    if processed_df.empty:
+        log.warning(
+            "UnifiedPipeline processing in __init__.etl_main resulted in an empty DataFrame."
+        )
+    else:
+        log.info(f"UnifiedPipeline processing in __init__.etl_main complete. Result has {len(processed_df)} rows.")
+    
+    # The UnifiedPipeline (via csv_consolidator) now handles all normalization,
+    # TxnID generation, deduplication (if configured within csv_consolidator's scope), etc.
+    # The old normalize_df call is no longer needed here.
+    # Deduplication based on 'prefer_source' as done in cli.py's etl_main is not part of this
+    # __init__.py etl_main's original contract, so it's omitted here to maintain compatibility.
+    # If that specific deduplication is needed for Excel calls, it would have to be added here.
+    # For now, returning the direct output of UnifiedPipeline.
 
     # --- Complete ---
-    log.info("ETL process finished successfully.")
-    return clean_df
+    log.info("Legacy etl_main (from __init__.py) finished successfully.")
+    return processed_df
 
 
 # ==============================================================================

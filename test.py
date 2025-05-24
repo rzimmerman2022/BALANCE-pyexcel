@@ -31,4 +31,4 @@ if 'DataSourceName' in df.columns:
         populated_cols = [col for col in df.columns if source_nulls[col] < 50]
         print(f"  Populated columns: {', '.join(populated_cols[:10])}...")
         if len(populated_cols) > 10:
-            print(f"  ... and {len(populated_cols) - 10} more")
+            print(f"  ... and {len(populated_cols) - 10} more") 
