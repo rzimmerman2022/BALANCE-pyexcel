@@ -5,6 +5,7 @@
 schema_name: Ryan - Rocket Money
 id: ryan_rocket_v1
 notes: Schema for Rocket Money CSV exports (Ryan's aggregated financial data)
+file_pattern: 'Ryan - Rocket Money - .*\\.csv' # Ensures it matches "Ryan - Rocket Money - *.csv"
 
 # Date format for parsing date columns
 date_format: "%m/%d/%Y"  # Corrected based on audit sample "9/15/2022"
@@ -35,7 +36,7 @@ column_map:
   
   # Map Name to both Description and Merchant
   # Description is the primary field in v2 schema
-  Name: Merchant # Raw 'Name' from Rocket is their merchant field
+  Name: OriginalMerchant # Raw 'Name' from Rocket is their merchant field, mapped to OriginalMerchant
   
   # Account information
   Account Type: AccountType

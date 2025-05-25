@@ -5,6 +5,7 @@
 schema_name: Jordyn - Discover Card
 id: jordyn_discover_card_v1
 notes: Schema for Discover It Card CSV exports
+file_pattern: 'Jordyn - Discover - Discover It Card.*\\.csv'
 
 # Date format for parsing date columns
 date_format: "%m/%d/%Y"

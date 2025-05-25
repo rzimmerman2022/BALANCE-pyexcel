@@ -5,6 +5,7 @@
 schema_name: Jordyn - Chase Checking
 id: jordyn_chase_checking_v1
 notes: Schema for Chase Bank Total Checking CSV exports
+file_pattern: 'Jordyn - Chase Bank - Total Checking.*\\.csv'
 
 # Date format for parsing date columns
 date_format: "%m/%d/%Y"

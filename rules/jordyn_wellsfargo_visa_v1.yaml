@@ -1,80 +1,82 @@
-# rules/jordyn_wellsfargo_visa_v1.yaml
-# Schema for Wells Fargo Visa Card CSV exports (alternate name)
-# Updated for Canonical Schema v2.0 on 2025-05-22
-# Note: This is essentially the same as jordyn_wells_v1.yaml
-
-schema_name: Jordyn - Wells Fargo Visa (Alternate)
-id: jordyn_wellsfargo_visa_v1
-notes: Schema for Wells Fargo Active Cash Visa Signature Card exports (alternate schema name)
-
-# Date format for parsing date columns
-date_format: "%m/%d/%Y"
-
-# Headers that identify this as a Wells Fargo card export
-header_signature:
-  - Name
-  - Institution
-  - Account Description
-  - Statement Period Description
-  - Statement Start Date
-  - Statement End Date
-  - Date
-  - Post Date
-  - Description
-  - Reference Number
-  - Amount
-  - Category
-
-# Column mappings - Updated for Schema v2.0
-column_map:
-  # Core fields
-  Date: Date
-  Amount: Amount
-  Category: Category
-  Account Description: Account
-  
-  # Banking-specific fields
-  Post Date: PostDate
-  Description: OriginalDescription
-  Reference Number: ReferenceNumber
-  Institution: Institution
-  
-  # Statement period information
-  Statement Start Date: StatementStart
-  Statement End Date: StatementEnd
-  Statement Period Description: StatementPeriodDesc
-
-# Amount configuration
-amount_regex: null
-sign_rule: flip_if_positive  # Wells Fargo shows charges as positive
-
-# Derived columns - dictionary format for compatibility
-derived_columns:
-  Owner:
-    type: static_value
-    value: Jordyn
-    
-  DataSourceName:
-    type: static_value
-    value: WellsFargoVisa
-    
-  AccountLast4:
-    type: regex_extract
-    source_column: Account
-    pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
-    capture_group: last4
-    
-  AccountType:
-    type: static_value
-    value: Credit Card
-
-# Create Description field (alias for OriginalDescription)
-alias_columns:
-  OriginalDescription: Description
-
-# Columns to explicitly ignore (won't go to Extras)
-extras_ignore:
-  - Name
-
-# No additional static columns needed
-extra_static_cols: {}
+# # rules/jordyn_wellsfargo_visa_v1.yaml
+# # Schema for Wells Fargo Visa Card CSV exports (alternate name)
+# # Updated for Canonical Schema v2.0 on 2025-05-22
+# # Note: This is essentially the same as jordyn_wells_v1.yaml
+#
+# schema_name: Jordyn - Wells Fargo Visa (Alternate)
+# id: jordyn_wellsfargo_visa_v1
+# notes: Schema for Wells Fargo Active Cash Visa Signature Card exports (alternate schema name)
+#
+# # Date format for parsing date columns
+# date_format: "%m/%d/%Y"
+#
+# # Headers that identify this as a Wells Fargo card export
+# header_signature:
+#   - Name
+#   - Institution
+#   - Account Description
+#   - Statement Period Description
+#   - Statement Start Date
+#   - Statement End Date
+#   - Date
+#   - Post Date
+#   - Description
+#   - Reference Number
+#   - Amount
+#   - Category
+#
+# # Column mappings - Updated for Schema v2.0
+# column_map:
+#   # Core fields
+#   Date: Date
+#   Amount: Amount
+#   Category: Category
+#   Account Description: Account
+#   
+#   # Banking-specific fields
+#   Post Date: PostDate
+#   Description: OriginalDescription
+#   Reference Number: ReferenceNumber
+#   Institution: Institution
+#   
+#   # Statement period information
+#   Statement Start Date: StatementStart
+#   Statement End Date: StatementEnd
+#   Statement Period Description: StatementPeriodDesc
+#
+# # Amount configuration
+# amount_regex: null
+# sign_rule: flip_if_positive  # Wells Fargo shows charges as positive
+#
+# # Derived columns - dictionary format for compatibility
+# derived_columns:
+#   Owner:
+#     type: static_value
+#     value: Jordyn
+#     
+#   DataSourceName:
+#     type: static_value
+#     value: WellsFargoVisa
+#     
+#   AccountLast4:
+#     type: regex_extract
+#     source_column: Account
+#     pattern: '(?:x|\.{3}|\()(?P<last4>\d{4})\)?$'
+#     capture_group: last4
+#     
+#   AccountType:
+#     type: static_value
+#     value: Credit Card
+#
+# # Create Description field (alias for OriginalDescription)
+# alias_columns:
+#   OriginalDescription: Description
+#
+# # Columns to explicitly ignore (won't go to Extras)
+# extras_ignore:
+#   - Name
+#
+# # No additional static columns needed
+# extra_static_cols: {}
+# LEGACY SCHEMA - Redundant with jordyn_wells_v1.yaml
+# Kept for reference only - DO NOT USE

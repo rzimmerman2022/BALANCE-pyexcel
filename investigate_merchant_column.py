@@ -1,4 +1,4 @@
-# investigate_merchant_column.py
+# pyth
 # This script investigates where the Merchant column gets populated with Description
 
 import yaml

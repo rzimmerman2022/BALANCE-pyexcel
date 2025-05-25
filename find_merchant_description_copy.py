@@ -1,4 +1,4 @@
-# find_merchant_description_copy.py
+# pyht
 # This script hunts for where merchant = description logic is implemented
 
 from pathlib import Path

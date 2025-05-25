@@ -5,6 +5,7 @@
 schema_name: Ryan - Monarch Money
 id: ryan_monarch_v1
 notes: Schema for Monarch Money CSV exports (Ryan's aggregated financial data)
+file_pattern: 'Ryan - Monarch Money - .*\\.csv' # Ensures it matches "Ryan - Monarch Money - *.csv"
 
 # Date format for parsing date columns
 date_format: "%m/%d/%Y"  # Corrected based on audit sample "4/11/2025"
@@ -30,7 +31,7 @@ column_map:
   
   # In v2, Merchant becomes our primary Description # This comment seems to refer to a conceptual v2
   # But we also keep it as Merchant for compatibility
-  Merchant: Merchant # Maps raw Monarch 'Merchant' to canonical 'Merchant'
+  Merchant: OriginalMerchant # Maps raw Monarch 'Merchant' to canonical 'OriginalMerchant'
   
   # Monarch-specific fields
   Original Statement: OriginalDescription # Corrected mapping

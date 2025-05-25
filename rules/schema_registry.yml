@@ -1,161 +1,171 @@
-- id: chase_total_checking
-  match_filename: Jordyn - Chase Bank - Total Checking*
-  header_signature:
-  - Name
-  - Institution
-  - Account Type
-  - Transaction Date
-  column_map:
-    Transaction Date: Date
-    Description: OriginalDescription
-    Post Date: PostDate
-    Amount: Amount
-    Category: Category
-    Account Type: Account
-  sign_rule: flip_if_withdrawal
-  derived_columns:
-    AccountLast4:
-      rule: regex_extract
-      column: Account
-      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
-    AccountType:
-      rule: static_value
-      value: Checking
-  extras_ignore:
-  - Name
-  - Statement Start Date
-  - Statement End Date
-  - Reference Number
-- id: discover_it_card
-  match_filename: Jordyn - Discover - Discover It Card*
-  header_signature:
-  - Name
-  - Institution
-  - Card Type
-  - Date
-  column_map:
-    Date: Date
-    Post Date: PostDate
-    Description: OriginalDescription
-    Amount: Amount
-    Category: Category
-    Card Type: Account
-    Transaction Type: AccountType
-  sign_rule: flip_if_positive
-  derived_columns:
-    AccountLast4:
-      rule: regex_extract
-      column: Account
-      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
-    AccountType:
-      rule: static_value
-      value: Credit Card
-  extras_ignore:
-  - Name
-  - Statement Start Date
-  - Statement End Date
-  - Reference Number
-  - Statement Period
-- id: wells_fargo_card
-  match_filename: Jordyn - Wells Fargo - Active Cash*
-  header_signature:
-  - Name
-  - Institution
-  - Account Description
-  column_map:
-    Date: Date
-    Post Date: PostDate
-    Description: OriginalDescription
-    Amount: Amount
-    Category: Category
-    Account Description: Account
-  sign_rule: flip_if_positive
-  extra_static_cols:
-    Institution: Wells Fargo
-  derived_columns:
-    AccountLast4:
-      rule: regex_extract
-      column: Account
-      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
-    AccountType:
-      rule: static_value
-      value: Credit Card
-  extras_ignore:
-  - Name
-  - Statement Start Date
-  - Statement End Date
-  - Reference Number
-  - Statement Period Description
-- id: monarch_export
-  match_filename: BALANCE - Monarch Money*
-  header_signature:
-  - Merchant
-  - Account
-  - Original Statement
-  extra_static_cols:
-    Source: Monarch
-  column_map:
-    Date: Date
-    Merchant: OriginalMerchant
-    Original Statement: OriginalDescription
-    Amount: Amount
-    Account: Account
-    Institution: Institution
-    Category: Category
-  sign_rule: as_is
-  derived_columns:
-    AccountLast4:
-      rule: regex_extract
-      column: Account
-      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
-    AccountType:
-      rule: static_value
-      value: Checking
-  extras_ignore:
-  - Name
-  - Statement Start Date
-  - Statement End Date
-  - Reference Number
-  # - Original Statement # Removed as it's now mapped
-  - Notes
-  - Tags
-- id: rocket_money
-  match_filename: BALANCE - Rocket Money*
-  header_signature:
-  - Account Name
-  - Institution Name
-  - Amount
-  extra_static_cols:
-    Source: Rocket
-  column_map:
-    Date: Date
-    Description: OriginalDescription
-    Name: OriginalMerchant
-    Amount: Amount
-    Account Name: Account
-    Institution Name: Institution
-    Category: Category
-  sign_rule: flip_if_positive
-  derived_columns:
-    AccountLast4:
-      rule: regex_extract
-      column: Account
-      pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
-    AccountType:
-      rule: static_value
-      value: Credit Card
-  extras_ignore:
-  # - Name # Removed as it's now mapped
-  - Statement Start Date
-  - Statement End Date
-  - Reference Number
-  - Original Date
-  - Account Type
-  - Account Number
-  - Custom Name
-  - Note
-  - Ignored From
-  - Tax Deductible
+# LEGACY SCHEMA - Removed because files match jordyn_chase_checking_v1 instead
+# Kept for reference only - DO NOT USE
+# - id: chase_total_checking
+#   match_filename: Jordyn - Chase Bank - Total Checking*
+#   header_signature:
+#   - Name
+#   - Institution
+#   - Account Type
+#   - Transaction Date
+#   column_map:
+#     Transaction Date: Date
+#     Description: OriginalDescription
+#     Post Date: PostDate
+#     Amount: Amount
+#     Category: Category
+#     Account Type: Account
+#   sign_rule: flip_if_withdrawal
+#   derived_columns:
+#     AccountLast4:
+#       rule: regex_extract
+#       column: Account
+#       pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
+#     AccountType:
+#       rule: static_value
+#       value: Checking
+#   extras_ignore:
+#   - Name
+#   - Statement Start Date
+#   - Statement End Date
+#   - Reference Number
+# LEGACY SCHEMA - Removed because files match jordyn_discover_card_v1 instead
+# Kept for reference only - DO NOT USE
+# - id: discover_it_card
+#   match_filename: Jordyn - Discover - Discover It Card*
+#   header_signature:
+#   - Name
+#   - Institution
+#   - Card Type
+#   - Date
+#   column_map:
+#     Date: Date
+#     Post Date: PostDate
+#     Description: OriginalDescription
+#     Amount: Amount
+#     Category: Category
+#     Card Type: Account
+#     Transaction Type: AccountType
+#   sign_rule: flip_if_positive
+#   derived_columns:
+#     AccountLast4:
+#       rule: regex_extract
+#       column: Account
+#       pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
+#     AccountType:
+#       rule: static_value
+#       value: Credit Card
+#   extras_ignore:
+#   - Name
+#   - Statement Start Date
+#   - Statement End Date
+#   - Reference Number
+#   - Statement Period
+# LEGACY SCHEMA - Removed because files match jordyn_wells_v1.yaml instead
+# Kept for reference only - DO NOT USE
+# - id: wells_fargo_card
+#   match_filename: Jordyn - Wells Fargo - Active Cash*
+#   header_signature:
+#   - Name
+#   - Institution
+#   - Account Description
+#   column_map:
+#     Date: Date
+#     Post Date: PostDate
+#     Description: OriginalDescription
+#     Amount: Amount
+#     Category: Category
+#     Account Description: Account
+#   sign_rule: flip_if_positive
+#   extra_static_cols:
+#     Institution: Wells Fargo
+#   derived_columns:
+#     AccountLast4:
+#       rule: regex_extract
+#       column: Account
+#       pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
+#     AccountType:
+#       rule: static_value
+#       value: Credit Card
+#   extras_ignore:
+#   - Name
+#   - Statement Start Date
+#   - Statement End Date
+#   - Reference Number
+#   - Statement Period Description
+# LEGACY SCHEMA - Removed because files match ryan_monarch_v1 instead
+# Kept for reference only - DO NOT USE
+# - id: monarch_export
+#   match_filename: BALANCE - Monarch Money*
+#   header_signature:
+#   - Merchant
+#   - Account
+#   - Original Statement
+#   extra_static_cols:
+#     Source: Monarch
+#   column_map:
+#     Date: Date
+#     Merchant: OriginalMerchant
+#     Original Statement: OriginalDescription
+#     Amount: Amount
+#     Account: Account
+#     Institution: Institution
+#     Category: Category
+#   sign_rule: as_is
+#   derived_columns:
+#     AccountLast4:
+#       rule: regex_extract
+#       column: Account
+#       pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
+#     AccountType:
+#       rule: static_value
+#       value: Checking
+#   extras_ignore:
+#   - Name
+#   - Statement Start Date
+#   - Statement End Date
+#   - Reference Number
+#   # - Original Statement # Removed as it's now mapped
+#   - Notes
+#   - Tags
+# LEGACY SCHEMA - Removed because files match ryan_rocket_v1 instead
+# Kept for reference only - DO NOT USE
+# - id: rocket_money
+#   match_filename: BALANCE - Rocket Money*
+#   header_signature:
+#   - Account Name
+#   - Institution Name
+#   - Amount
+#   extra_static_cols:
+#     Source: Rocket
+#   column_map:
+#     Date: Date
+#     Description: OriginalDescription
+#     Name: OriginalMerchant
+#     Amount: Amount
+#     Account Name: Account
+#     Institution Name: Institution
+#     Category: Category
+#   sign_rule: flip_if_positive
+#   derived_columns:
+#     AccountLast4:
+#       rule: regex_extract
+#       column: Account
+#       pattern: (?:x|\.{3}|\()(?P<last4>\d{4})\)?$
+#     AccountType:
+#       rule: static_value
+#       value: Credit Card
+#   extras_ignore:
+#   # - Name # Removed as it's now mapped
+#   - Statement Start Date
+#   - Statement End Date
+#   - Reference Number
+#   - Original Date
+#   - Account Type
+#   - Account Number
+#   - Custom Name
+#   - Note
+#   - Ignored From
+#   - Tax Deductible
 - id: jordyn_pdf_document
   match_filename: BALANCE - Jordyn PDF - Document*.csv
   header_signature:
@@ -228,8 +238,10 @@
   sign_rule: as_is
   extra_static_cols:
     Source: TestSource2
-- id: jordyn_wellsfargo_visa_v1
-  file: jordyn_wellsfargo_visa_v1.yaml
+# LEGACY SCHEMA - File reference for jordyn_wellsfargo_visa_v1.yaml which is now commented out
+# Kept for reference only - DO NOT USE
+# - id: jordyn_wellsfargo_visa_v1
+#   file: jordyn_wellsfargo_visa_v1.yaml
 - id: jordyn_chase_checking_v1
   file: jordyn_chase_checking_v1.yaml
 - id: jordyn_discover_card_v1

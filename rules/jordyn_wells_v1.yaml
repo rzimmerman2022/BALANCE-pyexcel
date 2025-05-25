@@ -5,6 +5,7 @@
 schema_name: Jordyn - Wells Fargo Visa
 id: jordyn_wells_v1
 notes: Schema for Wells Fargo Active Cash Visa Signature Card exports
+file_pattern: 'Jordyn - Wells Fargo - Active Cash.*\\.csv'
 
 # Date format for parsing date columns
 date_format: "%m/%d/%Y"
