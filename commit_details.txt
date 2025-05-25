@@ -1,0 +1,43 @@
+Refactor: Implement Four-Column Transaction Architecture and Fix Data Loss
+
+This commit addresses critical issues in the transaction data pipeline by implementing a robust four-column architecture (OriginalDescription, Description, OriginalMerchant, Merchant) and rectifying data loss problems stemming from incorrect schema mappings and merchant standardization logic.
+
+Detailed Changes:
+
+1.  **Schema Mapping Corrections (`rules/schema_registry.yml`):**
+    *   **Monarch Export (`monarch_export`):**
+        *   Mapped CSV "Original Statement" to DataFrame "OriginalDescription" (was previously ignored).
+        *   Mapped CSV "Merchant" to DataFrame "OriginalMerchant" (was previously mapped to "OriginalDescription").
+        *   Removed "Original Statement" from `extras_ignore` to enable its processing.
+    *   **Rocket Money (`rocket_money`):**
+        *   Mapped CSV "Name" to DataFrame "OriginalMerchant" (was previously ignored).
+        *   Removed "Name" from `extras_ignore` to enable its processing.
+    *   These changes ensure that valuable source data for original descriptions and pre-cleaned merchant names are correctly ingested into the pipeline, preventing initial data loss.
+
+2.  **Comprehensive Transaction Cleaner Enhancements (`src/balance_pipeline/transaction_cleaner.py`):**
+    *   **Dynamic Merchant Standardization Rules:**
+        *   Modified `initialize_merchant_patterns` to load merchant standardization rules directly from `transaction_analysis_results/merchant_variations.json`. This file contains a dictionary of 693 known merchant variations and their standardized names.
+        *   Removed the previously hardcoded `self.merchant_standardization` dictionary, making the system reliant on the centrally managed `merchant_variations.json` file.
+    *   **Improved `standardize_merchant` Logic:**
+        *   The method now prioritizes a direct lookup in the loaded `merchant_standardization` rules (from `merchant_variations.json`).
+        *   If a direct match is found for the `original_merchant` string, its corresponding standardized name is returned.
+        *   The existing heuristic cleaning (removing location data, store numbers, common suffixes, and applying title case) acts as a fallback if no specific rule is found in `merchant_variations.json`.
+    *   **Corrected `OriginalMerchant` Population in `process_dataframe`:**
+        *   The logic for populating the `OriginalMerchant` column has been significantly improved.
+        *   It now first checks if `OriginalMerchant` has been populated by the schema mapping (e.g., from Monarch or Rocket Money data).
+        *   If `OriginalMerchant` is missing or empty after schema mapping, the cleaner then attempts to extract it from the `OriginalDescription` column using the `extract_original_merchant` method.
+        *   This ensures that schema-provided merchant data is preserved and utilized, falling back to extraction only when necessary.
+    *   **Column Creation and Cleaning Order:**
+        *   The `process_dataframe` method maintains the logical flow:
+            1.  `Description` is created from `OriginalDescription`.
+            2.  `OriginalMerchant` is populated (schema first, then extraction).
+            3.  `Merchant` is created by standardizing `OriginalMerchant` using the new rules.
+
+Expected Impact:
+
+*   **Accurate Data Capture:** All four key transaction columns (`OriginalDescription`, `Description`, `OriginalMerchant`, `Merchant`) will now be populated with distinct and appropriate values.
+*   **Elimination of Data Loss:** Previously discarded merchant information from Monarch and Rocket Money will now be correctly utilized.
+*   **Reliable Merchant Standardization:** The `Merchant` column will contain consistently standardized names based on the comprehensive `merchant_variations.json` file, rather than being a duplicate of the `Description` or a lightly cleaned version of `OriginalMerchant`.
+*   **Foundation for Automation:** These fixes are critical for enabling automated reconciliation processes, significantly reducing manual effort.
+
+This comprehensive refactor ensures data integrity and consistency throughout the transaction processing pipeline.

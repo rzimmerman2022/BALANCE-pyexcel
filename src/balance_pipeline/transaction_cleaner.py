@@ -24,14 +24,17 @@ class ComprehensiveTransactionCleaner:
     
     def __init__(self, analysis_results_path: Optional[Path] = None):
         """Initialize with patterns from analysis or defaults"""
-        self.analysis_results = {}
-        
-        if analysis_results_path:
-            self.load_analysis_results(analysis_results_path)
+        self.analysis_results: Dict[str, Any] = {}
+        self.recommendations: Dict[str, Any] = {} # For cleaning_recommendations.json
+        self.merchant_standardization: Dict[str, str] = {} # For merchant_variations.json
+        self.analysis_results_path: Optional[Path] = analysis_results_path # Store for later use
+
+        if self.analysis_results_path:
+            self.load_analysis_results(self.analysis_results_path) # Loads full_column_analysis & recommendations
         
         # Initialize all cleaning patterns
         self.initialize_description_patterns()
-        self.initialize_merchant_patterns()
+        self.initialize_merchant_patterns() # Will use self.analysis_results_path to load merchant_variations
         self.initialize_account_patterns()
         self.initialize_institution_patterns()
     
@@ -44,6 +47,8 @@ class ComprehensiveTransactionCleaner:
                 with open(analysis_file, 'r') as f:
                     self.analysis_results = json.load(f)
                 log.info(f"Loaded analysis results from {analysis_file}")
+            else:
+                log.warning(f"Full column analysis file not found at {analysis_file}")
             
             # Load cleaning recommendations
             recommendations_file = results_path / 'cleaning_recommendations.json'
@@ -51,8 +56,10 @@ class ComprehensiveTransactionCleaner:
                 with open(recommendations_file, 'r') as f:
                     self.recommendations = json.load(f)
                 log.info(f"Loaded cleaning recommendations from {recommendations_file}")
+            else:
+                log.warning(f"Cleaning recommendations file not found at {recommendations_file}")
         except Exception as e:
-            log.error(f"Error loading analysis results: {e}")
+            log.error(f"Error loading analysis results from {results_path}: {e}")
     
     def initialize_description_patterns(self):
         """Initialize patterns for description cleaning"""
@@ -110,40 +117,32 @@ class ComprehensiveTransactionCleaner:
         ]
         
         # Standardization rules based on your merchant analysis
-        self.merchant_standardization = {
-            # From your top merchants
-            r'FRYS[\s-]FOOD[\s-]DR[GU]\s*#?\d+.*': 'Fry\'s Food',
-            r'WHOLEFDS.*': 'Whole Foods',
-            r'TARGET(\s+COM)?.*': 'Target',
-            r'AMAZON.*': 'Amazon',
-            r'APPLE\s+CASH.*': 'Apple Cash',
-            
-            # P2P standardization
-            r'ZELLE\s+(FROM|TO).*': 'Zelle Transfer',
-            r'VENMO\s+(FROM|TO).*': 'Venmo Transfer',
-            r'PAYPAL.*': 'PayPal',
-            
-            # From your patterns
-            r'CREDIT\s+ONE.*': 'Credit One Bank',
-            r'CHASE.*AUTOPAY.*': 'Chase Auto Payment',
-            r'CAPITAL\s+ONE\s+AUTO.*': 'Capital One Auto',
-            r'SPOTIFY.*': 'Spotify',
-            r'INCREASE\s+FROM\s+BROKERAGE.*': 'Brokerage Deposit',
-            r'.*PAYROLL.*': lambda m: self._extract_company_from_payroll(m.group(0)),
-            
-            # Food & Dining
-            r'DD\s+DOORDASH.*': 'DoorDash',
-            r'UBER.*EATS.*': 'Uber Eats',
-            r'UBER\s+TRIP.*': 'Uber',
-            r'CULVERS.*': 'Culver\'s',
-            r'SNOOZE.*': 'Snooze',
-            
-            # Utilities & Services
-            r'.*PAYMENT\s+AUTOPAY.*': 'Auto Payment',
-            r'CREDIT\s+PROTECT.*': 'Credit Protection',
-            r'.*INTEREST.*': 'Interest Charge',
-            r'.*CASH\s*BACK.*': 'Cash Back',
-        }
+        # self.merchant_standardization = { ... } # Removed hardcoded rules
+
+        # Load standardization rules from merchant_variations.json
+        self.merchant_standardization = {} # Default to empty
+        if self.analysis_results_path:
+            merchant_variations_file = self.analysis_results_path / 'merchant_variations.json'
+            if merchant_variations_file.exists():
+                try:
+                    with open(merchant_variations_file, 'r') as f:
+                        # Assuming the JSON is a flat dict of pattern: replacement
+                        loaded_rules = json.load(f)
+                        # The patterns are direct strings, not regex, so we store them as is.
+                        # The standardize_merchant method will need to handle this.
+                        # For now, let's assume they are regex patterns as keys.
+                        # If they are exact strings, standardize_merchant will need adjustment.
+                        # Based on user prompt: "Keys are the merchant name patterns/variations found in the data"
+                        # "Values are the standardized merchant names"
+                        # This implies direct lookup, not regex.
+                        self.merchant_standardization = loaded_rules
+                    log.info(f"Loaded {len(self.merchant_standardization)} merchant standardization rules from {merchant_variations_file}")
+                except Exception as e:
+                    log.error(f"Error loading merchant variations from {merchant_variations_file}: {e}")
+            else:
+                log.warning(f"Merchant variations file not found at {merchant_variations_file}. Standardization rules will be empty.")
+        else:
+            log.warning("Analysis results path not provided. Merchant standardization rules will be empty.")
     
     def initialize_account_patterns(self):
         """Initialize patterns for account cleaning"""
@@ -279,16 +278,24 @@ class ComprehensiveTransactionCleaner:
         
         merchant = str(original_merchant).strip()
         
-        # Apply standardization rules
-        for pattern, replacement in self.merchant_standardization.items():
-            compiled = re.compile(pattern, re.IGNORECASE)
-            if compiled.search(merchant):
-                if callable(replacement):
-                    return replacement(compiled.search(merchant))
-                else:
-                    return replacement
+        # Priority 1: Direct lookup in loaded merchant_variations.json rules
+        # The keys in self.merchant_standardization are the raw merchant strings.
+        if merchant in self.merchant_standardization:
+            return self.merchant_standardization[merchant]
         
-        # If no pattern matches, clean up heuristically
+        # Priority 2: Fallback to general regex-based standardization rules (if any were kept or added)
+        # For this implementation, we assume merchant_variations.json is comprehensive for known variations.
+        # If there were other generic regex rules, they would go here.
+        # Example:
+        # for pattern, replacement in self.generic_merchant_regex_rules.items(): # Assuming such a dict exists
+        #     compiled = re.compile(pattern, re.IGNORECASE)
+        #     if compiled.search(merchant):
+        #         if callable(replacement):
+        #             return replacement(compiled.search(merchant))
+        #         else:
+        #             return replacement
+
+        # Priority 3: If no specific or regex rule matches, clean up heuristically
         # Remove location data
         merchant = re.sub(r'\s+[A-Z]{2}\s*$', '', merchant)  # State codes
         merchant = re.sub(r'\s+\d{5}(-\d{4})?', '', merchant)  # ZIP codes
@@ -394,13 +401,37 @@ class ComprehensiveTransactionCleaner:
             new_lengths = cleaned_df['Description'].str.len().mean()
             log.info(f"  Average length reduced from {orig_lengths:.1f} to {new_lengths:.1f} characters")
         
-        # STAGE 2: Create OriginalMerchant (missing column!)
+        # STAGE 2: Populate OriginalMerchant
+        # This column might already exist and be partially populated by schema mapping (e.g., from Monarch, Rocket Money)
+        log.info("Stage 2: Populating OriginalMerchant...")
+        if 'OriginalMerchant' not in cleaned_df.columns:
+            cleaned_df['OriginalMerchant'] = pd.Series([np.nan] * len(cleaned_df), index=cleaned_df.index, dtype=object)
+
+        # Ensure OriginalMerchant is string type for consistency before filling NaNs
+        # This handles cases where it might be all NaN and thus float
+        cleaned_df['OriginalMerchant'] = cleaned_df['OriginalMerchant'].astype(str).replace('nan', '')
+
+
+        # Identify rows where OriginalMerchant is missing (NaN or empty string after schema mapping)
+        # and OriginalDescription is available.
         if 'OriginalDescription' in cleaned_df.columns:
-            log.info("Stage 2: Creating OriginalMerchant from OriginalDescription...")
-            cleaned_df['OriginalMerchant'] = cleaned_df['OriginalDescription'].apply(
-                self.extract_original_merchant
+            missing_original_merchant_mask = (
+                pd.isna(cleaned_df['OriginalMerchant']) | (cleaned_df['OriginalMerchant'] == '')
             )
-        
+            
+            if missing_original_merchant_mask.any():
+                log.info("  Extracting OriginalMerchant from OriginalDescription for missing values...")
+                cleaned_df.loc[missing_original_merchant_mask, 'OriginalMerchant'] = \
+                    cleaned_df.loc[missing_original_merchant_mask, 'OriginalDescription'].apply(
+                        self.extract_original_merchant
+                    )
+        else:
+            log.warning("  OriginalDescription column not found, cannot extract OriginalMerchant for missing values.")
+
+        # Ensure OriginalMerchant is not empty, default to "Unknown" if it's still empty after processing
+        # However, it's better to let standardize_merchant handle this.
+        # cleaned_df['OriginalMerchant'] = cleaned_df['OriginalMerchant'].fillna("").replace("", "Unknown") # Avoid this here
+
         # STAGE 3: Standardize Merchant from OriginalMerchant
         if 'OriginalMerchant' in cleaned_df.columns:
             log.info("Stage 3: Standardizing Merchant from OriginalMerchant...")

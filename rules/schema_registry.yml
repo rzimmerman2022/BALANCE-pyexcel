@@ -96,7 +96,8 @@
     Source: Monarch
   column_map:
     Date: Date
-    Merchant: OriginalDescription
+    Merchant: OriginalMerchant
+    Original Statement: OriginalDescription
     Amount: Amount
     Account: Account
     Institution: Institution
@@ -115,7 +116,7 @@
   - Statement Start Date
   - Statement End Date
   - Reference Number
-  - Original Statement
+  # - Original Statement # Removed as it's now mapped
   - Notes
   - Tags
 - id: rocket_money
@@ -129,6 +130,7 @@
   column_map:
     Date: Date
     Description: OriginalDescription
+    Name: OriginalMerchant
     Amount: Amount
     Account Name: Account
     Institution Name: Institution
@@ -143,7 +145,7 @@
       rule: static_value
       value: Credit Card
   extras_ignore:
-  - Name
+  # - Name # Removed as it's now mapped
   - Statement Start Date
   - Statement End Date
   - Reference Number
