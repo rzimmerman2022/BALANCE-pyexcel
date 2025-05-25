@@ -14,7 +14,7 @@ Each adapter:
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 import pandas as pd
 
@@ -141,7 +141,7 @@ class ExcelOutput(BaseOutputAdapter):
         logger.info(f"Writing DataFrame to Excel file: {self.output_path} (Sheet: {sheet_name})")
         try:
             # Convert datetime columns to timezone-unaware for Excel compatibility if they are aware
-            for col in df.select_dtypes(include=['datetime6tz']).columns:
+            for col in df.select_dtypes(include=['datetime64[ns, tz]']).columns:
                 logger.debug(f"Converting timezone-aware column '{col}' to naive for Excel export.")
                 df[col] = df[col].dt.tz_localize(None)
             

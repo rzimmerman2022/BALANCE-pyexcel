@@ -57,6 +57,7 @@ from .constants import MASTER_SCHEMA_COLUMNS  # Added import
 from .normalize import (
     clean_merchant as project_clean_merchant,
 )  # Alias to avoid conflict
+from balance_pipeline.transaction_cleaner import ComprehensiveTransactionCleaner, apply_comprehensive_cleaning
 from balance_pipeline.schema_registry import find_matching_schema as _find_schema
 from .errors import RecoverableFileError
 
@@ -913,49 +914,49 @@ def apply_schema_transformations(
     return transformed_df
 
 
-def _clean_merchant_column(  # Added return type hint
-    df: pd.DataFrame, merchant_lookup_rules: List[Tuple[re.Pattern[str], str]]
-) -> pd.Series[str]:  # type: ignore[no-untyped-def]
-    """
-    Cleans the merchant names in a DataFrame.
-    Uses 'OriginalDescription' as the primary source for cleaning,
-    falls back to 'Merchant' if 'OriginalDescription' is not available or empty.
-    Applies regex lookup rules and then a fallback general cleaner.
-    """
-    # Determine the source column for merchant cleaning
-    if (
-        "OriginalDescription" in df.columns
-        and not df["OriginalDescription"].isna().all()
-    ):
-        source_merchant_col = "OriginalDescription"
-    elif (
-        "Merchant" in df.columns
-    ):  # Fallback to Merchant if OriginalDescription is not good
-        source_merchant_col = "Merchant"
-        # This log is more of a detail for a specific file, will be covered by process_csv_files logs
-        # log.info(
-        #     "Using 'Merchant' column as source for merchant cleaning as 'OriginalDescription' is unavailable/empty."
-        # )
-    else:
-        # This log is also more of a detail for a specific file
-        # log.warning(
-        #     "Neither 'OriginalDescription' nor 'Merchant' column found for merchant cleaning. Returning empty Series."
-        # )
-        return pd.Series([None] * len(df), index=df.index, dtype=str)
+# def _clean_merchant_column(  # Added return type hint
+#     df: pd.DataFrame, merchant_lookup_rules: List[Tuple[re.Pattern[str], str]]
+# ) -> pd.Series[str]:  # type: ignore[no-untyped-def]
+#     """[OLD FUNCTION - REPLACED BY ComprehensiveTransactionCleaner]
+#     Cleans the merchant names in a DataFrame.
+#     Uses 'OriginalDescription' as the primary source for cleaning,
+#     falls back to 'Merchant' if 'OriginalDescription' is not available or empty.
+#     Applies regex lookup rules and then a fallback general cleaner.
+#     """
+#     # Determine the source column for merchant cleaning
+#     if (
+#         "OriginalDescription" in df.columns
+#         and not df["OriginalDescription"].isna().all()
+#     ):
+#         source_merchant_col = "OriginalDescription"
+#     elif (
+#         "Merchant" in df.columns
+#     ):  # Fallback to Merchant if OriginalDescription is not good
+#         source_merchant_col = "Merchant"
+#         # This log is more of a detail for a specific file, will be covered by process_csv_files logs
+#         # log.info(
+#         #     "Using 'Merchant' column as source for merchant cleaning as 'OriginalDescription' is unavailable/empty."
+#         # )
+#     else:
+#         # This log is also more of a detail for a specific file
+#         # log.warning(
+#         #     "Neither 'OriginalDescription' nor 'Merchant' column found for merchant cleaning. Returning empty Series."
+#         # )
+#         return pd.Series([None] * len(df), index=df.index, dtype=str)
 
-    def clean_single_merchant(merchant_string: Any) -> str:
-        if not isinstance(merchant_string, str) or pd.isna(merchant_string):
-            return "Unknown Merchant"  # Default for missing/invalid input
+#     def clean_single_merchant(merchant_string: Any) -> str:
+#         if not isinstance(merchant_string, str) or pd.isna(merchant_string):
+#             return "Unknown Merchant"  # Default for missing/invalid input
 
-        for pattern, canonical_name in merchant_lookup_rules:
-            if pattern.search(merchant_string):
-                return canonical_name
+#         for pattern, canonical_name in merchant_lookup_rules:
+#             if pattern.search(merchant_string):
+#                 return canonical_name
 
-        # Fallback to project's general merchant cleaner
-        return project_clean_merchant(merchant_string)  # This returns str
+#         # Fallback to project's general merchant cleaner
+#         return project_clean_merchant(merchant_string)  # This returns str
 
-    # The apply will result in a Series of strings
-    return df[source_merchant_col].apply(clean_single_merchant).astype(str)
+#     # The apply will result in a Series of strings
+#     return df[source_merchant_col].apply(clean_single_merchant).astype(str)
 
 
 def process_csv_files(
@@ -1105,9 +1106,22 @@ def process_csv_files(
         processed_df["DataSourceDate"] = ds_date
         log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate DataSourceDate | Value: {ds_date}")
 
-        # Merchant Cleaning
-        processed_df["Merchant"] = _clean_merchant_column(processed_df, merchant_rules)
-        log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Final Merchant Cleaning")
+        # Apply Comprehensive Cleaning (replaces old merchant cleaning)
+        log.info(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Applying Comprehensive Cleaning")
+
+        # Initialize the cleaner with your analysis results
+        analysis_path = Path('transaction_analysis_results')  # Or 'comprehensive_analysis_results'
+        processed_df = apply_comprehensive_cleaning(
+            processed_df, 
+            analysis_path=analysis_path
+        )
+
+        # Log the improvements
+        if "OriginalMerchant" in processed_df.columns:
+            log.info(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Created OriginalMerchant column")
+        if "Description" in processed_df.columns and "OriginalDescription" in processed_df.columns:
+            desc_changed = (processed_df["Description"] != processed_df["OriginalDescription"]).sum()
+            log.info(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Cleaned {desc_changed} descriptions")
 
         if "Merchant" in processed_df.columns and not processed_df.empty:
             blanks = processed_df["Merchant"].isna().sum()
@@ -1160,8 +1174,10 @@ def process_csv_files(
             "Owner": str,
             "Date": "datetime64[ns]",
             "PostDate": "datetime64[ns]",
-            "Merchant": str,
             "OriginalDescription": str,
+            "Description": str,
+            "OriginalMerchant": str,
+            "Merchant": str,
             "Category": str,
             "Amount": float,
             "Tags": str,

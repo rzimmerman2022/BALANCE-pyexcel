@@ -10,10 +10,11 @@ MASTER_SCHEMA_COLUMNS = [
     "Currency",
 
     # Core Descriptive Info
-    "Merchant",
-    "Category",
     "OriginalDescription", # Rawest/longest description from source
     "Description",         # Primary/shorter description, or alias of OriginalDescription
+    "OriginalMerchant",    # Raw merchant string before cleaning
+    "Merchant",            # Cleaned merchant name
+    "Category",
     
     # Account Details
     "Account",

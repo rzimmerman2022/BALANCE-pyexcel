@@ -1,0 +1,1150 @@
+{
+  "TxnID": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 5133,
+    "sample_values": [
+      "020b0411844bfb64",
+      "aa36b5ce2568a82a",
+      "e7e19e75a8f04499",
+      "961f5876e0e2078e",
+      "dfa30cc0fde27aff",
+      "ffed34d01126e12d",
+      "961506f800137a72",
+      "0e81798388b21eba",
+      "a1c06c62deea3311",
+      "10bd702e699b9f51"
+    ],
+    "length_stats": {
+      "min": 16,
+      "max": 16,
+      "mean": 16.0,
+      "median": 16.0,
+      "std": 0.0
+    },
+    "patterns": {
+      "has_numbers": "5187",
+      "has_transaction_id": "469"
+    }
+  },
+  "Owner": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 2,
+    "sample_values": [
+      "Jordyn",
+      "Ryan",
+      "Ryan",
+      "Ryan",
+      "Ryan",
+      "Jordyn",
+      "Ryan",
+      "Ryan",
+      "Ryan",
+      "Ryan"
+    ],
+    "length_stats": {
+      "min": 4,
+      "max": 6,
+      "mean": 4.212068633121265,
+      "median": 4.0,
+      "std": 0.6158224371652913
+    },
+    "patterns": {},
+    "common_prefixes": [
+      [
+        "Ryan",
+        896
+      ],
+      [
+        "Jordyn",
+        104
+      ]
+    ]
+  },
+  "Date": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 790,
+    "sample_values": [
+      "NaT",
+      "2023-04-21",
+      "2023-12-28",
+      "2024-04-15",
+      "2024-07-01",
+      "2024-09-05",
+      "2024-11-01",
+      "2024-12-16",
+      "2025-02-10",
+      "2025-04-11"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 10,
+      "mean": 9.995951417004049,
+      "median": 10.0,
+      "std": 0.16831265999637962
+    },
+    "patterns": {
+      "has_numbers": "5184",
+      "has_dates": "5184"
+    }
+  },
+  "Amount": {
+    "dtype": "float64",
+    "null_count": "3",
+    "null_percentage": 0.057836899942163095,
+    "unique_count": 2865,
+    "sample_values": [
+      "9.51",
+      "-2503.25",
+      "31.33",
+      "-230.63",
+      "300.0",
+      "-16.78",
+      "327.31",
+      "11.12",
+      "-6.67",
+      "700.0"
+    ],
+    "numeric_stats": {
+      "min": -8000.0,
+      "max": 8000.0,
+      "mean": -7.905952932098766,
+      "median": 5.29,
+      "std": 625.9662432792973,
+      "negative_count": 2323,
+      "zero_count": 45,
+      "positive_count": 2816
+    }
+  },
+  "Merchant": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 2008,
+    "sample_values": [
+      "Description",
+      "Purchase Authorized On 04 19 Apple Cash 1Infiniteloop Ca S303109599173355 Card 0968",
+      "E Payment Target Com",
+      "Capital One Auto Directpay Dp041C34Bff6582 Ryan Zimmerman",
+      "Tst Snooze Ahwatukee Phoenix Az",
+      "Uber Trip Help Uber Com Ca",
+      "Applecard Gsbank Payment 103124 Xxxxx6849 Ryan Zimmerman",
+      "Amazon",
+      "Target Card Srvc Auto Pymt 250208 00071725853 Zimmerman Ryan",
+      "Zelle From Zimmerman Joan On 04 11 Ref Pp0Yq37Td2 April 2025 Rent"
+    ],
+    "length_stats": {
+      "min": 5,
+      "max": 117,
+      "mean": 44.88702525544631,
+      "median": 33.0,
+      "std": 26.23569265320404
+    },
+    "patterns": {
+      "has_numbers": "3657",
+      "has_phone": "149",
+      "has_transaction_id": "1397",
+      "has_store_num": "5",
+      "starts_with_online": "110"
+    },
+    "common_prefixes": [
+      [
+        "Frys",
+        137
+      ],
+      [
+        "Frys Food",
+        123
+      ],
+      [
+        "Frys Food Drg",
+        123
+      ],
+      [
+        "Zelle",
+        73
+      ],
+      [
+        "Recurring",
+        54
+      ],
+      [
+        "Recurring Payment",
+        54
+      ],
+      [
+        "Recurring Payment Authorized",
+        53
+      ],
+      [
+        "Zelle From",
+        52
+      ]
+    ]
+  },
+  "Account": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 31,
+    "sample_values": [
+      "Account Description",
+      "EVERYDAY CHECKING ...3850",
+      "Target RedCard (...9650)",
+      "WF EVERYDAY CHECKING (...3850)",
+      "WELLS FARGO AUTOGRAPH VISA\u00ae CARD ...1315",
+      "Active Cash Visa Signature Card x4296",
+      "EVERYDAY CHECKING ...3850",
+      "Mercury Cards (FB&T)",
+      "WF EVERYDAY CHECKING (...3850)",
+      "WF EVERYDAY CHECKING (...3850)"
+    ],
+    "length_stats": {
+      "min": 4,
+      "max": 47,
+      "mean": 26.66242529400424,
+      "median": 25.0,
+      "std": 11.061165591567667
+    },
+    "patterns": {
+      "has_numbers": "4344",
+      "has_all_caps": "2954",
+      "has_transaction_id": "2954"
+    },
+    "common_prefixes": [
+      [
+        "EVERYDAY",
+        278
+      ],
+      [
+        "EVERYDAY CHECKING",
+        278
+      ],
+      [
+        "EVERYDAY CHECKING ...3850",
+        278
+      ],
+      [
+        "WELLS",
+        122
+      ],
+      [
+        "WELLS FARGO",
+        122
+      ],
+      [
+        "WELLS FARGO AUTOGRAPH",
+        122
+      ],
+      [
+        "WF EVERYDAY",
+        101
+      ],
+      [
+        "WF EVERYDAY CHECKING",
+        101
+      ],
+      [
+        "Active",
+        76
+      ],
+      [
+        "Active Cash",
+        76
+      ]
+    ]
+  },
+  "DataSourceName": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 5,
+    "sample_values": [
+      "WellsFargoVisa",
+      "RocketMoney",
+      "MonarchMoney",
+      "MonarchMoney",
+      "RocketMoney",
+      "WellsFargoVisa",
+      "RocketMoney",
+      "MonarchMoney",
+      "MonarchMoney",
+      "MonarchMoney"
+    ],
+    "length_stats": {
+      "min": 11,
+      "max": 14,
+      "mean": 11.607094659726238,
+      "median": 11.0,
+      "std": 0.8504959779492905
+    },
+    "patterns": {},
+    "common_prefixes": [
+      [
+        "RocketMoney",
+        540
+      ],
+      [
+        "MonarchMoney",
+        348
+      ],
+      [
+        "WellsFargoVisa",
+        77
+      ]
+    ]
+  },
+  "DataSourceDate": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 5,
+    "sample_values": [
+      "2025-04-15 20:42:50.559091",
+      "2025-04-25 16:53:14.255286",
+      "2025-04-25 16:53:18.043292",
+      "2025-04-25 16:53:18.043292",
+      "2025-04-25 16:53:14.255286",
+      "2025-04-15 20:42:50.559091",
+      "2025-04-25 16:53:14.255286",
+      "2025-04-25 16:53:18.043292",
+      "2025-04-25 16:53:18.043292",
+      "2025-04-25 16:53:18.043292"
+    ],
+    "length_stats": {
+      "min": 26,
+      "max": 26,
+      "mean": 26.0,
+      "median": 26.0,
+      "std": 0.0
+    },
+    "patterns": {
+      "has_numbers": "5187",
+      "has_dates": "5187"
+    },
+    "common_prefixes": [
+      [
+        "2025-04-25",
+        885
+      ],
+      [
+        "2025-04-25 16:53:14.255286",
+        561
+      ],
+      [
+        "2025-04-25 16:53:18.043292",
+        324
+      ],
+      [
+        "2025-04-15",
+        115
+      ],
+      [
+        "2025-04-15 20:42:50.559091",
+        74
+      ]
+    ]
+  },
+  "Currency": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 1,
+    "sample_values": [
+      "USD",
+      "USD",
+      "USD",
+      "USD",
+      "USD",
+      "USD",
+      "USD",
+      "USD",
+      "USD",
+      "USD"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 3,
+      "mean": 3.0,
+      "median": 3.0,
+      "std": 0.0
+    },
+    "patterns": {},
+    "common_prefixes": [
+      [
+        "USD",
+        1000
+      ]
+    ]
+  },
+  "PostDate": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 244,
+    "sample_values": [
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT",
+      "2024-09-05",
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 10,
+      "mean": 3.738191632928475,
+      "median": 3.0,
+      "std": 2.1501874032675015
+    },
+    "patterns": {
+      "has_numbers": "547",
+      "has_dates": "547"
+    },
+    "common_prefixes": [
+      [
+        "NaT",
+        897
+      ]
+    ]
+  },
+  "Extras": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 1,
+    "sample_values": [
+      "None",
+      "None",
+      "None",
+      "None",
+      "None",
+      "None",
+      "None",
+      "None",
+      "None",
+      "None"
+    ],
+    "length_stats": {
+      "min": 4,
+      "max": 4,
+      "mean": 4.0,
+      "median": 4.0,
+      "std": 0.0
+    },
+    "patterns": {},
+    "common_prefixes": [
+      [
+        "None",
+        1000
+      ]
+    ]
+  },
+  "StatementStart": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 22,
+    "sample_values": [
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT",
+      "2024-08-19",
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 10,
+      "mean": 3.7327935222672064,
+      "median": 3.0,
+      "std": 2.143234443553752
+    },
+    "patterns": {
+      "has_numbers": "543",
+      "has_dates": "543"
+    },
+    "common_prefixes": [
+      [
+        "NaT",
+        893
+      ]
+    ]
+  },
+  "StatementEnd": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 22,
+    "sample_values": [
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT",
+      "2024-09-17",
+      "NaT",
+      "NaT",
+      "NaT",
+      "NaT"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 10,
+      "mean": 3.7327935222672064,
+      "median": 3.0,
+      "std": 2.143234443553752
+    },
+    "patterns": {
+      "has_numbers": "543",
+      "has_dates": "543"
+    },
+    "common_prefixes": [
+      [
+        "NaT",
+        881
+      ]
+    ]
+  },
+  "OriginalDescription": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 2628,
+    "sample_values": [
+      "Description",
+      "PURCHASE AUTHORIZED ON 04/19 APPLE CASH 1INFINITELOOP CA S303109599173355 CARD 0968",
+      "E-PAYMENT, TARGET.COM",
+      "CAPITAL ONE AUTO DIRECTPAY         DP041C34BFF6582 Ryan Zimmerman",
+      "TST* SNOOZE - AHWATUKEE PHOENIX AZ",
+      "UBER *TRIP HELP.UBER.COM CA",
+      "APPLECARD GSBANK PAYMENT 103124 XXXXX6849 Ryan Zimmerman",
+      "Amazon",
+      "TARGET CARD SRVC AUTO PYMT  250208 00071725853         ZIMMERMAN RYAN",
+      "ZELLE FROM ZIMMERMAN JOAN ON 04/11 REF # PP0YQ37TD2 APRIL 2025 RENT"
+    ],
+    "length_stats": {
+      "min": 4,
+      "max": 153,
+      "mean": 49.91941391941392,
+      "median": 40.0,
+      "std": 28.542153300758955
+    },
+    "patterns": {
+      "has_numbers": "3744",
+      "has_dates": "73",
+      "has_amounts": "2",
+      "has_all_caps": "3852",
+      "has_phone": "890",
+      "has_transaction_id": "3534",
+      "has_reference_num": "10",
+      "has_store_num": "772",
+      "starts_with_online": "110"
+    },
+    "common_prefixes": [
+      [
+        "FRYS-FOOD-DRG",
+        127
+      ],
+      [
+        "FRYS-FOOD-DRG #051",
+        126
+      ],
+      [
+        "ZELLE",
+        71
+      ],
+      [
+        "FRYS-FOOD-DRG #051 CHANDLER",
+        68
+      ],
+      [
+        "RECURRING",
+        58
+      ],
+      [
+        "RECURRING PAYMENT",
+        58
+      ],
+      [
+        "RECURRING PAYMENT AUTHORIZED",
+        56
+      ],
+      [
+        "ZELLE FROM",
+        55
+      ]
+    ]
+  },
+  "Description": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 2628,
+    "sample_values": [
+      "Description",
+      "PURCHASE AUTHORIZED ON 04/19 APPLE CASH 1INFINITELOOP CA S303109599173355 CARD 0968",
+      "E-PAYMENT, TARGET.COM",
+      "CAPITAL ONE AUTO DIRECTPAY         DP041C34BFF6582 Ryan Zimmerman",
+      "TST* SNOOZE - AHWATUKEE PHOENIX AZ",
+      "UBER *TRIP HELP.UBER.COM CA",
+      "APPLECARD GSBANK PAYMENT 103124 XXXXX6849 Ryan Zimmerman",
+      "Amazon",
+      "TARGET CARD SRVC AUTO PYMT  250208 00071725853         ZIMMERMAN RYAN",
+      "ZELLE FROM ZIMMERMAN JOAN ON 04/11 REF # PP0YQ37TD2 APRIL 2025 RENT"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 153,
+      "mean": 49.91922112974745,
+      "median": 40.0,
+      "std": 28.54246690152746
+    },
+    "patterns": {
+      "has_numbers": "3744",
+      "has_dates": "73",
+      "has_amounts": "2",
+      "has_all_caps": "3851",
+      "has_phone": "890",
+      "has_transaction_id": "3534",
+      "has_reference_num": "10",
+      "has_store_num": "772",
+      "starts_with_online": "110"
+    },
+    "common_prefixes": [
+      [
+        "FRYS-FOOD-DRG",
+        127
+      ],
+      [
+        "FRYS-FOOD-DRG #051",
+        125
+      ],
+      [
+        "FRYS-FOOD-DRG #051 CHANDLER",
+        73
+      ],
+      [
+        "RECURRING",
+        71
+      ],
+      [
+        "RECURRING PAYMENT",
+        71
+      ],
+      [
+        "RECURRING PAYMENT AUTHORIZED",
+        70
+      ],
+      [
+        "ZELLE",
+        69
+      ]
+    ]
+  },
+  "Category": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 68,
+    "sample_values": [
+      "Category",
+      "Uncategorized",
+      "Shopping",
+      "Credit Card Payment",
+      "Dining & Drinks",
+      "Purchase",
+      "Bills & Utilities",
+      "Shopping",
+      "Shopping",
+      "Transfer"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 34,
+      "mean": 12.888374783111626,
+      "median": 13.0,
+      "std": 4.792943155078882
+    },
+    "patterns": {
+      "has_all_caps": "2",
+      "starts_with_pos": "1"
+    },
+    "common_prefixes": [
+      [
+        "Groceries",
+        165
+      ],
+      [
+        "Bills",
+        110
+      ],
+      [
+        "Bills &",
+        110
+      ],
+      [
+        "Bills & Utilities",
+        110
+      ],
+      [
+        "Credit",
+        87
+      ],
+      [
+        "Credit Card",
+        83
+      ],
+      [
+        "Credit Card Payment",
+        83
+      ],
+      [
+        "Shopping",
+        72
+      ],
+      [
+        "Internal",
+        62
+      ],
+      [
+        "Internal Transfers",
+        62
+      ]
+    ]
+  },
+  "AccountLast4": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 20,
+    "sample_values": [
+      "<NA>",
+      "3850",
+      "9650",
+      "3850",
+      "1315",
+      "4296",
+      "3850",
+      "<NA>",
+      "3850",
+      "3850"
+    ],
+    "length_stats": {
+      "min": 4,
+      "max": 4,
+      "mean": 4.0,
+      "median": 4.0,
+      "std": 0.0
+    },
+    "patterns": {
+      "has_numbers": "5154",
+      "has_all_caps": "33"
+    },
+    "common_prefixes": [
+      [
+        "3850",
+        362
+      ],
+      [
+        "1315",
+        178
+      ],
+      [
+        "2463",
+        89
+      ],
+      [
+        "6396",
+        86
+      ],
+      [
+        "4296",
+        83
+      ]
+    ]
+  },
+  "AccountType": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 5,
+    "sample_values": [
+      "Credit Card",
+      "Cash",
+      "Aggregated",
+      "Aggregated",
+      "Credit Card",
+      "Credit Card",
+      "Cash",
+      "Aggregated",
+      "Aggregated",
+      "Aggregated"
+    ],
+    "length_stats": {
+      "min": 4,
+      "max": 11,
+      "mean": 8.531906689801426,
+      "median": 10.0,
+      "std": 2.9603195750904465
+    },
+    "patterns": {},
+    "common_prefixes": [
+      [
+        "Credit",
+        357
+      ],
+      [
+        "Credit Card",
+        357
+      ],
+      [
+        "Aggregated",
+        342
+      ],
+      [
+        "Cash",
+        273
+      ]
+    ]
+  },
+  "Institution": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 24,
+    "sample_values": [
+      "Institution",
+      "Wells Fargo",
+      "Target RedCard ",
+      "WF EVERYDAY CHECKING ",
+      "Wells Fargo",
+      "Wells Fargo",
+      "Wells Fargo",
+      "Mercury Cards ",
+      "WF EVERYDAY CHECKING ",
+      "WF EVERYDAY CHECKING "
+    ],
+    "length_stats": {
+      "min": 8,
+      "max": 37,
+      "mean": 14.467514941199152,
+      "median": 11.0,
+      "std": 4.577087006620766
+    },
+    "patterns": {
+      "has_numbers": "38",
+      "has_all_caps": "825",
+      "has_transaction_id": "825"
+    },
+    "common_prefixes": [
+      [
+        "Wells",
+        505
+      ],
+      [
+        "Wells Fargo",
+        505
+      ],
+      [
+        "WF EVERYDAY",
+        84
+      ],
+      [
+        "WF EVERYDAY CHECKING",
+        84
+      ],
+      [
+        "Credit",
+        77
+      ],
+      [
+        "Credit One",
+        77
+      ],
+      [
+        "Credit One Bank",
+        77
+      ],
+      [
+        "CreditOne",
+        71
+      ],
+      [
+        "CreditOne Visa",
+        71
+      ],
+      [
+        "CapitalOne",
+        60
+      ]
+    ]
+  },
+  "ReferenceNumber": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 425,
+    "sample_values": [
+      "Reference Number",
+      "nan",
+      "nan",
+      "nan",
+      "nan",
+      "2449215L9MLLHDRJ1",
+      "nan",
+      "nan",
+      "nan",
+      "nan"
+    ],
+    "length_stats": {
+      "min": 1,
+      "max": 26,
+      "mean": 4.3007518796992485,
+      "median": 3.0,
+      "std": 4.0126301531278
+    },
+    "patterns": {
+      "has_numbers": "522",
+      "has_all_caps": "369",
+      "has_phone": "111",
+      "has_transaction_id": "483"
+    },
+    "common_prefixes": [
+      [
+        "nan",
+        872
+      ]
+    ]
+  },
+  "StatementPeriodDesc": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 16,
+    "sample_values": [
+      "Statement Period Description",
+      "nan",
+      "nan",
+      "nan",
+      "nan",
+      "Statement Period 08/19/2024 to 09/17/2024",
+      "nan",
+      "nan",
+      "nan",
+      "nan"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 43,
+      "mean": 5.638133796028533,
+      "median": 3.0,
+      "std": 9.654679583429271
+    },
+    "patterns": {
+      "has_numbers": "359",
+      "has_dates": "354"
+    },
+    "common_prefixes": [
+      [
+        "nan",
+        942
+      ],
+      [
+        "Statement",
+        57
+      ],
+      [
+        "Statement Period",
+        57
+      ]
+    ]
+  },
+  "Tags": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 3,
+    "sample_values": [
+      "nan",
+      "nan",
+      "<NA>",
+      "<NA>",
+      "nan",
+      "nan",
+      "nan",
+      "<NA>",
+      "<NA>",
+      "<NA>"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 12,
+      "mean": 3.328899171004434,
+      "median": 3.0,
+      "std": 0.48440747363574016
+    },
+    "patterns": {
+      "has_all_caps": "1697"
+    },
+    "common_prefixes": [
+      [
+        "nan",
+        682
+      ],
+      [
+        "<NA>",
+        318
+      ]
+    ]
+  },
+  "OriginalDate": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 777,
+    "sample_values": [
+      "nan",
+      "4/21/2023",
+      "nan",
+      "nan",
+      "7/1/2024",
+      "nan",
+      "11/1/2024",
+      "nan",
+      "nan",
+      "nan"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 10,
+      "mean": 6.403701561596298,
+      "median": 8.0,
+      "std": 3.016430419216018
+    },
+    "patterns": {
+      "has_numbers": "2939",
+      "has_dates": "2939"
+    },
+    "common_prefixes": [
+      [
+        "nan",
+        444
+      ]
+    ]
+  },
+  "AccountNumber": {
+    "dtype": "object",
+    "null_count": "0",
+    "null_percentage": 0.0,
+    "unique_count": 14,
+    "sample_values": [
+      "nan",
+      "3850",
+      "nan",
+      "nan",
+      "1315",
+      "nan",
+      "3850",
+      "nan",
+      "nan",
+      "nan"
+    ],
+    "length_stats": {
+      "min": 3,
+      "max": 4,
+      "mean": 3.5666088297667247,
+      "median": 4.0,
+      "std": 0.49559117726776886
+    },
+    "patterns": {
+      "has_numbers": "2939"
+    },
+    "common_prefixes": [
+      [
+        "nan",
+        427
+      ],
+      [
+        "3850",
+        262
+      ],
+      [
+        "1315",
+        140
+      ]
+    ]
+  },
+  "relationships": {
+    "description_unchanged": {
+      "count": "5186",
+      "percentage": 99.98072103335261
+    }
+  },
+  "recommendations": {
+    "missing_columns": [
+      "OriginalMerchant"
+    ],
+    "columns_needing_cleaning": {
+      "TxnID": {
+        "reason": "Contains transaction IDs, reference numbers, or bank prefixes",
+        "patterns_found": {
+          "has_numbers": "5187",
+          "has_transaction_id": "469"
+        }
+      },
+      "Account": {
+        "reason": "Contains transaction IDs, reference numbers, or bank prefixes",
+        "patterns_found": {
+          "has_numbers": "4344",
+          "has_all_caps": "2954",
+          "has_transaction_id": "2954"
+        }
+      },
+      "Category": {
+        "reason": "Contains transaction IDs, reference numbers, or bank prefixes",
+        "patterns_found": {
+          "has_all_caps": "2",
+          "starts_with_pos": "1"
+        }
+      },
+      "Institution": {
+        "reason": "Contains transaction IDs, reference numbers, or bank prefixes",
+        "patterns_found": {
+          "has_numbers": "38",
+          "has_all_caps": "825",
+          "has_transaction_id": "825"
+        }
+      },
+      "ReferenceNumber": {
+        "reason": "Contains transaction IDs, reference numbers, or bank prefixes",
+        "patterns_found": {
+          "has_numbers": "522",
+          "has_all_caps": "369",
+          "has_phone": "111",
+          "has_transaction_id": "483"
+        }
+      }
+    },
+    "new_columns_to_derive": [
+      {
+        "name": "OriginalMerchant",
+        "source": "OriginalDescription",
+        "method": "Extract merchant with light cleaning (preserve location/ID info)"
+      }
+    ]
+  }
+}
