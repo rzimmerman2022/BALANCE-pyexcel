@@ -26,6 +26,7 @@ import logging
 import json
 import re
 import hashlib  # Added hashlib import
+import numpy as np # Added for sharing_status derivation
 from collections import Counter  # Added for schema matching smoke test
 from datetime import datetime
 from pathlib import Path
@@ -1100,6 +1101,24 @@ def process_csv_files(
 
         processed_df = apply_schema_transformations(raw_df, rules_dict, merchant_rules, filename_for_logs)
 
+        # Ensure OriginalDescription and OriginalMerchant are populated for the cleaner
+        # if they are missing but their non-original counterparts (Description, Merchant) exist
+        # and likely contain the raw data from source mapping.
+        if 'Description' in processed_df.columns and 'OriginalDescription' not in processed_df.columns:
+            processed_df['OriginalDescription'] = processed_df['Description']
+            log.debug(f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Copied 'Description' to 'OriginalDescription' for cleaner input.")
+        elif 'Description' in processed_df.columns and 'OriginalDescription' in processed_df.columns and processed_df['OriginalDescription'].isna().all():
+            # If OriginalDescription exists but is all NA, and Description has data, prefer Description's content as raw.
+             processed_df['OriginalDescription'] = processed_df['OriginalDescription'].fillna(processed_df['Description'])
+             log.debug(f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Filled NA 'OriginalDescription' with 'Description' content for cleaner input.")
+
+        if 'Merchant' in processed_df.columns and 'OriginalMerchant' not in processed_df.columns:
+            processed_df['OriginalMerchant'] = processed_df['Merchant']
+            log.debug(f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Copied 'Merchant' to 'OriginalMerchant' for cleaner input.")
+        elif 'Merchant' in processed_df.columns and 'OriginalMerchant' in processed_df.columns and processed_df['OriginalMerchant'].isna().all():
+            processed_df['OriginalMerchant'] = processed_df['OriginalMerchant'].fillna(processed_df['Merchant'])
+            log.debug(f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Filled NA 'OriginalMerchant' with 'Merchant' content for cleaner input.")
+
         # Populate initial metadata fields
         processed_df["Owner"] = owner
         log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate Owner | Value: {owner}")
@@ -1278,6 +1297,39 @@ def process_csv_files(
         ascending=[True, True, True],
         na_position="first",
     )
+
+    # Derive 'sharing_status' column
+    if 'SharedFlag' in final_df.columns and 'SplitPercent' in final_df.columns:
+        log.info("[PROCESS_SUMMARY] Deriving 'sharing_status' column.")
+        
+        # Ensure SharedFlag is boolean for conditions (should be BooleanDtype)
+        # Ensure SplitPercent is numeric
+        final_df['SplitPercent'] = pd.to_numeric(final_df['SplitPercent'], errors='coerce')
+
+        conditions = [
+            (final_df['SharedFlag'] == True) & (final_df['SplitPercent'].isna() | final_df['SplitPercent'].isin([0.0, 100.0])),
+            (final_df['SharedFlag'] == True) & (final_df['SplitPercent'] > 0.0) & (final_df['SplitPercent'] < 100.0),
+            (final_df['SharedFlag'] == False)
+        ]
+        choices = ['shared', 'split', 'individual']
+        # Use pandas string dtype for nullable strings
+        final_df['sharing_status'] = pd.Series(np.select(conditions, choices, default=pd.NA), dtype=pd.StringDtype(), index=final_df.index)
+        
+        status_counts = final_df['sharing_status'].value_counts(dropna=False)
+        log.debug(f"[PROCESS_SUMMARY_STATS] 'sharing_status' counts: {status_counts.to_dict()}")
+    elif 'SharedFlag' in final_df.columns:
+        log.warning("[PROCESS_SUMMARY_WARN] 'SplitPercent' column missing. Deriving 'sharing_status' based on 'SharedFlag' only.")
+        conditions = [
+            (final_df['SharedFlag'] == True),
+            (final_df['SharedFlag'] == False)
+        ]
+        choices = ['shared', 'individual'] # Cannot determine 'split' without SplitPercent
+        final_df['sharing_status'] = pd.Series(np.select(conditions, choices, default=pd.NA), dtype=pd.StringDtype(), index=final_df.index)
+        status_counts = final_df['sharing_status'].value_counts(dropna=False)
+        log.debug(f"[PROCESS_SUMMARY_STATS] 'sharing_status' (simplified) counts: {status_counts.to_dict()}")
+    else:
+        log.warning("[PROCESS_SUMMARY_WARN] 'SharedFlag' and/or 'SplitPercent' columns missing. Cannot derive 'sharing_status'. Creating empty column.")
+        final_df['sharing_status'] = pd.Series(pd.NA, dtype=pd.StringDtype(), index=final_df.index)
 
     # Ensure all columns have explicit, non-null data types for Power BI compatibility
     # This prevents PyArrow from writing columns as null type when all values are NA

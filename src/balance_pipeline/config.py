@@ -20,6 +20,7 @@ Author: Your Name / AI Assistant
 from __future__ import annotations  # Allows using Path hint before full definition
 from pathlib import Path  # For object-oriented path manipulation
 import os  # For accessing environment variables
+from .foundation import CORE_FOUNDATION_COLUMNS # Import the new centralized definition
 import sys  # For checking if running as frozen executable
 import logging  # For configuring application logging
 from dotenv import load_dotenv  # For loading .env files
@@ -172,14 +173,8 @@ logging.info(f"Schema Mode configured to: {SCHEMA_MODE}")
 # --- Core Required Columns ---
 # These columns must always be present regardless of schema mode
 # They represent the minimum viable transaction record
-CORE_REQUIRED_COLUMNS = [
-    "TxnID",      # Unique identifier (required for deduplication)
-    "Owner",      # Transaction owner (required for filtering)
-    "Date",       # Transaction date (required for chronological ordering)
-    "Amount",     # Transaction amount (required for financial calculations)
-    "Merchant",   # Who the transaction was with (required for categorization)
-    "Account",    # Which account (required for reconciliation)
-]
+# Definition is now sourced from foundation.py for centralization
+CORE_REQUIRED_COLUMNS = CORE_FOUNDATION_COLUMNS
 
 # --- Optional Column Groups ---
 # Columns that are only relevant for specific data sources
