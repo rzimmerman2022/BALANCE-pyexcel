@@ -8,7 +8,7 @@ notes: Schema for Rocket Money CSV exports (Ryan's aggregated financial data)
 file_pattern: 'Ryan - Rocket Money - .*\\.csv' # Ensures it matches "Ryan - Rocket Money - *.csv"
 
 # Date format for parsing date columns
-date_format: "%m/%d/%Y"  # Corrected based on audit sample "9/15/2022"
+date_format: "%Y-%m-%d"  # To handle YYYY-MM-DD format
 
 # Headers that identify this as a Rocket Money export
 header_signature:

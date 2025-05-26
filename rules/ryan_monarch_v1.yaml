@@ -8,7 +8,7 @@ notes: Schema for Monarch Money CSV exports (Ryan's aggregated financial data)
 file_pattern: 'Ryan - Monarch Money - .*\\.csv' # Ensures it matches "Ryan - Monarch Money - *.csv"
 
 # Date format for parsing date columns
-date_format: "%m/%d/%Y"  # Corrected based on audit sample "4/11/2025"
+date_format: "%Y-%m-%d"  # To handle YYYY-MM-DD format
 
 # Headers that identify this as a Monarch Money export
 header_signature:
