@@ -17,7 +17,6 @@ from datetime import datetime, timezone
 import logging
 import json
 import hashlib
-import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import argparse
@@ -30,23 +29,6 @@ import warnings
 import unittest
 from dataclasses import dataclass
 from enum import Enum
-
-# Helper function to parse AuditNote (as provided by user)
-def _explode_audit(note: str) -> tuple[str,str,str,str]:
-    # Ensure re is imported if this function is moved or used standalone
-    # import re # This will be at the top of the file
-    if not isinstance(note, str): # Basic type check
-        return ('', '', '', '')
-    who  = re.search(r'^(Ryan|Jordyn) paid', note)
-    typ  = re.search(r'\|\s+(FULLY SHARED|PARTIALLY SHARED|PERSONAL)', note)
-    rea  = re.search(r'REASON:\s*([^|]+)', note) # Original regex for REASON
-    dq   = re.search(r'DataQuality:\s*([A-Z_<>]+)', note)
-    return (
-        who.group(0) if who else '',
-        typ.group(1) if typ else '',
-        rea.group(1).strip() if rea else '',
-        dq.group(1) if dq else ''
-    )
 
 # Configure logging for audit trail
 logging.basicConfig(
@@ -223,15 +205,6 @@ class EnhancedSharedExpenseAnalyzer:
         df = pd.read_csv(self.rent_file)
         df.columns = df.columns.str.strip().str.title() # Standardize column names
 
-        # ──────────────────────────────────────────────────────────
-        # 1)  Throw away bookkeeping columns we don’t reconcile on
-        cols_we_dont_need = [
-            'Previous Balance', 'Rent Difference',
-            'Other Adjustments', 'New Balance', 'Reference'
-        ]
-        df = df[[c for c in df.columns if c not in cols_we_dont_need]]
-        # ──────────────────────────────────────────────────────────
-
         # Rename columns to match expected internal names for consistency
         rename_map = {
             "Ryan'S Rent (43%)": "RyanRentPortion", # Avoid special chars in internal names
@@ -240,7 +213,7 @@ class EnhancedSharedExpenseAnalyzer:
         }
         df.rename(columns=rename_map, inplace=True)
 
-        # original_count = len(df) # Will be set after filtering
+        original_count = len(df)
         df['DataQualityFlag'] = pd.Series([pd.NA] * len(df), index=df.index, dtype="string")
 
         money_cols = ['GrossTotal', "RyanRentPortion", "JordynRentPortion"] # Add other financial cols if any
@@ -250,15 +223,7 @@ class EnhancedSharedExpenseAnalyzer:
             else:
                 logger.warning(f"Rent data: Expected monetary column '{col}' not found. It will be NaN.")
                 df[col] = np.nan
-        
-        # 2) Strip placeholder rows: require GrossTotal > 0
-        # GrossTotal is already cleaned by the loop above.
-        if 'GrossTotal' in df.columns:
-            df = df[df['GrossTotal'] > 0].copy() # Use .copy() to avoid SettingWithCopyWarning
-        else:
-            logger.warning("Rent data: 'GrossTotal' column not found for filtering. Skipping placeholder row stripping.")
-        
-        original_count = len(df)   # for the later log line (now reflects count after filtering)
+
 
         df['Date'] = pd.to_datetime(df['Month'], errors='coerce')
 
@@ -342,9 +307,6 @@ class EnhancedSharedExpenseAnalyzer:
         
         # --- End of Revised AllowedAmount Processing ---
         
-        # 5b. Any positive AllowedAmount ⇒ shared
-        df['IsShared'] = df['AllowedAmount'].fillna(0) > 0
-
         df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
 
         # Apply "2x to calculate" logic (revised to be more careful)
@@ -375,24 +337,21 @@ class EnhancedSharedExpenseAnalyzer:
 
         # Vectorized calculations for financial impact
         df["PersonalPortion"] = (df["ActualAmount"] - df["AllowedAmount"]).round(self.config.CURRENCY_PRECISION)
-        # df["IsShared"] = df["AllowedAmount"] > 0 # This is now handled earlier by patch 1
+        df["IsShared"] = df["AllowedAmount"] > 0
 
-        df['RyanOwes']   = np.where(df['IsShared'],
-                                    df['AllowedAmount'] * self.config.RYAN_PCT,
-                                    0)
-        df['JordynOwes'] = np.where(df['IsShared'],
-                                    df['AllowedAmount'] * self.config.JORDYN_PCT,
-                                    0)
+        df["RyanOwes"] = 0.0
+        df["JordynOwes"] = 0.0
+        df["BalanceImpact"] = 0.0
 
-        # BalanceImpact sign convention:  + Ryan owes Jordyn
-        df['BalanceImpact'] = np.where(df['Payer'] == 'Ryan',
-                                       -df['JordynOwes'],   # Ryan paid → Jordyn owes him
-                                       df['RyanOwes'])      # Jordyn paid → Ryan owes her
+        paid_by_ryan_mask = df['IsShared'] & (df['Payer'] == 'Ryan')
+        paid_by_jordyn_mask = df['IsShared'] & (df['Payer'] == 'Jordyn')
 
-        df[['RyanOwes', 'JordynOwes', 'BalanceImpact']] = (
-            df[['RyanOwes', 'JordynOwes', 'BalanceImpact']]
-            .round(self.config.CURRENCY_PRECISION)
-        )
+        df.loc[paid_by_ryan_mask, "JordynOwes"] = (df.loc[paid_by_ryan_mask, "AllowedAmount"] * self.config.JORDYN_PCT).round(self.config.CURRENCY_PRECISION)
+        df.loc[paid_by_jordyn_mask, "RyanOwes"] = (df.loc[paid_by_jordyn_mask, "AllowedAmount"] * self.config.RYAN_PCT).round(self.config.CURRENCY_PRECISION)
+
+        # BalanceImpact: Positive means Ryan owes Jordyn, Negative means Jordyn owes Ryan
+        df.loc[paid_by_ryan_mask, "BalanceImpact"] = -df.loc[paid_by_ryan_mask, "JordynOwes"]
+        df.loc[paid_by_jordyn_mask, "BalanceImpact"] = df.loc[paid_by_jordyn_mask, "RyanOwes"]
         
         df['AuditNote'] = df.apply(self._create_expense_audit_note, axis=1)
         df['TransactionType'] = 'EXPENSE'
@@ -467,14 +426,6 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _create_expense_audit_note(self, row: pd.Series) -> str:
         try:
-            # Short-circuit for clearly personal rows
-            payer = row.get('Payer', 'N/A') # Need payer for the short-circuit note
-            actual_amount_f = float(row.get('ActualAmount', 0.0)) if pd.notna(row.get('ActualAmount', 0.0)) else 0.0 # Need actual_amount_f
-            quality = row.get('DataQualityFlag', DataQualityFlag.CLEAN.value) # Need quality
-
-            if row.get('IsShared') is False:
-                return f"{payer} paid ${actual_amount_f:,.2f} | PERSONAL | DataQuality: {quality}"
-
             actual_amount = row.get('ActualAmount', 0.0)
             allowed_amount = row.get('AllowedAmount', 0.0)
             payer = row.get('Payer', 'N/A')
@@ -1148,81 +1099,6 @@ class EnhancedSharedExpenseAnalyzer:
             master_ledger.to_csv(ledger_path, index=False, date_format='%Y-%m-%d')
             output_paths['master_ledger'] = str(ledger_path)
             logger.info(f"Saved: {ledger_path}")
-
-            # 1b. Friendlier column order / alias for manual audit
-            audit_cols = [
-                'Date', 'TransactionType', 'Payer', 'Merchant', 'Description',
-                'ActualAmount', 'AllowedAmount',
-                'RyanOwes', 'JordynOwes',
-                'BalanceImpact', 'RunningBalance',
-                'AuditNote', 'DataQualityFlag', 'TransactionID'
-            ]
-            # Ensure all audit_cols exist in master_ledger before attempting to select/rename
-            # This is a safeguard, though they should exist if _create_master_ledger is correct
-            cols_to_select = [col for col in audit_cols if col in master_ledger.columns]
-            missing_audit_cols = [col for col in audit_cols if col not in master_ledger.columns]
-            if missing_audit_cols:
-                logger.warning(f"Audit CSV: Missing expected columns in master_ledger: {missing_audit_cols}. They will be omitted.")
-
-            export_df = master_ledger[cols_to_select].copy() # Use .copy() to avoid SettingWithCopyWarning on rename
-            
-            # Rename for Excel friendliness only if 'AuditNote' is in the selected columns
-            if 'AuditNote' in export_df.columns:
-                export_df.rename(columns={'AuditNote': 'Notes'}, inplace=True)
-
-            # Explode 'Notes' into structured columns
-            if 'Notes' in export_df.columns:
-                exploded_cols_data = export_df['Notes'].apply(lambda n: pd.Series(_explode_audit(n)))
-                exploded_cols_data.columns = ['Who_Paid_Text', 'Share_Type', 'Shared_Reason', 'DataQuality'] # User specified column names
-                
-                # Add or overwrite these columns in export_df
-                for col_name in exploded_cols_data.columns:
-                    export_df[col_name] = exploded_cols_data[col_name]
-            else:
-                logger.warning("Audit CSV: 'Notes' column (from AuditNote) not found for exploding. New audit columns will be empty or missing.")
-                for col_name_new in ['Who_Paid_Text','Share_Type','Shared_Reason','DataQuality']:
-                    if col_name_new not in export_df.columns: export_df[col_name_new] = pd.NA
-
-            # Define final column order for the friendly CSV as per user specification
-            ordered_cols_from_user = [
-                'Date','TransactionType','Payer','Merchant','Description',
-                'ActualAmount','AllowedAmount','RyanOwes','JordynOwes',
-                'BalanceImpact','RunningBalance',
-                'Who_Paid_Text','Share_Type','Shared_Reason','DataQuality', # Exploded columns
-                'Notes', # Original (renamed from AuditNote)
-                'DataQualityFlag','TransactionID'
-            ]
-            
-            # Ensure all columns in ordered_cols_from_user exist in export_df before selection
-            # Create the final selection of columns, preserving the user's order
-            final_ordered_selection = []
-            current_export_cols_set = set(export_df.columns) # For faster lookups
-            for col in ordered_cols_from_user:
-                if col in current_export_cols_set:
-                    final_ordered_selection.append(col)
-                else:
-                    logger.warning(f"Audit CSV: Column '{col}' from user's ordered list not found in export_df. It will be omitted from this specific ordering.")
-            
-            temp_export_df = export_df[final_ordered_selection].copy() # Apply user's specified order to a temporary df
-
-            # Add aliases AFTER the main ordering, so they appear as additional columns to the ordered set
-            aliases = {
-                'TransactionType':'Category',
-                'ActualAmount':'Amount_Charged',
-                'AllowedAmount':'Shared_Amount', 
-                'RunningBalance':'Cumulative_Balance'
-            }
-            for old_col, new_col in aliases.items():
-                if old_col in temp_export_df.columns: # Aliases are based on columns already in the (ordered) temp_export_df
-                    temp_export_df[new_col] = temp_export_df[old_col]
-                else:
-                    logger.warning(f"Audit CSV: Alias source column '{old_col}' not found in the ordered export_df. Alias column '{new_col}' will not be created or will be NA.")
-                    if new_col not in temp_export_df.columns: temp_export_df[new_col] = pd.NA
-            
-            friendly_path = output_dir / 'line_by_line_reconciliation_v2.1.csv'
-            temp_export_df.to_csv(friendly_path, index=False, date_format='%Y-%m-%d') # Save the df with aliases
-            output_paths['audit_ready_csv'] = str(friendly_path)
-            logger.info(f"Saved: {friendly_path}")
 
         # 2. Executive Summary (more detailed)
         summary_data = {
