@@ -216,6 +216,22 @@ You can use DuckDB to query this data directly for more advanced analysis or con
 9.  **(Future)** Sync Decisions: Trigger a (currently unimplemented) Python cell/button to read the decisions from `Queue_Review` and update the `SharedFlag`/`SplitPercent` on the main `Transactions` sheet.
 10. **(Future)** View Dashboard: Check calculated balances and visualizations on the `Dashboard` sheet.
 
+### Analyzer Utility
+
+For detailed reconciliation outside of Excel, run `analyzer.py` directly. The
+script accepts CSV paths via command-line options:
+
+```bash
+poetry run python analyzer.py \
+  --expense data/Expense_History_20250527.csv \
+  --ledger data/Transaction_Ledger_20250527.csv \
+  --rent data/Rent_Allocation_20250527.csv \
+  --rent-hist data/Rent_History_20250527.csv
+```
+
+The `--ledger` option is required when you want to merge a running balance CSV
+with your expense history.
+
 ## Project Structure
 
 ```
