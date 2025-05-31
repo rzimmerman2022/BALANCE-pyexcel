@@ -322,6 +322,23 @@ For more detailed architectural information, see [`docs/ARCHITECTURE.md`](docs/A
 * Run linters/formatters: `poetry run black . && poetry run ruff check . --fix`
 * Run tests: `poetry run pytest`
 
+### Standalone Analyzer
+
+The repository also ships with a legacy `analyzer.py` script for ad-hoc
+experiments. It accepts CSV files for expenses, rent, and now an optional
+transaction ledger:
+
+```bash
+poetry run python analyzer.py \
+  --expense Expense_History_20250527.csv \
+  --ledger Transaction_Ledger_20250527.csv \
+  --rent Rent_Allocation_20250527.csv \
+  --rent-hist Rent_History_20250527.csv
+```
+
+Providing `--ledger` merges ledger rows with the expense history to build the
+master ledger and improves balance accuracy.
+
 ## License
 
 Personal use only.
