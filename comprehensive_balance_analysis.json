@@ -1,0 +1,579 @@
+{
+  "payment_dynamics": {
+    "rent": {
+      "primary_payer": "Jordyn",
+      "payment_method": "Jordyn pays 100%, Ryan owes 43%",
+      "monthly_ryan_debt": "~$911-937"
+    },
+    "balance_direction": {
+      "positive": "Ryan owes Jordyn",
+      "negative": "Jordyn owes Ryan (rare)",
+      "typical_state": "Ryan has ongoing debt to Jordyn"
+    }
+  },
+  "sharing_rules": {
+    "primary_indicator": "AllowedAmount > 0 means shared",
+    "split_ratio": {
+      "ryan": 43,
+      "jordyn": 57
+    },
+    "special_indicators": [
+      "2x to calculate - means double the amount for full cost",
+      "100% [person] - explicitly assigned to one person"
+    ]
+  },
+  "merchant_patterns": {
+    "always_shared": [
+      {
+        "merchant": "Tocaya",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 79.71000000000001
+      },
+      {
+        "merchant": "CB & CB",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 80.0
+      },
+      {
+        "merchant": "Ethan",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 1365.0
+      },
+      {
+        "merchant": "Francisco",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 500.0
+      },
+      {
+        "merchant": "Kodo Sushi",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 162.37
+      },
+      {
+        "merchant": "Frys",
+        "transactions": 13,
+        "share_rate": 100.0,
+        "total_amount": 1875.8099999999997
+      },
+      {
+        "merchant": "Sprouts",
+        "transactions": 16,
+        "share_rate": 100.0,
+        "total_amount": 596.0100000000001
+      },
+      {
+        "merchant": "Trader Joe's",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 47.75
+      },
+      {
+        "merchant": "Intentional Foods",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 95.58
+      },
+      {
+        "merchant": "Bashas",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 180.17000000000002
+      },
+      {
+        "merchant": "Taste of China",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 174.39999999999998
+      },
+      {
+        "merchant": "Culinary Concepts",
+        "transactions": 5,
+        "share_rate": 100.0,
+        "total_amount": 244.45
+      },
+      {
+        "merchant": "Sapiens Paleo Kitchen",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 110.71000000000001
+      },
+      {
+        "merchant": "Culvers",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 59.68
+      },
+      {
+        "merchant": "SRP",
+        "transactions": 8,
+        "share_rate": 100.0,
+        "total_amount": 875.63
+      },
+      {
+        "merchant": "Cox",
+        "transactions": 10,
+        "share_rate": 100.0,
+        "total_amount": 945.97
+      },
+      {
+        "merchant": "In n Out",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 37.12
+      },
+      {
+        "merchant": "Kohl's",
+        "transactions": 5,
+        "share_rate": 100.0,
+        "total_amount": 489.49
+      },
+      {
+        "merchant": "Ace Hardware",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 192.89
+      },
+      {
+        "merchant": "Cooper's Hawk",
+        "transactions": 7,
+        "share_rate": 100.0,
+        "total_amount": 409.13
+      },
+      {
+        "merchant": "Yama Sushi",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 84.26
+      },
+      {
+        "merchant": "Flower Child",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 86.75
+      },
+      {
+        "merchant": "Kindle Unlimited",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 51.81
+      },
+      {
+        "merchant": "PlayStation Network",
+        "transactions": 5,
+        "share_rate": 100.0,
+        "total_amount": 114.55
+      },
+      {
+        "merchant": "Harkins",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 120.0
+      },
+      {
+        "merchant": "Whole Foods Market",
+        "transactions": 10,
+        "share_rate": 100.0,
+        "total_amount": 256.20000000000005
+      },
+      {
+        "merchant": "Safeway",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 136.29000000000002
+      },
+      {
+        "merchant": "Ryu Sushi",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 83.63
+      },
+      {
+        "merchant": "Gus's Fried Chicken",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 128.89000000000001
+      },
+      {
+        "merchant": "Ling & Louie's",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 136.0
+      },
+      {
+        "merchant": "Chon Thai",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 51.07
+      },
+      {
+        "merchant": "Harkin's",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 66.5
+      },
+      {
+        "merchant": "Thirsty Lion",
+        "transactions": 6,
+        "share_rate": 100.0,
+        "total_amount": 261.32
+      },
+      {
+        "merchant": "Stadium Club",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 31.1
+      },
+      {
+        "merchant": "Snooze",
+        "transactions": 8,
+        "share_rate": 100.0,
+        "total_amount": 406.7
+      },
+      {
+        "merchant": "Netflix",
+        "transactions": 5,
+        "share_rate": 100.0,
+        "total_amount": 123.9
+      },
+      {
+        "merchant": "Bobs",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 145.9
+      },
+      {
+        "merchant": "Pier 54",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 52.85
+      },
+      {
+        "merchant": "Via 313",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 60.1
+      },
+      {
+        "merchant": "The Hub Bar & Grill",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 133.59
+      },
+      {
+        "merchant": "Kabuki",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 118.48
+      },
+      {
+        "merchant": "Page Springs Cellars",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 38.92
+      },
+      {
+        "merchant": "Parking",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 20.0
+      },
+      {
+        "merchant": "Espo's",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 81.73
+      },
+      {
+        "merchant": "The Hub",
+        "transactions": 9,
+        "share_rate": 100.0,
+        "total_amount": 461.68000000000006
+      },
+      {
+        "merchant": "Door Dash",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 57.459999999999994
+      },
+      {
+        "merchant": "DD DOORDASH SPINATOSP [Spinatosp]",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 54.28
+      },
+      {
+        "merchant": "Butler Amusements Inc.",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 80.0
+      },
+      {
+        "merchant": "Little Szechuan",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 48.21
+      },
+      {
+        "merchant": "Hilton",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 392.15
+      },
+      {
+        "merchant": "Blue Wasabi",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 97.55000000000001
+      },
+      {
+        "merchant": "AMF",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 55.760000000000005
+      },
+      {
+        "merchant": "La Ristra",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 105.00999999999999
+      },
+      {
+        "merchant": "CHON THAI FOOD",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 98.8
+      },
+      {
+        "merchant": "TST* THE HUB BAR & GRILL [The Hub Bar & Grill]",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 158.28
+      },
+      {
+        "merchant": "CULVERS OF CHANDLER [Culver's]",
+        "transactions": 4,
+        "share_rate": 100.0,
+        "total_amount": 92.91999999999999
+      },
+      {
+        "merchant": "IN-N-OUT CHANDLER 2 [In-N-Out Burger]",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 40.75
+      },
+      {
+        "merchant": "TST* O.H.S.O. - GILBERT [O.h.s.o.]",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 192.68
+      },
+      {
+        "merchant": "PetSmart",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 26.029999999999998
+      },
+      {
+        "merchant": "Amazon Prime",
+        "transactions": 3,
+        "share_rate": 100.0,
+        "total_amount": 21.11
+      },
+      {
+        "merchant": "Sprout's",
+        "transactions": 6,
+        "share_rate": 100.0,
+        "total_amount": 223.13
+      },
+      {
+        "merchant": "Endgame",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 14.0
+      },
+      {
+        "merchant": "OSHO",
+        "transactions": 2,
+        "share_rate": 100.0,
+        "total_amount": 79.03999999999999
+      }
+    ],
+    "usually_shared": [
+      {
+        "merchant": "Fry's",
+        "transactions": 158,
+        "share_rate": 88.60759493670885,
+        "total_amount": 9947.349999999997
+      },
+      {
+        "merchant": "Bro",
+        "transactions": 42,
+        "share_rate": 92.85714285714286,
+        "total_amount": 9990.0
+      },
+      {
+        "merchant": "Whole Foods",
+        "transactions": 51,
+        "share_rate": 90.19607843137256,
+        "total_amount": 1540.0800000000006
+      },
+      {
+        "merchant": "Sneaky Bird",
+        "transactions": 4,
+        "share_rate": 75.0,
+        "total_amount": 99.73
+      },
+      {
+        "merchant": "Rebecca",
+        "transactions": 32,
+        "share_rate": 87.5,
+        "total_amount": 6177.85
+      },
+      {
+        "merchant": "Uber",
+        "transactions": 12,
+        "share_rate": 91.66666666666666,
+        "total_amount": 179.18999999999997
+      },
+      {
+        "merchant": "Target",
+        "transactions": 28,
+        "share_rate": 89.28571428571429,
+        "total_amount": 2119.6299999999997
+      },
+      {
+        "merchant": "Robert's Ace Hardware",
+        "transactions": 6,
+        "share_rate": 83.33333333333334,
+        "total_amount": 252.91
+      },
+      {
+        "merchant": "Culver's",
+        "transactions": 5,
+        "share_rate": 80.0,
+        "total_amount": 82.02
+      },
+      {
+        "merchant": "Fry's Food and Drug",
+        "transactions": 58,
+        "share_rate": 96.55172413793103,
+        "total_amount": 2525.029999999999
+      },
+      {
+        "merchant": "FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug]",
+        "transactions": 8,
+        "share_rate": 87.5,
+        "total_amount": 379.75
+      },
+      {
+        "merchant": "Ostrich Festival",
+        "transactions": 8,
+        "share_rate": 87.5,
+        "total_amount": 238.96000000000004
+      }
+    ],
+    "by_primary_payer": {
+      "ryan": [
+        "Walgreens",
+        "Tocaya",
+        "Walmart",
+        "DoorDash",
+        "Fry's",
+        "Bro",
+        "Ethan",
+        "Francisco",
+        "Whole Foods",
+        "Amazon",
+        "Trader Joe's",
+        "Prime Video",
+        "Culinary Concepts",
+        "Sapiens Paleo Kitchen",
+        "Lyft",
+        "Rebecca",
+        "Uber",
+        "Target",
+        "Culvers",
+        "SRP",
+        "Cox",
+        "Amazon Gift Card",
+        "Robert's Ace Hardware",
+        "Kohl's",
+        "Ace Hardware",
+        "Hash Kitchen",
+        "PlayStation Network",
+        "Harkins",
+        "Whole Foods Market",
+        "Safeway",
+        "Gus's Fried Chicken",
+        "The Van Buren Phoenix",
+        "Culver's",
+        "Harkin's",
+        "Best Buy",
+        "Stadium Club",
+        "Snooze",
+        "Netflix",
+        "Bed Bath & Beyond",
+        "Oculus",
+        "Playstation Network",
+        "Pier 54",
+        "Via 313",
+        "The Hub Bar & Grill",
+        "Page Springs Cellars",
+        "Parking",
+        "Door Dash",
+        "DD DOORDASH SPINATOSP [Spinatosp]",
+        "Butler Amusements Inc.",
+        "Fry's Food and Drug",
+        "FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug]",
+        "Little Szechuan",
+        "Ostrich Festival",
+        "Hilton",
+        "Blue Wasabi",
+        "AMF",
+        "CHON THAI FOOD",
+        "TST* THE HUB BAR & GRILL [The Hub Bar & Grill]",
+        "CULVERS OF CHANDLER [Culver's]",
+        "IN-N-OUT CHANDLER 2 [In-N-Out Burger]",
+        "TST* O.H.S.O. - GILBERT [O.h.s.o.]",
+        "Drury Hotels",
+        "PetSmart",
+        "Blizzard",
+        "Amazon Prime"
+      ],
+      "jordyn": [
+        "CB & CB",
+        "Lings",
+        "Kodo Sushi",
+        "Frys",
+        "Sprouts",
+        "Intentional Foods",
+        "Bashas",
+        "Sneaky Bird",
+        "Taste of China",
+        "In n Out",
+        "Cooper's Hawk",
+        "Yama Sushi",
+        "Pokitrition",
+        "Flower Child",
+        "Kindle Unlimited",
+        "Ryu Sushi",
+        "Ling & Louie's",
+        "Chon Thai",
+        "Thirsty Lion",
+        "Bobs",
+        "Kabuki",
+        "Espo's",
+        "The Hub",
+        "La Ristra",
+        "Sprout's",
+        "Endgame",
+        "OSHO"
+      ]
+    }
+  }
+}

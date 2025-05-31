@@ -1,0 +1,240 @@
+=== PIPELINE DEBUG REPORT for Ryan - Monarch Money - 20250524.csv ===
+
+--- STAGE: 0_SCHEMA_IDENTIFIED_PRE_TRANSFORM ---
+  Row Count: 1907
+  Columns: ['Date', 'Merchant', 'Category', 'Account', 'Original Statement', 'Notes', 'Amount', 'Tags']
+  Null Counts: {
+  "Date": 0,
+  "Merchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "Original Statement": 0,
+  "Notes": 1907,
+  "Amount": 0,
+  "Tags": 1906
+}
+  Sample Data (first few rows):
+    Date: ['2025-05-23', '2025-05-23', '2025-05-23']
+    Merchant: ['Best Buy Auto', 'Rocket Money', 'Zelle']
+    Category: ['Electronics', 'Financial Fees', 'Transfer']
+    Account: ['WF EVERYDAY CHECKING (...3850)', 'WF EVERYDAY CHECKING (...3850)', 'WF EVERYDAY CHECKING (...3850)']
+    Original Statement: ['BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN', 'BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC', 'ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS']
+
+--- STAGE: 1_RAW_CSV_LOADED ---
+  Row Count: 1907
+  Columns: ['Date', 'Merchant', 'Category', 'Account', 'Original Statement', 'Notes', 'Amount', 'Tags']
+  Null Counts: {
+  "Date": 0,
+  "Merchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "Original Statement": 0,
+  "Notes": 1907,
+  "Amount": 0,
+  "Tags": 1906
+}
+  Sample Data (first few rows):
+    Date: ['2025-05-23', '2025-05-23', '2025-05-23']
+    Amount: ['-146.00', '-6.47', '700.00']
+    Merchant: ['Best Buy Auto', 'Rocket Money', 'Zelle']
+    Original Statement: ['BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN', 'BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC', 'ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS']
+
+--- STAGE: 2_AFTER_COLUMN_MAPPING ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906
+}
+  Sample Data (first few rows):
+    Date: ['2025-05-23', '2025-05-23', '2025-05-23']
+    Amount: ['-146.00', '-6.47', '700.00']
+    OriginalDescription: ['BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN', 'BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC', 'ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS']
+    Account: ['WF EVERYDAY CHECKING (...3850)', 'WF EVERYDAY CHECKING (...3850)', 'WF EVERYDAY CHECKING (...3850)']
+
+--- STAGE: 2A_MERCHANT_RELATED_COLUMNS_POST_MAP ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906
+}
+  Sample Data (first few rows):
+    OriginalMerchant: ['Best Buy Auto', 'Rocket Money', 'Zelle']
+    OriginalDescription: ['BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN', 'BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC', 'ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS']
+
+--- STAGE: 3A_BEFORE_DATE_PARSE_Date ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags', 'Extras']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906,
+  "Extras": 1907
+}
+  Sample Data (first few rows):
+    Date: ['2025-05-23', '2025-05-23', '2025-05-23']
+
+--- STAGE: 3B_AFTER_ALL_DATE_PARSING ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags', 'Extras']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906,
+  "Extras": 1907
+}
+  Sample Data (first few rows):
+    Date: ['2025-05-23T00:00:00', '2025-05-23T00:00:00', '2025-05-23T00:00:00']
+
+--- STAGE: 4_AFTER_AMOUNT_PROCESSING ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags', 'Extras']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906,
+  "Extras": 1907
+}
+  Sample Data (first few rows):
+    Amount: [-146.0, -6.47, 700.0]
+    Category: ['Electronics', 'Financial Fees', 'Transfer']
+
+--- STAGE: 5_AFTER_DERIVED_COLUMNS ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags', 'Extras', 'Owner', 'DataSourceName', 'Institution', 'AccountLast4', 'AccountType']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906,
+  "Extras": 1907,
+  "Owner": 0,
+  "DataSourceName": 0,
+  "Institution": 0,
+  "AccountLast4": 32,
+  "AccountType": 0
+}
+  Sample Data (first few rows):
+    DataSourceName: ['MonarchMoney', 'MonarchMoney', 'MonarchMoney']
+    AccountType: ['Aggregated', 'Aggregated', 'Aggregated']
+    AccountLast4: ['3850', '3850', '3850']
+    Institution: ['WF EVERYDAY CHECKING ', 'WF EVERYDAY CHECKING ', 'WF EVERYDAY CHECKING ']
+    Account: ['WF EVERYDAY CHECKING (...3850)', 'WF EVERYDAY CHECKING (...3850)', 'WF EVERYDAY CHECKING (...3850)']
+    Owner: ['Ryan', 'Ryan', 'Ryan']
+
+--- STAGE: 6_BEFORE_MERCHANT_CLEANING ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags', 'Extras', 'Owner', 'DataSourceName', 'Institution', 'AccountLast4', 'AccountType', 'Description', 'DataSourceDate']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906,
+  "Extras": 1907,
+  "Owner": 0,
+  "DataSourceName": 0,
+  "Institution": 0,
+  "AccountLast4": 32,
+  "AccountType": 0,
+  "Description": 0,
+  "DataSourceDate": 0
+}
+  Sample Data (first few rows):
+    OriginalMerchant: ['Best Buy Auto', 'Rocket Money', 'Zelle']
+    Description: ['BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN', 'BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC', 'ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS']
+    OriginalDescription: ['BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN', 'BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC', 'ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS']
+
+--- STAGE: 7_AFTER_MERCHANT_CLEANING ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags', 'Extras', 'Owner', 'DataSourceName', 'Institution', 'AccountLast4', 'AccountType', 'Description', 'DataSourceDate', 'Merchant']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906,
+  "Extras": 1907,
+  "Owner": 0,
+  "DataSourceName": 0,
+  "Institution": 0,
+  "AccountLast4": 32,
+  "AccountType": 0,
+  "Description": 0,
+  "DataSourceDate": 0,
+  "Merchant": 0
+}
+  Sample Data (first few rows):
+    Merchant: ['Best Buy Auto', 'Rocket Money', 'Zelle']
+    OriginalMerchant: ['Best Buy Auto', 'Rocket Money', 'Zelle']
+    Description: ['Best BUY Auto Pymt 250522 Ryan Zimmerman', 'BUSINESS TO BUSINESS ACH Rocket Money   Premium     ...', 'Zelle From Zimmerman Joan ON REF # Pp0Yv8Gxk4 MAY 2025 Bills']
+    OriginalDescription: ['BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN', 'BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC', 'ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS']
+    Category: ['Electronics', 'Financial Fees', 'Transfer']
+
+--- STAGE: 8_AFTER_TXNID_GENERATION ---
+  Row Count: 1907
+  Columns: ['Date', 'OriginalMerchant', 'Category', 'Account', 'OriginalDescription', 'Note', 'Amount', 'Tags', 'Extras', 'Owner', 'DataSourceName', 'Institution', 'AccountLast4', 'AccountType', 'Description', 'DataSourceDate', 'Merchant', 'TxnID']
+  Null Counts: {
+  "Date": 0,
+  "OriginalMerchant": 0,
+  "Category": 0,
+  "Account": 0,
+  "OriginalDescription": 0,
+  "Note": 1907,
+  "Amount": 0,
+  "Tags": 1906,
+  "Extras": 1907,
+  "Owner": 0,
+  "DataSourceName": 0,
+  "Institution": 0,
+  "AccountLast4": 32,
+  "AccountType": 0,
+  "Description": 0,
+  "DataSourceDate": 0,
+  "Merchant": 0,
+  "TxnID": 0
+}
+  Sample Data (first few rows):
+    TxnID: ['8919e2eaa6240026', '7d5c5b300d3b8e86', '187d3a112fd27b7d']
+    Date: ['2025-05-23T00:00:00', '2025-05-23T00:00:00', '2025-05-23T00:00:00']
+    Amount: [-146.0, -6.47, 700.0]
+    OriginalDescription: ['BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN', 'BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC', 'ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS']
+    Account: ['Wells Fargo Everyday Checking ****3850', 'Wells Fargo Everyday Checking ****3850', 'Wells Fargo Everyday Checking ****3850']

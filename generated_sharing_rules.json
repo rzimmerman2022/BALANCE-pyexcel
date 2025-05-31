@@ -1,0 +1,124 @@
+{
+  "sharing_rules": {
+    "default_split": {
+      "ryan": 43,
+      "jordyn": 57
+    },
+    "merchant_patterns": [
+      {
+        "pattern": "frys",
+        "action": "shared",
+        "confidence": 100.0,
+        "transaction_count": 13
+      },
+      {
+        "pattern": "fry's food and drug",
+        "action": "shared",
+        "confidence": 96.55172413793103,
+        "transaction_count": 58
+      },
+      {
+        "pattern": "target",
+        "action": "shared",
+        "confidence": 89.28571428571429,
+        "transaction_count": 28
+      },
+      {
+        "pattern": "fry's",
+        "action": "shared",
+        "confidence": 89.24050632911393,
+        "transaction_count": 158
+      },
+      {
+        "pattern": "frys-food-drg #051 chandler az d [fry's food and drug]",
+        "action": "shared",
+        "confidence": 87.5,
+        "transaction_count": 8
+      },
+      {
+        "pattern": "walmart",
+        "action": "shared",
+        "confidence": 60.86956521739131,
+        "transaction_count": 23
+      }
+    ],
+    "category_patterns": [
+      {
+        "category": "Groceries",
+        "action": "shared",
+        "confidence": 85
+      },
+      {
+        "category": "Utilities",
+        "action": "shared",
+        "confidence": 100
+      },
+      {
+        "category": "Rent",
+        "action": "shared",
+        "confidence": 100
+      },
+      {
+        "category": "Household",
+        "action": "shared",
+        "confidence": 90
+      },
+      {
+        "category": "Gas/Electric",
+        "action": "shared",
+        "confidence": 100
+      },
+      {
+        "category": "Internet",
+        "action": "shared",
+        "confidence": 100
+      }
+    ],
+    "description_keywords": {
+      "shared": [
+        "split",
+        "shared",
+        "both",
+        "50/50",
+        "half",
+        "groceries",
+        "household",
+        "laundry",
+        "detergent",
+        "tissue",
+        "paper towel",
+        "cleaning",
+        "utilities",
+        "2x to calculate"
+      ],
+      "ryan": [
+        "ryan only",
+        "ryan's",
+        "ryan personal",
+        "100% ryan"
+      ],
+      "jordyn": [
+        "jordyn only",
+        "jordyn's",
+        "jordyn personal",
+        "100% jordyn"
+      ]
+    },
+    "always_shared_merchants": [
+      "fry's",
+      "frys",
+      "walmart",
+      "costco",
+      "target",
+      "safeway",
+      "albertsons",
+      "whole foods",
+      "trader joe's",
+      "utilities",
+      "electric",
+      "water",
+      "gas",
+      "internet"
+    ]
+  }
+}

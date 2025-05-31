@@ -1,10 +1,11 @@
 ﻿import pandas as pd
 import yaml
 import sys
+from pathlib import Path # Added import
 sys.path.insert(0, 'src')
 
 from balance_pipeline.csv_consolidator import apply_schema_transformations
-from balance_pipeline.merchant_rules import load_merchant_lookup_rules
+from balance_pipeline.csv_consolidator import load_merchant_lookup_rules # Changed import
 
 # Load the actual schema
 with open('rules/ryan_monarch_v1.yaml', 'r') as f:
@@ -28,7 +29,9 @@ print(f"Has Original Statement: {'Original Statement' in test_df.columns}")
 print(f"Has OriginalDescription: {'OriginalDescription' in test_df.columns}")
 
 # Load merchant rules (required parameter)
-merchant_rules = load_merchant_lookup_rules()
+# Path is relative to the project root, where test_transformation.py is located
+merchant_rules_path = Path('rules/merchant_lookup.csv')
+merchant_rules = load_merchant_lookup_rules(merchant_rules_path)
 
 # Call the transformation exactly as the pipeline does
 try:

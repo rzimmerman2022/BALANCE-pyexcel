@@ -1,0 +1,1226 @@
+{
+  "analysis_timestamp": "2025-05-25T01:06:36.203281",
+  "total_files_analyzed": 5,
+  "files": [
+    {
+      "file_path": "C:\\BALANCE\\CSVs\\Jordyn\\Jordyn - Chase Bank - Total Checking x6173 - All.csv",
+      "file_name": "Jordyn - Chase Bank - Total Checking x6173 - All.csv",
+      "file_size": 33359,
+      "owner": "Jordyn",
+      "source_type": "Chase",
+      "total_rows": 189,
+      "columns": [
+        "Name",
+        "Institution",
+        "Account Type",
+        "Statement Start Date",
+        "Statement End Date",
+        "Transaction Date",
+        "Post Date",
+        "Description",
+        "Reference Number",
+        "Amount",
+        "Category"
+      ],
+      "column_count": 11,
+      "column_analysis": {
+        "Name": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "Jordyn Ginsberg"
+          ],
+          "likely_description": true,
+          "avg_length": 15.0
+        },
+        "Institution": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "JPMorgan Chase Bank"
+          ]
+        },
+        "Account Type": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "Total Checking x6173"
+          ]
+        },
+        "Statement Start Date": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 13,
+          "sample_values": [
+            "12/15/2023",
+            "3/15/2024",
+            "4/13/2024",
+            "5/15/2024",
+            "6/15/2024"
+          ],
+          "likely_date": true,
+          "date_format_guess": "MM/DD/YYYY or DD/MM/YYYY",
+          "likely_description": true,
+          "avg_length": 9.3
+        },
+        "Statement End Date": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 13,
+          "sample_values": [
+            "1/16/2024",
+            "4/12/2024",
+            "5/14/2024",
+            "6/14/2024",
+            "7/15/2024"
+          ],
+          "likely_date": true,
+          "date_format_guess": "MM/DD/YYYY or DD/MM/YYYY",
+          "likely_description": true,
+          "avg_length": 9.2
+        },
+        "Transaction Date": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 127,
+          "sample_values": [
+            "12/18/2023",
+            "12/19/2023",
+            "12/22/2023",
+            "12/26/2023",
+            "1/1/2024"
+          ],
+          "likely_date": true,
+          "date_format_guess": "MM/DD/YYYY or DD/MM/YYYY"
+        },
+        "Post Date": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 126,
+          "sample_values": [
+            "12/18/2023",
+            "12/19/2023",
+            "12/22/2023",
+            "12/26/2023",
+            "1/2/2024"
+          ],
+          "likely_date": true,
+          "date_format_guess": "MM/DD/YYYY or DD/MM/YYYY"
+        },
+        "Description": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 88,
+          "sample_values": [
+            "Zelle Payment To Ryan Zimmerman Jpm99A6Kgo9F",
+            "Chase Credit Crd Autopay PPD ID: 4760039224",
+            "Wells Fargo Card Copymt 90753612981885 Web ID: 3411650794",
+            "Edu Healthcare L Direct Dep PPD ID: 9111111103",
+            "Non-Chase ATM Withdraw 01/01 723 N Scottsdale Rd Scottsdale AZ Card 5073"
+          ],
+          "likely_description": true,
+          "avg_length": 46.0
+        },
+        "Reference Number": {
+          "dtype": "object",
+          "non_null_count": 178,
+          "null_count": 11,
+          "unique_count": 73,
+          "sample_values": [
+            "Jpm99A6Kgo9F",
+            "4760039224",
+            "3411650794, 90753612981885",
+            "9111111103",
+            "19154771023"
+          ]
+        },
+        "Amount": {
+          "dtype": "float64",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 97,
+          "sample_values": [
+            "1000.0",
+            "2.99",
+            "72.95",
+            "-2917.63",
+            "11.59"
+          ],
+          "likely_amount": true
+        },
+        "Category": {
+          "dtype": "object",
+          "non_null_count": 189,
+          "null_count": 0,
+          "unique_count": 3,
+          "sample_values": [
+            "Withdrawal",
+            "Deposit",
+            "Fee"
+          ]
+        }
+      },
+      "sample_rows": [
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "JPMorgan Chase Bank",
+          "Account Type": "Total Checking x6173",
+          "Statement Start Date": "12/15/2023",
+          "Statement End Date": "1/16/2024",
+          "Transaction Date": "12/18/2023",
+          "Post Date": "12/18/2023",
+          "Description": "Zelle Payment To Ryan Zimmerman Jpm99A6Kgo9F",
+          "Reference Number": "Jpm99A6Kgo9F",
+          "Amount": "1000.0",
+          "Category": "Withdrawal"
+        },
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "JPMorgan Chase Bank",
+          "Account Type": "Total Checking x6173",
+          "Statement Start Date": "12/15/2023",
+          "Statement End Date": "1/16/2024",
+          "Transaction Date": "12/18/2023",
+          "Post Date": "12/18/2023",
+          "Description": "Chase Credit Crd Autopay PPD ID: 4760039224",
+          "Reference Number": "4760039224",
+          "Amount": "2.99",
+          "Category": "Withdrawal"
+        },
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "JPMorgan Chase Bank",
+          "Account Type": "Total Checking x6173",
+          "Statement Start Date": "12/15/2023",
+          "Statement End Date": "1/16/2024",
+          "Transaction Date": "12/19/2023",
+          "Post Date": "12/19/2023",
+          "Description": "Wells Fargo Card Copymt 90753612981885 Web ID: 3411650794",
+          "Reference Number": "3411650794, 90753612981885",
+          "Amount": "72.95",
+          "Category": "Withdrawal"
+        },
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "JPMorgan Chase Bank",
+          "Account Type": "Total Checking x6173",
+          "Statement Start Date": "12/15/2023",
+          "Statement End Date": "1/16/2024",
+          "Transaction Date": "12/22/2023",
+          "Post Date": "12/22/2023",
+          "Description": "Edu Healthcare L Direct Dep PPD ID: 9111111103",
+          "Reference Number": "9111111103",
+          "Amount": "-2917.63",
+          "Category": "Deposit"
+        },
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "JPMorgan Chase Bank",
+          "Account Type": "Total Checking x6173",
+          "Statement Start Date": "12/15/2023",
+          "Statement End Date": "1/16/2024",
+          "Transaction Date": "12/26/2023",
+          "Post Date": "12/26/2023",
+          "Description": "Chase Credit Crd Autopay PPD ID: 4760039224",
+          "Reference Number": "4760039224",
+          "Amount": "11.59",
+          "Category": "Withdrawal"
+        }
+      ],
+      "patterns": {
+        "Amount_has_mixed_signs": {
+          "negative_count": 33,
+          "positive_count": 156
+        }
+      }
+    },
+    {
+      "file_path": "C:\\BALANCE\\CSVs\\Jordyn\\Jordyn - Discover - Discover It Card x1544 - CSV.csv",
+      "file_name": "Jordyn - Discover - Discover It Card x1544 - CSV.csv",
+      "file_size": 883,
+      "owner": "Jordyn",
+      "source_type": "Discover",
+      "total_rows": 5,
+      "columns": [
+        "Name",
+        "Institution",
+        "Card Type",
+        "Statement Period",
+        "Date",
+        "Post Date",
+        "Description",
+        "Reference Number",
+        "Amount",
+        "Category"
+      ],
+      "column_count": 10,
+      "column_analysis": {
+        "Name": {
+          "dtype": "object",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "Jordyn Ginsberg"
+          ],
+          "likely_description": true,
+          "avg_length": 15.0
+        },
+        "Institution": {
+          "dtype": "object",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "Discover"
+          ]
+        },
+        "Card Type": {
+          "dtype": "object",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "Discover It Card x1544"
+          ]
+        },
+        "Statement Period": {
+          "dtype": "object",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 5,
+          "sample_values": [
+            "September 26, 2024 through October 25, 2024",
+            "October 26, 2024 through November 25, 2024",
+            "December 26, 2024 through January 25, 2025",
+            "January 26, 2025 through February 25, 2025",
+            "February 26, 2025 through March 25, 2025"
+          ],
+          "likely_description": true,
+          "avg_length": 41.8
+        },
+        "Date": {
+          "dtype": "object",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 5,
+          "sample_values": [
+            "10/20/2024",
+            "11/20/2024",
+            "1/20/2025",
+            "2/20/2025",
+            "3/20/2025"
+          ]
+        },
+        "Post Date": {
+          "dtype": "object",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 5,
+          "sample_values": [
+            "10/20/2024",
+            "11/20/2024",
+            "1/20/2025",
+            "2/20/2025",
+            "3/20/2025"
+          ]
+        },
+        "Description": {
+          "dtype": "object",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "DIRECTPAY FIXED PAYMENT"
+          ],
+          "likely_description": true,
+          "avg_length": 23.0
+        },
+        "Reference Number": {
+          "dtype": "float64",
+          "non_null_count": 0,
+          "null_count": 5,
+          "unique_count": 0,
+          "sample_values": []
+        },
+        "Amount": {
+          "dtype": "float64",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "-214.58"
+          ],
+          "likely_amount": true
+        },
+        "Category": {
+          "dtype": "object",
+          "non_null_count": 5,
+          "null_count": 0,
+          "unique_count": 1,
+          "sample_values": [
+            "Payment"
+          ]
+        }
+      },
+      "sample_rows": [
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "Discover",
+          "Card Type": "Discover It Card x1544",
+          "Statement Period": "September 26, 2024 through October 25, 2024",
+          "Date": "10/20/2024",
+          "Post Date": "10/20/2024",
+          "Description": "DIRECTPAY FIXED PAYMENT",
+          "Reference Number": null,
+          "Amount": "-214.58",
+          "Category": "Payment"
+        },
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "Discover",
+          "Card Type": "Discover It Card x1544",
+          "Statement Period": "October 26, 2024 through November 25, 2024",
+          "Date": "11/20/2024",
+          "Post Date": "11/20/2024",
+          "Description": "DIRECTPAY FIXED PAYMENT",
+          "Reference Number": null,
+          "Amount": "-214.58",
+          "Category": "Payment"
+        },
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "Discover",
+          "Card Type": "Discover It Card x1544",
+          "Statement Period": "December 26, 2024 through January 25, 2025",
+          "Date": "1/20/2025",
+          "Post Date": "1/20/2025",
+          "Description": "DIRECTPAY FIXED PAYMENT",
+          "Reference Number": null,
+          "Amount": "-214.58",
+          "Category": "Payment"
+        },
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "Discover",
+          "Card Type": "Discover It Card x1544",
+          "Statement Period": "January 26, 2025 through February 25, 2025",
+          "Date": "2/20/2025",
+          "Post Date": "2/20/2025",
+          "Description": "DIRECTPAY FIXED PAYMENT",
+          "Reference Number": null,
+          "Amount": "-214.58",
+          "Category": "Payment"
+        },
+        {
+          "Name": "Jordyn Ginsberg",
+          "Institution": "Discover",
+          "Card Type": "Discover It Card x1544",
+          "Statement Period": "February 26, 2025 through March 25, 2025",
+          "Date": "3/20/2025",
+          "Post Date": "3/20/2025",
+          "Description": "DIRECTPAY FIXED PAYMENT",
+          "Reference Number": null,
+          "Amount": "-214.58",
+          "Category": "Payment"
+        }
+      ],
+      "patterns": {
+        "potential_duplicate_columns": [
+          [
+            "Date",
+            "Post Date"
+          ]
+        ],
+        "Amount_all_negative": true
+      }
+    },
+    {
+      "file_path": "C:\\BALANCE\\CSVs\\Jordyn\\Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV.csv",
+      "file_name": "Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV.csv",
+      "file_size": 78146,
+      "owner": "Jordyn",
+      "source_type": "Wells Fargo",
+      "total_rows": 356,
+      "columns": [
+        "Name",
+        "Institution",
+        "Account Description",
+        "Statement Period Description",
+        "Statement Start Date",
+        "Statement End Date",
+        "Date",
+        "Post Date",
+        "Description",
+        "Reference Number",
+        "Amount",
+        "Category"
+      ],
+      "column_count": 12,
+      "column_analysis": {
+        "Name": {
+          "dtype": "object",
+          "non_null_count": 356,
+          "null_count": 0,
+          "unique_count": 2,
+          "sample_values": [
+            "JORDYN GINSBERG",
+            "Name"
+          ],
+          "likely_description": true,
+          "avg_length": 15.0
+        },
+        "Institution": {
+          "dtype": "object",
+          "non_null_count": 356,
+          "null_count": 0,
+          "unique_count": 2,
+          "sample_values": [
+            "Wells Fargo",
+            "Institution"
+          ]
+        },
+        "Account Description": {
+          "dtype": "object",
+          "non_null_count": 356,
+          "null_count": 0,
+          "unique_count": 2,
+          "sample_values": [
+            "Active Cash Visa Signature Card x4296",
+            "Account Description"
+          ],
+          "likely_description": true,
+          "avg_length": 36.9
+        },
+        "Statement Period Description": {
+          "dtype": "object",
+          "non_null_count": 356,
+          "null_count": 0,
+          "unique_count": 10,
+          "sample_values": [
+            "Statement Period 04/18/2024 to 05/17/2024",
+            "Statement Period 05/18/2024 to 06/17/2024",
+            "Statement Period 06/18/2024 to 07/18/2024",
+            "Statement Period 07/19/2024 to 08/18/2024",
+            "Statement Period 08/19/2024 to 09/17/2024"
+          ],
+          "likely_description": true,
+          "avg_length": 40.9
+        },
+        "Statement Start Date": {
+          "dtype": "object",
+          "non_null_count": 355,
+          "null_count": 1,
+          "unique_count": 9,
+          "sample_values": [
+            "04/18/2024",
+            "05/18/2024",
+            "06/18/2024",
+            "07/19/2024",
+            "08/19/2024"
+          ],
+          "likely_date": true,
+          "date_format_guess": "MM/DD/YYYY or DD/MM/YYYY",
+          "likely_description": true,
+          "avg_length": 10.0
+        },
+        "Statement End Date": {
+          "dtype": "object",
+          "non_null_count": 355,
+          "null_count": 1,
+          "unique_count": 9,
+          "sample_values": [
+            "05/17/2024",
+            "06/17/2024",
+            "07/18/2024",
+            "08/18/2024",
+            "09/17/2024"
+          ],
+          "likely_date": true,
+          "date_format_guess": "MM/DD/YYYY or DD/MM/YYYY",
+          "likely_description": true,
+          "avg_length": 10.0
+        },
+        "Date": {
+          "dtype": "object",
+          "non_null_count": 355,
+          "null_count": 1,
+          "unique_count": 177,
+          "sample_values": [
+            "04/18/2024",
+            "05/13/2024",
+            "04/17/2024",
+            "04/19/2024",
+            "04/22/2024"
+          ],
+          "likely_date": true,
+          "date_format_guess": "MM/DD/YYYY or DD/MM/YYYY"
+        },
+        "Post Date": {
+          "dtype": "object",
+          "non_null_count": 355,
+          "null_count": 1,
+          "unique_count": 174,
+          "sample_values": [
+            "04/18/2024",
+            "05/13/2024",
+            "04/19/2024",
+            "04/22/2024",
+            "04/23/2024"
+          ],
+          "likely_date": true,
+          "date_format_guess": "MM/DD/YYYY or DD/MM/YYYY"
+        },
+        "Description": {
+          "dtype": "object",
+          "non_null_count": 355,
+          "null_count": 1,
+          "unique_count": 206,
+          "sample_values": [
+            "ONLINE ACH PAYMENT THANK YOU",
+            "CASH BACK REDEMPTION REF 148368906",
+            "QT 478 MESA AZ",
+            "TRADER JOE S #091 TEMPE AZ",
+            "TST* 12 WEST BREWING GILBERT AZ"
+          ],
+          "likely_description": true,
+          "avg_length": 32.1
+        },
+        "Reference Number": {
+          "dtype": "object",
+          "non_null_count": 350,
+          "null_count": 6,
+          "unique_count": 350,
+          "sample_values": [
+            "7414718FY0XSL66N0",
+            "7446539GR7EHS3VG4",
+            "2469216FX30V8MG0E",
+            "2413746FZEJKXEWBJ",
+            "2413746FZ016X6LNZ"
+          ]
+        },
+        "Amount": {
+          "dtype": "object",
+          "non_null_count": 354,
+          "null_count": 2,
+          "unique_count": 322,
+          "sample_values": [
+            "-1000.00",
+            "-47.58",
+            "6.99",
+            "1.07",
+            "11.80"
+          ],
+          "likely_amount": true
+        },
+        "Category": {
+          "dtype": "object",
+          "non_null_count": 354,
+          "null_count": 2,
+          "unique_count": 5,
+          "sample_values": [
+            "Payment",
+            "Credit",
+            "Purchase",
+            "Interest",
+            "Category"
+          ]
+        }
+      },
+      "sample_rows": [
+        {
+          "Name": "JORDYN GINSBERG",
+          "Institution": "Wells Fargo",
+          "Account Description": "Active Cash Visa Signature Card x4296",
+          "Statement Period Description": "Statement Period 04/18/2024 to 05/17/2024",
+          "Statement Start Date": "04/18/2024",
+          "Statement End Date": "05/17/2024",
+          "Date": "04/18/2024",
+          "Post Date": "04/18/2024",
+          "Description": "ONLINE ACH PAYMENT THANK YOU",
+          "Reference Number": "7414718FY0XSL66N0",
+          "Amount": "-1000.00",
+          "Category": "Payment"
+        },
+        {
+          "Name": "JORDYN GINSBERG",
+          "Institution": "Wells Fargo",
+          "Account Description": "Active Cash Visa Signature Card x4296",
+          "Statement Period Description": "Statement Period 04/18/2024 to 05/17/2024",
+          "Statement Start Date": "04/18/2024",
+          "Statement End Date": "05/17/2024",
+          "Date": "05/13/2024",
+          "Post Date": "05/13/2024",
+          "Description": "CASH BACK REDEMPTION REF 148368906",
+          "Reference Number": "7446539GR7EHS3VG4",
+          "Amount": "-47.58",
+          "Category": "Credit"
+        },
+        {
+          "Name": "JORDYN GINSBERG",
+          "Institution": "Wells Fargo",
+          "Account Description": "Active Cash Visa Signature Card x4296",
+          "Statement Period Description": "Statement Period 04/18/2024 to 05/17/2024",
+          "Statement Start Date": "04/18/2024",
+          "Statement End Date": "05/17/2024",
+          "Date": "04/17/2024",
+          "Post Date": "04/18/2024",
+          "Description": "QT 478 MESA AZ",
+          "Reference Number": "2469216FX30V8MG0E",
+          "Amount": "6.99",
+          "Category": "Purchase"
+        },
+        {
+          "Name": "JORDYN GINSBERG",
+          "Institution": "Wells Fargo",
+          "Account Description": "Active Cash Visa Signature Card x4296",
+          "Statement Period Description": "Statement Period 04/18/2024 to 05/17/2024",
+          "Statement Start Date": "04/18/2024",
+          "Statement End Date": "05/17/2024",
+          "Date": "04/19/2024",
+          "Post Date": "04/19/2024",
+          "Description": "TRADER JOE S #091 TEMPE AZ",
+          "Reference Number": "2413746FZEJKXEWBJ",
+          "Amount": "1.07",
+          "Category": "Purchase"
+        },
+        {
+          "Name": "JORDYN GINSBERG",
+          "Institution": "Wells Fargo",
+          "Account Description": "Active Cash Visa Signature Card x4296",
+          "Statement Period Description": "Statement Period 04/18/2024 to 05/17/2024",
+          "Statement Start Date": "04/18/2024",
+          "Statement End Date": "05/17/2024",
+          "Date": "04/19/2024",
+          "Post Date": "04/19/2024",
+          "Description": "TST* 12 WEST BREWING GILBERT AZ",
+          "Reference Number": "2413746FZ016X6LNZ",
+          "Amount": "11.80",
+          "Category": "Purchase"
+        }
+      ],
+      "patterns": {
+        "potential_duplicate_columns": [
+          [
+            "Account Description",
+            "Description"
+          ],
+          [
+            "Statement Period Description",
+            "Description"
+          ],
+          [
+            "Statement Start Date",
+            "Date"
+          ],
+          [
+            "Statement End Date",
+            "Date"
+          ],
+          [
+            "Date",
+            "Post Date"
+          ]
+        ]
+      }
+    },
+    {
+      "file_path": "C:\\BALANCE\\CSVs\\Ryan\\Ryan - Monarch Money - 20250524.csv",
+      "file_name": "Ryan - Monarch Money - 20250524.csv",
+      "file_size": 254431,
+      "owner": "Ryan",
+      "source_type": "Monarch Money",
+      "total_rows": 1907,
+      "columns": [
+        "Date",
+        "Merchant",
+        "Category",
+        "Account",
+        "Original Statement",
+        "Notes",
+        "Amount",
+        "Tags"
+      ],
+      "column_count": 8,
+      "column_analysis": {
+        "Date": {
+          "dtype": "object",
+          "non_null_count": 1907,
+          "null_count": 0,
+          "unique_count": 570,
+          "sample_values": [
+            "2025-05-23",
+            "2025-05-22",
+            "2025-05-21",
+            "2025-05-20",
+            "2025-05-19"
+          ],
+          "likely_date": true,
+          "date_format_guess": "YYYY-MM-DD or similar"
+        },
+        "Merchant": {
+          "dtype": "object",
+          "non_null_count": 1907,
+          "null_count": 0,
+          "unique_count": 228,
+          "sample_values": [
+            "Best Buy Auto",
+            "Rocket Money",
+            "Zelle",
+            "Whole Foods",
+            "Fry's Food and Drug"
+          ],
+          "likely_description": true,
+          "avg_length": 13.8
+        },
+        "Category": {
+          "dtype": "object",
+          "non_null_count": 1907,
+          "null_count": 0,
+          "unique_count": 43,
+          "sample_values": [
+            "Electronics",
+            "Financial Fees",
+            "Transfer",
+            "Groceries",
+            "Paychecks"
+          ]
+        },
+        "Account": {
+          "dtype": "object",
+          "non_null_count": 1907,
+          "null_count": 0,
+          "unique_count": 17,
+          "sample_values": [
+            "WF EVERYDAY CHECKING (...3850)",
+            "CapitalOne Savor (...2463)",
+            "My Best Buy® Credit Card-9992 (...9992)",
+            "WF AUTOGRAPH VISA CARD (...XXXX-XXXX-XXXX-1315)",
+            "Discover it Card (...XXXX-XXXX-XXXX-1544)"
+          ]
+        },
+        "Original Statement": {
+          "dtype": "object",
+          "non_null_count": 1907,
+          "null_count": 0,
+          "unique_count": 932,
+          "sample_values": [
+            "BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN",
+            "BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC",
+            "ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS",
+            "WHOLEFDS CHR 10272",
+            "FRYS-FOOD-DRG #051"
+          ],
+          "likely_description": true,
+          "avg_length": 50.2
+        },
+        "Notes": {
+          "dtype": "float64",
+          "non_null_count": 0,
+          "null_count": 1907,
+          "unique_count": 0,
+          "sample_values": []
+        },
+        "Amount": {
+          "dtype": "float64",
+          "non_null_count": 1907,
+          "null_count": 0,
+          "unique_count": 1236,
+          "sample_values": [
+            "-146.0",
+            "-6.47",
+            "700.0",
+            "-36.63",
+            "-29.28"
+          ],
+          "likely_amount": true
+        },
+        "Tags": {
+          "dtype": "object",
+          "non_null_count": 1,
+          "null_count": 1906,
+          "unique_count": 1,
+          "sample_values": [
+            "Subscription"
+          ]
+        }
+      },
+      "sample_rows": [
+        {
+          "Date": "2025-05-23",
+          "Merchant": "Best Buy Auto",
+          "Category": "Electronics",
+          "Account": "WF EVERYDAY CHECKING (...3850)",
+          "Original Statement": "BEST BUY         AUTO PYMT  250522 721677785560292 RYAN ZIMMERMAN",
+          "Notes": null,
+          "Amount": "-146.0",
+          "Tags": null
+        },
+        {
+          "Date": "2025-05-23",
+          "Merchant": "Rocket Money",
+          "Category": "Financial Fees",
+          "Account": "WF EVERYDAY CHECKING (...3850)",
+          "Original Statement": "BUSINESS TO BUSINESS ACH Rocket Money     Premium           ST-D0E9B1N0H4L6 ROCKET MONEY INC",
+          "Notes": null,
+          "Amount": "-6.47",
+          "Tags": null
+        },
+        {
+          "Date": "2025-05-23",
+          "Merchant": "Zelle",
+          "Category": "Transfer",
+          "Account": "WF EVERYDAY CHECKING (...3850)",
+          "Original Statement": "ZELLE FROM ZIMMERMAN JOAN ON 05/23 REF # PP0YV8GXK4 MAY 2025 BILLS",
+          "Notes": null,
+          "Amount": "700.0",
+          "Tags": null
+        },
+        {
+          "Date": "2025-05-23",
+          "Merchant": "Whole Foods",
+          "Category": "Groceries",
+          "Account": "CapitalOne Savor (...2463)",
+          "Original Statement": "WHOLEFDS CHR 10272",
+          "Notes": null,
+          "Amount": "-36.63",
+          "Tags": null
+        },
+        {
+          "Date": "2025-05-23",
+          "Merchant": "Fry's Food and Drug",
+          "Category": "Groceries",
+          "Account": "CapitalOne Savor (...2463)",
+          "Original Statement": "FRYS-FOOD-DRG #051",
+          "Notes": null,
+          "Amount": "-29.28",
+          "Tags": null
+        }
+      ],
+      "patterns": {
+        "Amount_has_mixed_signs": {
+          "negative_count": 1444,
+          "positive_count": 444
+        }
+      }
+    },
+    {
+      "file_path": "C:\\BALANCE\\CSVs\\Ryan\\Ryan - Rocket Money - 20250524.csv",
+      "file_name": "Ryan - Rocket Money - 20250524.csv",
+      "file_size": 615218,
+      "owner": "Ryan",
+      "source_type": "Rocket Money",
+      "total_rows": 3160,
+      "columns": [
+        "Date",
+        "Original Date",
+        "Account Type",
+        "Account Name",
+        "Account Number",
+        "Institution Name",
+        "Name",
+        "Custom Name",
+        "Amount",
+        "Description",
+        "Category",
+        "Note",
+        "Ignored From",
+        "Tax Deductible"
+      ],
+      "column_count": 14,
+      "column_analysis": {
+        "Date": {
+          "dtype": "object",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 819,
+          "sample_values": [
+            "2022-09-15",
+            "2022-09-16",
+            "2022-09-18",
+            "2022-09-19",
+            "2022-09-20"
+          ],
+          "likely_date": true,
+          "date_format_guess": "YYYY-MM-DD or similar"
+        },
+        "Original Date": {
+          "dtype": "object",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 819,
+          "sample_values": [
+            "2022-09-15",
+            "2022-09-16",
+            "2022-09-18",
+            "2022-09-19",
+            "2022-09-20"
+          ],
+          "likely_date": true,
+          "date_format_guess": "YYYY-MM-DD or similar"
+        },
+        "Account Type": {
+          "dtype": "object",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 3,
+          "sample_values": [
+            "Cash",
+            "Credit Card",
+            "Other"
+          ]
+        },
+        "Account Name": {
+          "dtype": "object",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 10,
+          "sample_values": [
+            "EVERYDAY CHECKING ...3850",
+            "Visa",
+            "BROKERAGE CASH ...8734",
+            "Ryan: Target RedCard",
+            "WELLS FARGO AUTOGRAPH VISA® CARD ...1315"
+          ],
+          "likely_description": true,
+          "avg_length": 23.5
+        },
+        "Account Number": {
+          "dtype": "int64",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 13,
+          "sample_values": [
+            "3850",
+            "9686",
+            "8734",
+            "1559",
+            "6396"
+          ]
+        },
+        "Institution Name": {
+          "dtype": "object",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 7,
+          "sample_values": [
+            "Wells Fargo",
+            "Credit One Bank",
+            "Target REDCard",
+            "Best Buy - Citi Card",
+            "Barclays - Cards"
+          ],
+          "likely_description": true,
+          "avg_length": 11.8
+        },
+        "Name": {
+          "dtype": "object",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 1748,
+          "sample_values": [
+            "Credit One Bank Payment 220911 52208674 ZIMMERMAN,RYAN",
+            "Amazon",
+            "PURCHASE AUTHORIZED ON 09/15 IN & OUT PANTRY MILWAUKEE WI S302258816601882 CARD 0968",
+            "RECURRING PAYMENT AUTHORIZED ON 09/14 ADOBE ACROPRO SUBS CA S582257379190408 CARD 0968",
+            "RECURRING PAYMENT AUTHORIZED ON 09/13 AFFIRM.COM PAYMENT AFFIRM.COM CA S382257005014273 CARD 0968"
+          ],
+          "likely_description": true,
+          "avg_length": 43.1
+        },
+        "Custom Name": {
+          "dtype": "float64",
+          "non_null_count": 0,
+          "null_count": 3160,
+          "unique_count": 0,
+          "sample_values": [],
+          "likely_description": true
+        },
+        "Amount": {
+          "dtype": "float64",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 1844,
+          "sample_values": [
+            "9.51",
+            "51.89",
+            "18.98",
+            "20.66",
+            "29.95"
+          ],
+          "likely_amount": true
+        },
+        "Description": {
+          "dtype": "object",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 1918,
+          "sample_values": [
+            "Credit One Bank Payment 220911 52208674 ZIMMERMAN,RYAN",
+            "PURCHASE AUTHORIZED ON 09/13 AMZN Mktp US*1F3H0 Amzn.com/bill WA S462256653432033 CARD 0968",
+            "PURCHASE AUTHORIZED ON 09/15 IN & OUT PANTRY MILWAUKEE WI S302258816601882 CARD 0968",
+            "PURCHASE AUTHORIZED ON 09/14 AMZN Mktp US*1M4MH Amzn.com/bill WA S382258245650799 CARD 0968",
+            "PURCHASE AUTHORIZED ON 09/14 AMZN Mktp US*1M7LF Amzn.com/bill WA S462257713715461 CARD 0968"
+          ],
+          "likely_description": true,
+          "avg_length": 51.9
+        },
+        "Category": {
+          "dtype": "object",
+          "non_null_count": 3160,
+          "null_count": 0,
+          "unique_count": 25,
+          "sample_values": [
+            "Bills & Utilities",
+            "Shopping",
+            "Dining & Drinks",
+            "Internal Transfers",
+            "Fees"
+          ]
+        },
+        "Note": {
+          "dtype": "float64",
+          "non_null_count": 0,
+          "null_count": 3160,
+          "unique_count": 0,
+          "sample_values": []
+        },
+        "Ignored From": {
+          "dtype": "object",
+          "non_null_count": 1,
+          "null_count": 3159,
+          "unique_count": 1,
+          "sample_values": [
+            "everything"
+          ]
+        },
+        "Tax Deductible": {
+          "dtype": "object",
+          "non_null_count": 3,
+          "null_count": 3157,
+          "unique_count": 1,
+          "sample_values": [
+            "Yes"
+          ]
+        }
+      },
+      "sample_rows": [
+        {
+          "Date": "2022-09-15",
+          "Original Date": "2022-09-15",
+          "Account Type": "Cash",
+          "Account Name": "EVERYDAY CHECKING ...3850",
+          "Account Number": "3850",
+          "Institution Name": "Wells Fargo",
+          "Name": "Credit One Bank Payment 220911 52208674 ZIMMERMAN,RYAN",
+          "Custom Name": null,
+          "Amount": "9.51",
+          "Description": "Credit One Bank Payment 220911 52208674 ZIMMERMAN,RYAN",
+          "Category": "Bills & Utilities",
+          "Note": null,
+          "Ignored From": null,
+          "Tax Deductible": null
+        },
+        {
+          "Date": "2022-09-15",
+          "Original Date": "2022-09-15",
+          "Account Type": "Cash",
+          "Account Name": "EVERYDAY CHECKING ...3850",
+          "Account Number": "3850",
+          "Institution Name": "Wells Fargo",
+          "Name": "Amazon",
+          "Custom Name": null,
+          "Amount": "51.89",
+          "Description": "PURCHASE AUTHORIZED ON 09/13 AMZN Mktp US*1F3H0 Amzn.com/bill WA S462256653432033 CARD 0968",
+          "Category": "Shopping",
+          "Note": null,
+          "Ignored From": null,
+          "Tax Deductible": null
+        },
+        {
+          "Date": "2022-09-16",
+          "Original Date": "2022-09-16",
+          "Account Type": "Cash",
+          "Account Name": "EVERYDAY CHECKING ...3850",
+          "Account Number": "3850",
+          "Institution Name": "Wells Fargo",
+          "Name": "PURCHASE AUTHORIZED ON 09/15 IN & OUT PANTRY MILWAUKEE WI S302258816601882 CARD 0968",
+          "Custom Name": null,
+          "Amount": "18.98",
+          "Description": "PURCHASE AUTHORIZED ON 09/15 IN & OUT PANTRY MILWAUKEE WI S302258816601882 CARD 0968",
+          "Category": "Dining & Drinks",
+          "Note": null,
+          "Ignored From": null,
+          "Tax Deductible": null
+        },
+        {
+          "Date": "2022-09-16",
+          "Original Date": "2022-09-16",
+          "Account Type": "Cash",
+          "Account Name": "EVERYDAY CHECKING ...3850",
+          "Account Number": "3850",
+          "Institution Name": "Wells Fargo",
+          "Name": "Amazon",
+          "Custom Name": null,
+          "Amount": "20.66",
+          "Description": "PURCHASE AUTHORIZED ON 09/14 AMZN Mktp US*1M4MH Amzn.com/bill WA S382258245650799 CARD 0968",
+          "Category": "Shopping",
+          "Note": null,
+          "Ignored From": null,
+          "Tax Deductible": null
+        },
+        {
+          "Date": "2022-09-16",
+          "Original Date": "2022-09-16",
+          "Account Type": "Cash",
+          "Account Name": "EVERYDAY CHECKING ...3850",
+          "Account Number": "3850",
+          "Institution Name": "Wells Fargo",
+          "Name": "Amazon",
+          "Custom Name": null,
+          "Amount": "29.95",
+          "Description": "PURCHASE AUTHORIZED ON 09/14 AMZN Mktp US*1M7LF Amzn.com/bill WA S462257713715461 CARD 0968",
+          "Category": "Shopping",
+          "Note": null,
+          "Ignored From": null,
+          "Tax Deductible": null
+        }
+      ],
+      "patterns": {
+        "potential_duplicate_columns": [
+          [
+            "Date",
+            "Original Date"
+          ],
+          [
+            "Account Name",
+            "Name"
+          ],
+          [
+            "Institution Name",
+            "Name"
+          ],
+          [
+            "Name",
+            "Custom Name"
+          ]
+        ],
+        "Amount_has_mixed_signs": {
+          "negative_count": 702,
+          "positive_count": 2428
+        }
+      }
+    }
+  ]
+}

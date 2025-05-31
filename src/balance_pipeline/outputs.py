@@ -141,12 +141,15 @@ class ExcelOutput(BaseOutputAdapter):
         logger.info(f"Writing DataFrame to Excel file: {self.output_path} (Sheet: {sheet_name})")
         try:
             # Convert datetime columns to timezone-unaware for Excel compatibility if they are aware
-            for col in df.select_dtypes(include=['datetime64[ns, tz]']).columns:
-                logger.debug(f"Converting timezone-aware column '{col}' to naive for Excel export.")
-                df[col] = df[col].dt.tz_localize(None)
+            # Create a copy to avoid SettingWithCopyWarning if df is a slice
+            df_copy = df.copy()
+            for col in df_copy.columns:
+                if isinstance(df_copy[col].dtype, pd.DatetimeTZDtype):
+                    logger.debug(f"Converting timezone-aware column '{col}' (dtype: {df_copy[col].dtype}) to naive for Excel export.")
+                    df_copy[col] = df_copy[col].dt.tz_localize(None)
             
-            df.to_excel(self.output_path, sheet_name=sheet_name, index=False, **kwargs)
-            logger.info(f"Successfully wrote Excel file: {self.output_path} with {len(df)} rows to sheet '{sheet_name}'.")
+            df_copy.to_excel(self.output_path, sheet_name=sheet_name, index=False, **kwargs)
+            logger.info(f"Successfully wrote Excel file: {self.output_path} with {len(df_copy)} rows to sheet '{sheet_name}'.")
         except Exception as e:
             logger.error(f"Failed to write Excel file to {self.output_path}: {e}", exc_info=True)
             raise

@@ -2,7 +2,7 @@
 import yaml
 
 # Read the Monarch CSV
-df = pd.read_csv(r'C:\BALANCE\CSVs\Ryan\Ryan - Monarch Money - 20250524.csv')
+df = pd.read_csv('fixtures/dummy_monarch_data.csv') # Changed to relative path
 print('CSV Columns:', df.columns.tolist())
 print('\nFirst row of Original Statement:', df['Original Statement'].iloc[0] if 'Original Statement' in df.columns else 'COLUMN NOT FOUND')
 
