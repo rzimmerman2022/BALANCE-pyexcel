@@ -10,7 +10,7 @@ It uses the Click library for creating a clean and user-friendly CLI.
 import logging
 import sys
 from pathlib import Path
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Dict, Any, Union
 
 import click
 import pandas as pd
@@ -25,8 +25,15 @@ from .config_v2 import PipelineConfig, pipeline_config_v2 as global_config # Imp
 # The pipeline modules will have their own loggers.
 cli_logger = logging.getLogger("balance_pipeline_cli")
 
-def setup_logging(log_level_str: str):
-    """Configures logging for the application."""
+def setup_logging(log_level_str: str) -> None:
+    """Configures logging for the application.
+    
+    Args:
+        log_level_str: String representation of the logging level (e.g., 'DEBUG', 'INFO')
+    
+    Returns:
+        None - This function modifies the logging configuration as a side effect
+    """
     log_level = getattr(logging, log_level_str.upper(), logging.INFO)
     logging.basicConfig(
         level=log_level,
@@ -38,12 +45,15 @@ def setup_logging(log_level_str: str):
 
 @click.group()
 @click.version_option(version="2.0.0", prog_name="balance-pipe") # Placeholder version
-def balance_pipe_cli():
+def balance_pipe_cli() -> None:
     """
     BALANCE Unified Data Pipeline CLI (v2).
 
     Process financial CSV files through a unified pipeline,
     applying consistent rules and outputting to various formats.
+    
+    Returns:
+        None - This is a Click group command that organizes subcommands
     """
     pass
 
@@ -104,9 +114,26 @@ def process_files_command(
     merchant_lookup: Optional[str],
     log_level: Optional[str],
     explain_config: bool,
-):
+) -> None:
     """
     Process one or more financial CSV INPUT_FILES.
+    
+    This is the main entry point for processing CSV files through the pipeline.
+    It handles configuration setup, pipeline initialization, file processing,
+    and output generation.
+    
+    Args:
+        input_files: Tuple of paths to CSV files to process
+        schema_mode: Optional override for schema validation mode
+        output_type: Format for output file (powerbi, excel, or none)
+        output_path: Optional custom path for output file
+        schema_registry: Optional path to custom schema registry
+        merchant_lookup: Optional path to custom merchant lookup
+        log_level: Optional logging level override
+        explain_config: Flag to show configuration and exit
+    
+    Returns:
+        None - Function exits with appropriate status codes
     """
     # --- 1. Configuration Setup ---
     # Create a config instance, allowing CLI options to override defaults/env vars
@@ -124,15 +151,24 @@ def process_files_command(
     # Create a new config instance if there are overrides, otherwise use global_config
     if effective_config_params:
         # Create a new instance based on global_config, then update
-        current_config_dict = global_config.to_dict()
+        # Use Union type to allow both str and Path values in the dictionary
+        current_config_dict: Dict[str, Union[str, Path, Any]] = global_config.to_dict()
         current_config_dict.update(effective_config_params)
+        
         # Path objects need to be Path objects for PipelineConfig constructor
+        # Create a separate dictionary for the constructor to maintain type safety
+        config_constructor_dict: Dict[str, Any] = {}
         for key, value in current_config_dict.items():
             if key.endswith("_path") or key in ["project_root", "rules_dir", "default_output_dir"]:
-                 if value and isinstance(value, str):
-                    current_config_dict[key] = Path(value)
+                # Convert string paths to Path objects for path-related fields
+                if value and isinstance(value, str):
+                    config_constructor_dict[key] = Path(value)
+                else:
+                    config_constructor_dict[key] = value
+            else:
+                config_constructor_dict[key] = value
         
-        config = PipelineConfig(**current_config_dict)
+        config = PipelineConfig(**config_constructor_dict)
     else:
         config = global_config
 
@@ -167,10 +203,15 @@ def process_files_command(
         # Convert tuple of file paths to list of strings for the pipeline
         file_paths_list: List[str] = list(input_files)
         
+        # Fix for MyPy errors: ensure we pass strings, not Path objects
+        # The pipeline expects string paths, so we convert Path objects to strings
+        schema_registry_path: Optional[Path] = config.schema_registry_path
+        merchant_lookup_path: Optional[Path] = config.merchant_lookup_path
+        
         processed_df = pipeline.process_files(
             file_paths=file_paths_list,
-            schema_registry_override_path=str(config.schema_registry_path), # Pass as string
-            merchant_lookup_override_path=str(config.merchant_lookup_path), # Pass as string
+            schema_registry_override_path=schema_registry_path,
+            merchant_lookup_override_path=merchant_lookup_path,
         )
         cli_logger.info(f"Pipeline processing completed. Resulting DataFrame shape: {processed_df.shape if processed_df is not None else 'None'}")
     except Exception as e:

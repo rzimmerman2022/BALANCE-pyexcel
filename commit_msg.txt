@@ -1,0 +1,10 @@
+chore: fix MyPy errors in csv_consolidator and main.py
+
+- In csv_consolidator.py:
+  * Explicitly cast row[amount_col_name] to float in adjust_sign helper to satisfy return type float.
+  * Changed np.select default from None to 'pending' to maintain nullable string dtype for sharing_status.
+- In main.py:
+  * Replaced string conversions for schema_registry_override_path and merchant_lookup_override_path with Optional[Path] assignments.
+  * Updated pipeline.process_files call to pass Path objects directly, ensuring type consistency.
+  
+Used commit message file with git commit -F commit_msg.txt and subsequent cleanup.

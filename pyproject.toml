@@ -56,6 +56,7 @@ build-backend = "poetry.core.masonry.api"
 
 # Optional: Add tool-specific configurations below later if needed
 # [tool.ruff]
+exclude = ["legacy_scripts/*"]
 # ...
 # [tool.black]
 # ...

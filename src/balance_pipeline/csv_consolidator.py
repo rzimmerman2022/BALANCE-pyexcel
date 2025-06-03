@@ -36,9 +36,9 @@ from typing import (
     Dict,
     List,
     Optional,
+    Set, # Added Set import
     Tuple,
     Union,
-    Pattern as TypingPattern,
     cast,
 )
 
@@ -56,10 +56,7 @@ from .constants import MASTER_SCHEMA_COLUMNS  # Added import
 # For now, let's assume they might be refactored or directly used.
 # If direct use: from .normalize import _txn_id_like_function, clean_merchant
 # For now, I will re-implement _hash_txn logic as per spec and use clean_merchant from normalize
-from .normalize import (
-    clean_merchant as project_clean_merchant,
-)  # Alias to avoid conflict
-from balance_pipeline.transaction_cleaner import ComprehensiveTransactionCleaner, apply_comprehensive_cleaning
+from balance_pipeline.transaction_cleaner import apply_comprehensive_cleaning
 from balance_pipeline.schema_registry import find_matching_schema as _find_schema
 from .errors import RecoverableFileError
 from balance_pipeline.foundation import CORE_FOUNDATION_COLUMNS # Added import
@@ -129,12 +126,17 @@ def get_columns_to_retain(df: pd.DataFrame) -> List[str]:
     for group_name in relevant_groups:
         columns_to_retain.extend(config.OPTIONAL_COLUMN_GROUPS[group_name])
     
-    # Remove duplicates while preserving order
-    seen = set()
-    return [col for col in columns_to_retain if not (col in seen or seen.add(col))]
+    # Remove duplicates while preserving order - Fixed the set.add issue
+    seen: Set[str] = set()
+    unique_columns: List[str] = []
+    for col in columns_to_retain:
+        if col not in seen:
+            seen.add(col)
+            unique_columns.append(col)
+    return unique_columns
 
 
-def remove_empty_columns(df: pd.DataFrame, preserve_columns: List[str] = None) -> pd.DataFrame:
+def remove_empty_columns(df: pd.DataFrame, preserve_columns: Optional[List[str]] = None) -> pd.DataFrame:
     """
     Removes columns that are entirely empty (all NA/null/empty string) from a DataFrame.
     
@@ -200,11 +202,11 @@ class PipelineDebugTracer:
                       stage_name: str, 
                       df: pd.DataFrame, 
                       sample_rows: int = 3, 
-                      focus_columns: Optional[List[str]] = None):
+                      focus_columns: Optional[List[str]] = None) -> None:
         """Capture the state of data at a specific stage"""
         if df is None:
             log.warning(f"[DebugTracer] DataFrame is None for stage: {stage_name}. Skipping capture.")
-            stage_data = {
+            stage_data: Dict[str, Any] = {
                 'stage_name': stage_name,
                 'status': 'DataFrame was None',
                 'row_count': 0,
@@ -244,14 +246,14 @@ class PipelineDebugTracer:
                     try:
                         sample_list = df[col].head(sample_rows).tolist()
                         # Sanitize for JSON serializability if needed, e.g. NaT
-                        sanitized_sample_list = []
+                        sanitized_sample_list: List[Union[str, None]] = []
                         for item in sample_list:
                             if pd.isna(item):
-                                sanitized_sample_list.append(None) # Represent NaN/NaT as None
+                                sanitized_sample_list.append(None)  # Represent NaN/NaT as None
                             elif isinstance(item, (datetime, pd.Timestamp)):
                                 sanitized_sample_list.append(item.isoformat())
                             else:
-                                sanitized_sample_list.append(item)
+                                sanitized_sample_list.append(str(item))  # Convert to string
                         stage_data['sample_data'][col] = sanitized_sample_list
                     except Exception as e:
                         stage_data['sample_data'][col] = f"Error sampling column {col}: {e}"
@@ -295,7 +297,7 @@ class PipelineDebugTracer:
         
         return "\n".join(report_parts)
 
-    def save_report(self, output_dir: Path = Path("debug_reports")):
+    def save_report(self, output_dir: Path = Path("debug_reports")) -> None:
         """Save the debug report to a file"""
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -345,7 +347,7 @@ def coerce_bool(
 
     def map_value_to_bool(
         x: Any,
-    ) -> bool | None:  # x is str after .astype(str) in caller
+    ) -> Optional[bool]:  # x is str after .astype(str) in caller
         if pd.isna(x):
             return None  # Mypy prefers None for pd.NA in some contexts with bool
         s = str(x).lower().strip()
@@ -382,6 +384,8 @@ def _normalize_csv_header(
         'transaction date': 'date',
         'account name': 'account',
         'running balance': 'balance',
+        "description": "merchant",
+        "merchant": "description",
     }
 
     return alias_map.get(normalized, normalized)
@@ -394,7 +398,7 @@ def _normalize_csv_header(
 # For simplicity and alignment with existing normalize.py, let's define the cols needed for hashing here.
 # These are the *target* master schema column names after mapping.
 # Removed PostDate and Institution as they are not reliably available across all sources.
-TXN_ID_HASH_COLS = ["Date", "Amount", "OriginalDescription", "Account"]
+TXN_ID_HASH_COLS = ["Date", "Amount", "Description", "Account"] # Changed OriginalDescription to Description
 
 
 def _generate_txn_id(row: pd.Series[Any]) -> str:  # Updated type hint
@@ -408,7 +412,11 @@ def _generate_txn_id(row: pd.Series[Any]) -> str:  # Updated type hint
     parts = []
     for col in TXN_ID_HASH_COLS:
         val = row.get(col)
-        if pd.isna(val):  # Handles None, pd.NaT, np.nan
+        if col == "Description":
+            desc = val # val is row.get("Description") from the current iteration
+            desc_part = str(desc)[:20] if pd.notna(desc) else "NoDesc"
+            parts.append(desc_part)
+        elif pd.isna(val):  # Handles None, pd.NaT, np.nan
             parts.append("")
         else:
             # For datetime objects (like Date, PostDate), convert to ISO format string
@@ -702,9 +710,9 @@ def apply_schema_transformations(
             isinstance(sign_rule_from_schema, dict) # Check the original value from schema
             and sign_rule_from_schema.get("type") == "flip_if_column_value_matches"
         ):
-            rule_col_name = sign_rule.get("column")
+            rule_col_name = sign_rule_from_schema.get("column") # Changed sign_rule to sign_rule_from_schema
             debit_values = [
-                str(v).lower() for v in sign_rule.get("debit_values", [])
+                str(v).lower() for v in sign_rule_from_schema.get("debit_values", []) # Changed sign_rule to sign_rule_from_schema
             ]  # Normalize to lower string
 
             actual_col_to_check = None
@@ -735,8 +743,8 @@ def apply_schema_transformations(
                         f"[APPLY_SCHEMA_TRANSFORM_DETAIL] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule (Complex) | Detail: Unique values in '{actual_col_to_check}' for rule: {unique_sign_rule_values}"
                     )
 
-                def adjust_sign(row):
-                    amount = row[amount_col_name]
+                def adjust_sign(row: pd.Series[Any]) -> float:
+                    amount = float(row[amount_col_name])
                     type_val_series = row[actual_col_to_check]
 
                     if pd.isna(amount) or pd.isna(type_val_series):
@@ -763,9 +771,9 @@ def apply_schema_transformations(
                     f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule (Complex) | Detail: No 'debit_values' provided. Rule not applied effectively."
                 )
 
-        elif sign_rule and sign_rule not in ["as_is", "flip_if_positive", "flip_if_negative", "flip_always", "flip_if_withdrawal"]: # Unrecognized simple string rule
+        elif sign_rule_from_schema and sign_rule_from_schema not in ["as_is", "flip_if_positive", "flip_if_negative", "flip_always", "flip_if_withdrawal"]: # Unrecognized simple string rule, changed sign_rule to sign_rule_from_schema
             log.warning(
-                f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Detail: Unrecognized sign_rule '{sign_rule}'. Amount signs may be incorrect."
+                f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Detail: Unrecognized sign_rule '{sign_rule_from_schema}'. Amount signs may be incorrect."
             )
 
         # Ensure 'Amount' is float
@@ -1092,51 +1100,6 @@ def apply_schema_transformations(
     return transformed_df
 
 
-# def _clean_merchant_column(  # Added return type hint
-#     df: pd.DataFrame, merchant_lookup_rules: List[Tuple[re.Pattern[str], str]]
-# ) -> pd.Series[str]:  # type: ignore[no-untyped-def]
-#     """[OLD FUNCTION - REPLACED BY ComprehensiveTransactionCleaner]
-#     Cleans the merchant names in a DataFrame.
-#     Uses 'OriginalDescription' as the primary source for cleaning,
-#     falls back to 'Merchant' if 'OriginalDescription' is not available or empty.
-#     Applies regex lookup rules and then a fallback general cleaner.
-#     """
-#     # Determine the source column for merchant cleaning
-#     if (
-#         "OriginalDescription" in df.columns
-#         and not df["OriginalDescription"].isna().all()
-#     ):
-#         source_merchant_col = "OriginalDescription"
-#     elif (
-#         "Merchant" in df.columns
-#     ):  # Fallback to Merchant if OriginalDescription is not good
-#         source_merchant_col = "Merchant"
-#         # This log is more of a detail for a specific file, will be covered by process_csv_files logs
-#         # log.info(
-#         #     "Using 'Merchant' column as source for merchant cleaning as 'OriginalDescription' is unavailable/empty."
-#         # )
-#     else:
-#         # This log is also more of a detail for a specific file
-#         # log.warning(
-#         #     "Neither 'OriginalDescription' nor 'Merchant' column found for merchant cleaning. Returning empty Series."
-#         # )
-#         return pd.Series([None] * len(df), index=df.index, dtype=str)
-
-#     def clean_single_merchant(merchant_string: Any) -> str:
-#         if not isinstance(merchant_string, str) or pd.isna(merchant_string):
-#             return "Unknown Merchant"  # Default for missing/invalid input
-
-#         for pattern, canonical_name in merchant_lookup_rules:
-#             if pattern.search(merchant_string):
-#                 return canonical_name
-
-#         # Fallback to project's general merchant cleaner
-#         return project_clean_merchant(merchant_string)  # This returns str
-
-#     # The apply will result in a Series of strings
-#     return df[source_merchant_col].apply(clean_single_merchant).astype(str)
-
-
 def process_csv_files(
     csv_files: List[Union[str, Path]],
     schema_registry_override_path: Optional[Path] = None,
@@ -1399,9 +1362,9 @@ def process_csv_files(
         log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate Default Master Fields (Currency, SharedFlag, etc.)")
         processed_df["Currency"] = "USD"
         if "SharedFlag" not in processed_df.columns:
-            processed_df["SharedFlag"] = None
+            processed_df["SharedFlag"] = '?'  # Compatibility: Initialize with '?'
         if "SplitPercent" not in processed_df.columns:
-            processed_df["SplitPercent"] = None
+            processed_df["SplitPercent"] = pd.NA  # Compatibility: Initialize with pd.NA
 
         # Ensure required columns exist based on schema mode
         required_columns = get_required_columns_for_mode()
@@ -1605,9 +1568,10 @@ def process_csv_files(
     ]
     choices = ['split', 'shared', 'individual']
     
+    # Fixed: Convert pd.NA to None for np.select compatibility
     final_df['sharing_status'] = pd.Series(
-        np.select(conditions, choices, default=pd.NA), # Default to pd.NA if no condition met (e.g. SharedFlag is NA)
-        dtype=pd.StringDtype(), # Ensures nullable string type
+        np.select(conditions, choices, default='pending'),  # Changed default to string 'pending'
+        dtype=pd.StringDtype(),  # Ensures nullable string type
         index=final_df.index
     )
     
@@ -1729,7 +1693,7 @@ def load_and_parse_schema_registry(
         raise
 
 
-def load_merchant_lookup_rules(csv_path: Path) -> List[Tuple[re.Pattern, str]]:
+def load_merchant_lookup_rules(csv_path: Path) -> List[Tuple[re.Pattern[str], str]]:
     """
     Loads merchant cleaning rules from the merchant_lookup.csv file.
     Similar to _load_merchant_lookup in normalize.py but adapted for this module.
@@ -1757,7 +1721,7 @@ def load_merchant_lookup_rules(csv_path: Path) -> List[Tuple[re.Pattern, str]]:
                     )
                     continue
                 try:
-                    compiled_regex: re.Pattern[str] = re.compile(  # type: ignore[type-arg]
+                    compiled_regex: re.Pattern[str] = re.compile(
                         pattern_str, re.IGNORECASE
                     )  # Added type hint
                     rules.append((compiled_regex, canonical_name))
