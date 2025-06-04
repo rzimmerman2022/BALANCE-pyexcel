@@ -10,7 +10,7 @@ import logging
 import os
 from dataclasses import dataclass, field, fields
 from pathlib import Path
-from typing import Optional, Union, Dict, Any
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,8 @@ class PipelineConfig:
     schema_mode: str = field(default_factory=lambda: os.getenv("BALANCE_SCHEMA_MODE", "flexible"))
     log_level: str = field(default_factory=lambda: os.getenv("BALANCE_LOG_LEVEL", "INFO").upper())
 
-    def __post_init__(self):
+    # FIX 1: Added return type annotation -> None to resolve MyPy error
+    def __post_init__(self) -> None:
         """Validate configuration values after initialization."""
         # Ensure paths are resolved and absolute for consistency
         self.project_root = self.project_root.resolve()
@@ -123,13 +124,14 @@ if __name__ == "__main__":
 
     # Test initialization with overrides (simulating CLI args or direct instantiation)
     print("\n--- Custom Configuration ---")
-    custom_config_params = {
-        "schema_mode": "strict",
-        "log_level": "DEBUG",
-        "default_output_dir": Path("./custom_output_test"),
-        # "project_root": Path("/tmp/custom_project") # Example
-    }
-    config_custom = PipelineConfig(**custom_config_params)
+    # FIX 2: Changed from dict unpacking to explicit parameter passing
+    # This resolves the MyPy error about incompatible types in dict unpacking
+    config_custom = PipelineConfig(
+        schema_mode="strict",
+        log_level="DEBUG",
+        default_output_dir=Path("./custom_output_test"),
+        # project_root=Path("/tmp/custom_project")  # Example
+    )
     print(config_custom.explain())
     print(f"Custom output dir: {config_custom.default_output_dir}")
     if config_custom.default_output_dir.exists():

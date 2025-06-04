@@ -52,27 +52,29 @@ def sample_csv_dir(tmp_path):
 
     # Create Rocket Money sample
     rocket_csv = ryan_dir / "BALANCE - Rocket Money - test.csv"
-    rocket_content = """Date,Account Name,Institution Name,Amount,Description,Category
-2025-04-01,Checking,RocketBank,-50.00,Test Grocery Purchase,Groceries
-2025-04-02,Savings,RocketBank,100.00,Test Deposit,Income
+    rocket_content = """Date,Original Date,Account Type,Account Name,Account Number,Institution Name,Name,Custom Name,Amount,Description,Category,Note,Ignored From,Tax Deductible
+2025-04-01,2025-04-01,Checking,Checking,1234,RocketBank,Test Grocery Purchase,,,-50.00,Rocket Grocery Description,Groceries,,,,
+2025-04-02,2025-04-02,Savings,Savings,5678,RocketBank,Test Deposit,,100.00,Rocket Deposit Description,Income,,,,
 """
     rocket_csv.write_text(rocket_content)
 
     # Create Monarch Money sample with different transaction to avoid duplicate TxnID
+    # Header signature for ryan_monarch_v1.yaml: Date,Merchant,Category,Account,Original Statement,Notes,Amount,Tags
     monarch_csv = ryan_dir / "BALANCE - Monarch Money - test.csv"
-    monarch_content = """Date,Merchant,Amount,Account,Institution,Category,Original Statement
-2025-04-02,Test Grocery Store,-35.00,Checking,MonarchBank,Groceries,Original text
-2025-04-03,Different Purchase,-25.00,Checking,MonarchBank,Shopping,Original text
+    monarch_content = """Date,Merchant,Category,Account,Original Statement,Notes,Amount,Tags
+2025-04-02,Test Grocery Store,Groceries,Checking (Monarch),Original text for grocery,Some notes,-35.00,tag1
+2025-04-03,Different Purchase,Shopping,Checking (Monarch),Original text for shopping,Other notes,-25.00,tag2
 """
     monarch_csv.write_text(monarch_content)
 
     # Create a Wells Fargo sample
+    # Header signature for jordyn_wells_v1.yaml: Name,Institution,Account Description,Statement Period Description,Statement Start Date,Statement End Date,Date,Post Date,Description,Reference Number,Amount,Category
     wells_csv = (
         jordyn_dir
         / "Jordyn - Wells Fargo - Active Cash Visa Signature Card x4296 - CSV.csv"
     )
-    wells_content = """Name,Institution,Account Description,Date,Amount,CheckNum,TransType,Description,Balance,Category
-Jordyn Doe,Wells Fargo,Active Cash Card,04/01/2025,50.00,,CREDIT,Wells Fargo Test Transaction,,Shopping
+    wells_content = """Name,Institution,Account Description,Statement Period Description,Statement Start Date,Statement End Date,Date,Post Date,Description,Reference Number,Amount,Category
+Jordyn Doe,Wells Fargo,Active Cash Card x4296,April 2025 Statement,03/15/2025,04/14/2025,04/01/2025,04/02/2025,Wells Fargo Test Transaction,WF123,50.00,Shopping
 """
     wells_csv.write_text(wells_content)
 
@@ -219,17 +221,18 @@ def test_cli_prefer_rocket_behavior(sample_csv_dir, fake_xlsm, tmp_path):
     ryan_dir.mkdir(parents=True)
 
     # Create Rocket Money sample with a specific transaction
+    # Align with ryan_rocket_v1.yaml header_signature
     rocket_csv = ryan_dir / "BALANCE - Rocket Money - test.csv"
-    rocket_content = """Date,Account Name,Institution Name,Amount,Description,Category
-2025-04-01,Checking,RocketBank,-50.00,SAME EXACT TRANSACTION,Groceries
+    rocket_content = """Date,Original Date,Account Type,Account Name,Account Number,Institution Name,Name,Custom Name,Amount,Description,Category,Note,Ignored From,Tax Deductible
+2025-04-01,2025-04-01,Checking,Checking,9999,RocketBank,SAME EXACT TRANSACTION,,,-50.00,Rocket SAME EXACT TRANSACTION,Groceries,,,,
 """
     rocket_csv.write_text(rocket_content)
 
-    # Create Monarch Money sample with the EXACT SAME transaction (same date, amount, desc, bank, account)
-    # Need exact same values for TxnID generation fields to match
+    # Create Monarch Money sample with the EXACT SAME transaction
+    # Align with ryan_monarch_v1.yaml header_signature: Date,Merchant,Category,Account,Original Statement,Notes,Amount,Tags
     monarch_csv = ryan_dir / "BALANCE - Monarch Money - test.csv"
-    monarch_content = """Date,Merchant,Amount,Account,Institution,Category,Original Statement
-2025-04-01,SAME EXACT TRANSACTION,-50.00,Checking,RocketBank,Groceries,Original text
+    monarch_content = """Date,Merchant,Category,Account,Original Statement,Notes,Amount,Tags
+2025-04-01,SAME EXACT TRANSACTION,Groceries,Checking (Monarch),Original text for same transaction,Notes for same transaction,-50.00,tag_same
 """
     monarch_csv.write_text(monarch_content)
 

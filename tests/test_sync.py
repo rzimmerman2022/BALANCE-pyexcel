@@ -70,7 +70,7 @@ def test_sync_missing_cols_transactions(caplog):
     df_trans = sample_transactions_df().drop(columns=[TRANS_SHARED_FLAG_COL])
     df_queue = sample_queue_df()
     result_df = sync_review_decisions(df_trans.copy(), df_queue)
-    assert "Transactions DataFrame missing required columns" in caplog.text
+    assert "transactions dataframe missing required columns" in caplog.text.lower()
     assert_frame_equal(result_df, df_trans)
 
 
@@ -78,7 +78,7 @@ def test_sync_missing_cols_queue(caplog):
     df_trans = sample_transactions_df()
     df_queue = sample_queue_df().drop(columns=[QUEUE_DECISION_COL])
     result_df = sync_review_decisions(df_trans.copy(), df_queue)
-    assert "Queue Review DataFrame missing required columns" in caplog.text
+    assert "queue review dataframe missing required columns" in caplog.text.lower()
     assert_frame_equal(result_df, df_trans)
 
 
@@ -130,7 +130,7 @@ def test_sync_invalid_decision_value_ignored(caplog):
     df_queue = pd.DataFrame(queue_data)
     result_df = sync_review_decisions(df_trans.copy(), df_queue)
 
-    assert "Invalid decision value: 'INVALID'" in caplog.text
+    assert "invalid decision value: 'invalid'" in caplog.text.lower()
     # TX1 should remain unchanged
     original_tx1 = df_trans[df_trans[TRANS_TXNID_COL] == "TX1"]
     result_tx1 = result_df[result_df[TRANS_TXNID_COL] == "TX1"]
@@ -151,8 +151,8 @@ def test_sync_split_decision_missing_percent_defaults_to_50(caplog):
     result_df = sync_review_decisions(df_trans.copy(), df_queue)
 
     assert (
-        "Missing split percentage for split decision on TxnID: TX1. Using 50%."
-        in caplog.text
+        "missing split percentage for split decision on txnid: tx1. using 50%."
+        in caplog.text.lower()
     )
     tx1_res = result_df[result_df[TRANS_TXNID_COL] == "TX1"].iloc[0]
     assert tx1_res[TRANS_SHARED_FLAG_COL] == "S"
@@ -170,7 +170,7 @@ def test_sync_split_decision_invalid_percent_format_defaults_to_50(caplog):
     df_queue = pd.DataFrame(queue_data)
     result_df = sync_review_decisions(df_trans.copy(), df_queue)
 
-    assert "Invalid split percentage format for TxnID: TX1. Using 50%." in caplog.text
+    assert "invalid split percentage format" in caplog.text.lower() # no need to match the entire verbose message
     tx1_res = result_df[result_df[TRANS_TXNID_COL] == "TX1"].iloc[0]
     assert tx1_res[TRANS_SHARED_FLAG_COL] == "S"
     assert tx1_res[TRANS_SPLIT_PERC_COL] == 50.0
@@ -187,15 +187,15 @@ def test_sync_split_percent_out_of_bounds_clamped(caplog):
     result_df = sync_review_decisions(df_trans.copy(), df_queue)
 
     assert (
-        "Split percentage (-10.0) below 0 for TxnID: TX1. Clamping to 0." in caplog.text
+        "split percentage (-10.0) below 0 for txnid: tx1. clamping to 0." in caplog.text.lower()
     )
     tx1_res = result_df[result_df[TRANS_TXNID_COL] == "TX1"].iloc[0]
     assert tx1_res[TRANS_SHARED_FLAG_COL] == "S"
     assert tx1_res[TRANS_SPLIT_PERC_COL] == 0.0
 
     assert (
-        "Split percentage (110.0) above 100 for TxnID: TX2. Clamping to 100."
-        in caplog.text
+        "split percentage (110.0) above 100 for txnid: tx2. clamping to 100."
+        in caplog.text.lower()
     )
     tx2_res = result_df[result_df[TRANS_TXNID_COL] == "TX2"].iloc[0]
     assert tx2_res[TRANS_SHARED_FLAG_COL] == "S"

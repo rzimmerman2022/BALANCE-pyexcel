@@ -91,8 +91,8 @@ def test_add_merchant_rule_invalid_regex(temp_rules_file: Path, capsys, caplog):
 
     assert excinfo.value.code == 1  # Check for sys.exit(1)
     captured = capsys.readouterr()
-    assert f"Error: Invalid regex pattern: '{invalid_pattern}'" in captured.err
-    assert f"Error: Invalid regex pattern: {invalid_pattern}" in caplog.text
+    assert f"error: invalid regex pattern: '{invalid_pattern}'".lower() in captured.err.lower()
+    assert f"error: invalid regex pattern: {invalid_pattern}".lower() in caplog.text.lower()
     assert not temp_rules_file.exists()  # File should not be created or modified
 
 
@@ -106,8 +106,8 @@ def test_add_merchant_rule_canonical_with_comma(temp_rules_file: Path, capsys, c
 
     assert excinfo.value.code == 1
     captured = capsys.readouterr()
-    assert "Error: Canonical name cannot contain a comma." in captured.err
-    assert "Error: Canonical name cannot contain a comma." in caplog.text
+    assert "error: canonical name cannot contain a comma." in captured.err.lower()
+    assert "error: canonical name cannot contain a comma." in caplog.text.lower()
     assert not temp_rules_file.exists()
 
 

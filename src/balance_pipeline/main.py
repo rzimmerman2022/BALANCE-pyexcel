@@ -1,273 +1,343 @@
+#!/usr/bin/env python3
 """
-Main CLI Entry Point for the Unified BALANCE Pipeline (v2).
+Main entry point for the Balance Pipeline application.
 
-This script provides a command-line interface to run the unified data
-processing pipeline, allowing users to specify input files, configuration
-overrides, output formats, and other processing options.
-
-It uses the Click library for creating a clean and user-friendly CLI.
+This module provides the command-line interface for processing financial CSV files
+through the unified pipeline. It handles argument parsing, logging setup, and
+orchestrates the data processing workflow.
 """
+
+import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Tuple, Optional, List, Dict, Any, Union
-
-import click
+from typing import List, Optional
 import pandas as pd
 
-# Local application imports
-# Assuming these modules are in the same package or PYTHONPATH is set up
-from .pipeline_v2 import UnifiedPipeline
-from .outputs import PowerBIOutput, ExcelOutput, BaseOutputAdapter
-from .config_v2 import PipelineConfig, pipeline_config_v2 as global_config # Import the global instance
+# Import the unified pipeline - adjust import based on your project structure
+from balance_pipeline.pipeline_v2 import UnifiedPipeline
+from balance_pipeline.config import (
+    DEFAULT_OUTPUT_FORMAT,
+    SUPPORTED_OUTPUT_FORMATS
+)
 
-# Setup a basic logger for the CLI itself.
-# The pipeline modules will have their own loggers.
-cli_logger = logging.getLogger("balance_pipeline_cli")
 
-def setup_logging(log_level_str: str) -> None:
-    """Configures logging for the application.
+# Configure logging format for consistency across the application
+LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+
+
+def setup_logging(verbosity: int = 0) -> None:
+    """
+    Configure logging based on verbosity level.
+    
+    The logging system uses a hierarchical approach where higher verbosity
+    levels provide more detailed output. This helps with debugging while
+    keeping normal operation output clean.
     
     Args:
-        log_level_str: String representation of the logging level (e.g., 'DEBUG', 'INFO')
-    
-    Returns:
-        None - This function modifies the logging configuration as a side effect
+        verbosity: Logging verbosity level (0=WARNING, 1=INFO, 2+=DEBUG)
     """
-    log_level = getattr(logging, log_level_str.upper(), logging.INFO)
+    # Map verbosity counts to logging levels
+    level_map = {
+        0: logging.WARNING,
+        1: logging.INFO,
+        2: logging.DEBUG,
+    }
+    
+    # Use DEBUG for any verbosity > 2
+    log_level = level_map.get(verbosity, logging.DEBUG)
+    
+    # Configure root logger
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        stream=sys.stdout, # Output logs to stdout
+        format=LOG_FORMAT,
+        handlers=[
+            logging.StreamHandler(sys.stdout)
+        ]
     )
-    cli_logger.info(f"Logging configured with level: {log_level_str}")
-
-
-@click.group()
-@click.version_option(version="2.0.0", prog_name="balance-pipe") # Placeholder version
-def balance_pipe_cli() -> None:
-    """
-    BALANCE Unified Data Pipeline CLI (v2).
-
-    Process financial CSV files through a unified pipeline,
-    applying consistent rules and outputting to various formats.
     
-    Returns:
-        None - This is a Click group command that organizes subcommands
-    """
-    pass
+    # Set specific loggers if needed
+    logging.getLogger("balance_pipeline").setLevel(log_level)
 
-@balance_pipe_cli.command("process")
-@click.argument(
-    "input_files",
-    nargs=-1,  # Allows multiple input files
-    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
-    required=True,
-)
-@click.option(
-    "--schema-mode",
-    type=click.Choice(["flexible", "strict"], case_sensitive=False),
-    default=None, # Will use global_config's default if None
-    help="Schema mode for processing: 'flexible' or 'strict'. Overrides config file.",
-)
-@click.option(
-    "--output-type",
-    type=click.Choice(["powerbi", "excel", "none"], case_sensitive=False),
-    default="powerbi",
-    help="Format for the output: 'powerbi' (Parquet), 'excel', or 'none' (no output file).",
-)
-@click.option(
-    "--output-path",
-    type=click.Path(dir_okay=False, writable=True, resolve_path=True),
-    default=None,
-    help="Full path for the output file. If not provided, a default name will be generated in the configured output directory.",
-)
-@click.option(
-    "--schema-registry",
-    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
-    default=None,
-    help="Path to a custom schema registry YAML file. Overrides default.",
-)
-@click.option(
-    "--merchant-lookup",
-    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
-    default=None,
-    help="Path to a custom merchant lookup CSV file. Overrides default.",
-)
-@click.option(
-    "--log-level",
-    type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False),
-    default=None, # Will use global_config's default
-    help="Set the logging level.",
-)
-@click.option(
-    "--explain-config",
-    is_flag=True,
-    help="Show the current pipeline configuration and exit.",
-)
-def process_files_command(
-    input_files: Tuple[str, ...], # Click converts nargs=-1 to a tuple
-    schema_mode: Optional[str],
-    output_type: str,
-    output_path: Optional[str],
-    schema_registry: Optional[str],
-    merchant_lookup: Optional[str],
-    log_level: Optional[str],
-    explain_config: bool,
-) -> None:
+
+def validate_file_paths(file_paths: List[str]) -> List[Path]:
     """
-    Process one or more financial CSV INPUT_FILES.
+    Validate that all provided file paths exist and are readable.
     
-    This is the main entry point for processing CSV files through the pipeline.
-    It handles configuration setup, pipeline initialization, file processing,
-    and output generation.
+    This function converts string paths to Path objects and verifies
+    that each file exists and is accessible. This early validation
+    prevents processing errors later in the pipeline.
     
     Args:
-        input_files: Tuple of paths to CSV files to process
-        schema_mode: Optional override for schema validation mode
-        output_type: Format for output file (powerbi, excel, or none)
-        output_path: Optional custom path for output file
-        schema_registry: Optional path to custom schema registry
-        merchant_lookup: Optional path to custom merchant lookup
-        log_level: Optional logging level override
-        explain_config: Flag to show configuration and exit
+        file_paths: List of file path strings from command line
+        
+    Returns:
+        List of validated Path objects
+        
+    Raises:
+        FileNotFoundError: If any file doesn't exist
+        PermissionError: If any file isn't readable
+    """
+    validated_paths: List[Path] = []
+    
+    for file_path_str in file_paths:
+        path = Path(file_path_str)
+        
+        # Check if file exists
+        if not path.exists():
+            raise FileNotFoundError(f"File not found: {path}")
+        
+        # Check if it's actually a file (not a directory)
+        if not path.is_file():
+            raise ValueError(f"Path is not a file: {path}")
+        
+        # Check if file is readable
+        if not path.suffix.lower() == '.csv':
+            raise ValueError(f"File is not a CSV: {path}")
+            
+        validated_paths.append(path)
+    
+    return validated_paths
+
+
+def process_files_command(
+    files: List[str],
+    schema_path: Optional[str] = None,
+    merchant_path: Optional[str] = None,
+    output_path: Optional[str] = None,
+    output_format: str = DEFAULT_OUTPUT_FORMAT,
+    debug: bool = False
+) -> None:
+    """
+    Process CSV files using the unified pipeline.
+    
+    This is the main command function that orchestrates the entire
+    file processing workflow. It handles path conversions, initializes
+    the pipeline, processes files, and saves the output.
+    
+    Args:
+        files: List of CSV file paths as strings
+        schema_path: Optional custom schema registry YAML path
+        merchant_path: Optional custom merchant lookup CSV path
+        output_path: Optional output file path (defaults to stdout)
+        output_format: Output format (csv, parquet, excel)
+        debug: Enable debug mode for detailed logging
+    """
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Step 1: Validate and convert file paths
+        logger.info(f"Processing {len(files)} files")
+        validated_file_paths = validate_file_paths(files)
+        
+        # Step 2: Convert optional paths to Path objects if provided
+        # These variables are properly typed as Optional[Path]
+        schema_registry_override: Optional[Path] = None
+        merchant_lookup_override: Optional[Path] = None
+        
+        if schema_path is not None:
+            schema_registry_override = Path(schema_path)
+            if not schema_registry_override.exists():
+                raise FileNotFoundError(f"Schema registry not found: {schema_registry_override}")
+                
+        if merchant_path is not None:
+            merchant_lookup_override = Path(merchant_path)
+            if not merchant_lookup_override.exists():
+                raise FileNotFoundError(f"Merchant lookup not found: {merchant_lookup_override}")
+        
+        # Step 3: Initialize the pipeline with debug mode
+        logger.info("Initializing unified pipeline")
+        pipeline = UnifiedPipeline(debug_mode=debug)
+        
+        # Step 4: Process files through the pipeline
+        # The pipeline accepts List[Union[str, Path]] for flexibility
+        logger.info("Starting file processing")
+        processed_df = pipeline.process_files(
+            file_paths=validated_file_paths,  # Pass Path objects
+            schema_registry_override_path=schema_registry_override,
+            merchant_lookup_override_path=merchant_lookup_override
+        )
+        
+        # Step 5: Validate processing results
+        if processed_df.empty:
+            logger.warning("No data was processed from input files")
+            return
+            
+        logger.info(f"Processed {len(processed_df)} total transactions")
+        
+        # Step 6: Save or display the output
+        save_output(processed_df, output_path, output_format)
+        
+    except FileNotFoundError as e:
+        logger.error(f"File error: {e}")
+        sys.exit(1)
+    except ValueError as e:
+        logger.error(f"Value error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logger.exception(f"Unexpected error during processing: {e}")
+        sys.exit(1)
+
+
+def save_output(
+    df: pd.DataFrame,
+    output_path: Optional[str],
+    output_format: str
+) -> None:
+    """
+    Save the processed DataFrame to the specified output.
+    
+    This function handles different output formats and destinations,
+    including writing to stdout for pipeline compatibility.
+    
+    Args:
+        df: Processed DataFrame to save
+        output_path: Output file path (None for stdout)
+        output_format: Format to save in (csv, parquet, excel)
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Validate output format
+    if output_format not in SUPPORTED_OUTPUT_FORMATS:
+        raise ValueError(f"Unsupported output format: {output_format}")
+    
+    if output_path is None:
+        # Write to stdout for pipeline compatibility
+        if output_format == 'csv':
+            df.to_csv(sys.stdout, index=False)
+        else:
+            logger.warning(f"Cannot write {output_format} to stdout, using CSV")
+            df.to_csv(sys.stdout, index=False)
+    else:
+        # Write to file
+        output_file = Path(output_path)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        if output_format == 'csv':
+            df.to_csv(output_file, index=False)
+        elif output_format == 'parquet':
+            df.to_parquet(output_file, index=False)
+        elif output_format == 'excel':
+            df.to_excel(output_file, index=False)
+        
+        logger.info(f"Output saved to: {output_file}")
+
+
+def create_argument_parser() -> argparse.ArgumentParser:
+    """
+    Create and configure the command-line argument parser.
+    
+    This function defines all available command-line options and their
+    behaviors, providing a user-friendly interface to the pipeline.
     
     Returns:
-        None - Function exits with appropriate status codes
+        Configured ArgumentParser instance
     """
-    # --- 1. Configuration Setup ---
-    # Create a config instance, allowing CLI options to override defaults/env vars
-    # Start with global_config defaults, then update with CLI args if provided
-    effective_config_params = {}
-    if schema_mode:
-        effective_config_params["schema_mode"] = schema_mode
-    if schema_registry:
-        effective_config_params["schema_registry_path"] = Path(schema_registry)
-    if merchant_lookup:
-        effective_config_params["merchant_lookup_path"] = Path(merchant_lookup)
-    if log_level:
-        effective_config_params["log_level"] = log_level.upper()
+    parser = argparse.ArgumentParser(
+        description="Balance Pipeline - Process financial CSV files",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Process a single file
+  python -m balance_pipeline.main process file1.csv
+  
+  # Process multiple files with custom schema
+  python -m balance_pipeline.main process file1.csv file2.csv --schema-path custom_schema.yml
+  
+  # Process with debug output
+  python -m balance_pipeline.main process *.csv --debug
+  
+  # Save to parquet format
+  python -m balance_pipeline.main process *.csv --output processed.parquet --format parquet
+        """
+    )
     
-    # Create a new config instance if there are overrides, otherwise use global_config
-    if effective_config_params:
-        # Create a new instance based on global_config, then update
-        # Use Union type to allow both str and Path values in the dictionary
-        current_config_dict: Dict[str, Union[str, Path, Any]] = global_config.to_dict()
-        current_config_dict.update(effective_config_params)
-        
-        # Path objects need to be Path objects for PipelineConfig constructor
-        # Create a separate dictionary for the constructor to maintain type safety
-        config_constructor_dict: Dict[str, Any] = {}
-        for key, value in current_config_dict.items():
-            if key.endswith("_path") or key in ["project_root", "rules_dir", "default_output_dir"]:
-                # Convert string paths to Path objects for path-related fields
-                if value and isinstance(value, str):
-                    config_constructor_dict[key] = Path(value)
-                else:
-                    config_constructor_dict[key] = value
-            else:
-                config_constructor_dict[key] = value
-        
-        config = PipelineConfig(**config_constructor_dict)
-    else:
-        config = global_config
-
-    setup_logging(config.log_level) # Setup logging based on final effective log level
-
-    if explain_config:
-        click.echo("Current Effective Pipeline Configuration:")
-        click.echo(config.explain())
-        return
-
-    if not input_files:
-        cli_logger.error("No input files provided.")
-        click.echo("Error: No input files specified. Use --help for more information.", err=True)
-        sys.exit(1)
+    # Global options
+    parser.add_argument(
+        '-v', '--verbose',
+        action='count',
+        default=0,
+        help='Increase verbosity (can be repeated: -v, -vv, -vvv)'
+    )
     
-    cli_logger.info(f"Processing {len(input_files)} file(s).")
-    cli_logger.debug(f"Input files: {input_files}")
-    cli_logger.info(f"Schema mode: {config.schema_mode}")
-    cli_logger.info(f"Output type: {output_type}")
+    # Create subcommands
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    
+    # Process command
+    process_parser = subparsers.add_parser(
+        'process',
+        help='Process CSV files through the pipeline'
+    )
+    
+    process_parser.add_argument(
+        'files',
+        nargs='+',
+        help='CSV files to process'
+    )
+    
+    process_parser.add_argument(
+        '-s', '--schema-path',
+        type=str,
+        help='Path to custom schema registry YAML file'
+    )
+    
+    process_parser.add_argument(
+        '-m', '--merchant-path',
+        type=str,
+        help='Path to custom merchant lookup CSV file'
+    )
+    
+    process_parser.add_argument(
+        '-o', '--output',
+        type=str,
+        help='Output file path (default: stdout)'
+    )
+    
+    process_parser.add_argument(
+        '-f', '--format',
+        type=str,
+        choices=SUPPORTED_OUTPUT_FORMATS,
+        default=DEFAULT_OUTPUT_FORMAT,
+        help=f'Output format (default: {DEFAULT_OUTPUT_FORMAT})'
+    )
+    
+    process_parser.add_argument(
+        '-d', '--debug',
+        action='store_true',
+        help='Enable debug mode for detailed processing information'
+    )
+    
+    return parser
 
-    # --- 2. Initialize Pipeline ---
-    try:
-        pipeline = UnifiedPipeline(schema_mode=config.schema_mode)
-    except ValueError as e:
-        cli_logger.error(f"Configuration error: {e}", exc_info=True)
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(1)
 
-    # --- 3. Process Files ---
-    processed_df: Optional[pd.DataFrame] = None
-    try:
-        # Convert tuple of file paths to list of strings for the pipeline
-        file_paths_list: List[str] = list(input_files)
-        
-        # Fix for MyPy errors: ensure we pass strings, not Path objects
-        # The pipeline expects string paths, so we convert Path objects to strings
-        schema_registry_path: Optional[Path] = config.schema_registry_path
-        merchant_lookup_path: Optional[Path] = config.merchant_lookup_path
-        
-        processed_df = pipeline.process_files(
-            file_paths=file_paths_list,
-            schema_registry_override_path=schema_registry_path,
-            merchant_lookup_override_path=merchant_lookup_path,
+def main() -> None:
+    """
+    Main entry point for the Balance Pipeline application.
+    
+    This function parses command-line arguments, sets up logging,
+    and dispatches to the appropriate command handler.
+    """
+    # Parse command-line arguments
+    parser = create_argument_parser()
+    args = parser.parse_args()
+    
+    # Setup logging based on verbosity
+    setup_logging(args.verbose)
+    
+    # Dispatch to appropriate command
+    if args.command == 'process':
+        process_files_command(
+            files=args.files,
+            schema_path=args.schema_path,
+            merchant_path=args.merchant_path,
+            output_path=args.output,
+            output_format=args.format,
+            debug=args.debug
         )
-        cli_logger.info(f"Pipeline processing completed. Resulting DataFrame shape: {processed_df.shape if processed_df is not None else 'None'}")
-    except Exception as e:
-        cli_logger.error(f"An error occurred during pipeline processing: {e}", exc_info=True)
-        click.echo(f"Pipeline Error: {e}", err=True)
-        sys.exit(1)
-
-    if processed_df is None or processed_df.empty:
-        cli_logger.warning("Processing resulted in an empty or None DataFrame. No output will be generated.")
-        click.echo("Warning: No data processed. Output file will not be created.")
-        sys.exit(0) # Successful exit, but no data
-
-    # --- 4. Handle Output ---
-    if output_type == "none":
-        cli_logger.info("Output type is 'none'. No output file will be written.")
-        click.echo("Processing complete. No output file generated as per --output-type=none.")
-        sys.exit(0)
-
-    # Determine final output path
-    final_output_path: Path
-    if output_path:
-        final_output_path = Path(output_path)
     else:
-        # Generate default output path
-        timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
-        if output_type == "powerbi":
-            final_output_path = config.default_output_dir / f"balance_output_{timestamp}.parquet"
-        elif output_type == "excel":
-            final_output_path = config.default_output_dir / f"balance_output_{timestamp}.xlsx"
-        else: # Should not happen due to earlier check, but defensive
-            cli_logger.error(f"Unsupported output type '{output_type}' for default path generation.")
-            sys.exit(1)
-    
-    cli_logger.info(f"Output will be written to: {final_output_path}")
-
-    output_adapter: Optional[BaseOutputAdapter] = None
-    try:
-        if output_type == "powerbi":
-            output_adapter = PowerBIOutput(final_output_path)
-        elif output_type == "excel":
-            output_adapter = ExcelOutput(final_output_path)
-        
-        if output_adapter:
-            output_adapter.write(processed_df)
-            click.echo(f"Successfully processed files. Output written to: {final_output_path}")
-        else:
-            # This case should ideally be caught by output_type == "none"
-            cli_logger.info("No specific output adapter selected, though output was expected.")
-            click.echo("Processing complete. No output file generated (unexpected state).")
-
-    except Exception as e:
-        cli_logger.error(f"An error occurred during output generation: {e}", exc_info=True)
-        click.echo(f"Output Error: {e}", err=True)
+        parser.print_help()
         sys.exit(1)
 
-if __name__ == "__main__":
-    # This allows running the CLI directly, e.g., python src/balance_pipeline/main.py process ...
-    # For development, it's often better to install the package and run the entry point.
-    balance_pipe_cli()
+
+if __name__ == '__main__':
+    main()

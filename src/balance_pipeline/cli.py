@@ -21,7 +21,7 @@ import sys
 import os  # os was not used directly, sys.executable and os.getcwd() are in dev_main
 import time  # Added for retry loop
 import io  # io module is no longer used
-from typing import Optional, Any, List, Union, cast  # Added List, Union, Literal, cast
+from typing import Optional, Any, List, cast  # Added List, Union, Literal, cast
 from datetime import date  # Added date
 import importlib  # Added for reload and explicit import
 import click
@@ -449,7 +449,7 @@ Examples:
     parser.add_argument(
         "--out",
         type=Path,
-        default=Path("artifacts"),
+        default=Path("data/processed"),  # Changed default output directory
         help="Output directory (used with --raw-dir, or other modes).",
     )
     args = parser.parse_args(argv)  # Pass argv to parse_args
@@ -545,7 +545,7 @@ Examples:
                 log.debug(f"Source files included: {', '.join(processed_filenames)}")
 
             output_dir.mkdir(parents=True, exist_ok=True)
-            dest_parquet = output_dir / "balance_final.parquet"  # Standardized name
+            dest_parquet = output_dir / "combined_transactions.parquet"  # Changed output filename
             combined_df.to_parquet(dest_parquet, index=False)
             # Standard print message for success
             print(

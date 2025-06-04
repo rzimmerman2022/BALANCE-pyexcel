@@ -14,7 +14,7 @@ Each adapter:
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional, Any, Union
+from typing import Any, Union
 
 import pandas as pd
 

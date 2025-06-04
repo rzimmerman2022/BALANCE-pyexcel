@@ -1,64 +1,410 @@
+################################################################################
+#                                                                              #
+#                    BALANCE-PYEXCEL-PIPELINE PROJECT CONFIG                   #
+#                                                                              #
+#                           pyproject.toml                                     #
+#                                                                              #
+#  Project: balance-pyexcel-pipeline                                           #
+#  Description: Python ETL pipeline for BALANCE-pyexcel shared finance tracker #
+#  Author: Ryan Zimmerman <rzimmerman2022@gmail.com>                           #
+#  Created: 2024-01-01 (estimated)                                             #
+#  Last Modified: 2025-06-03                                                   #
+#  Python Version: 3.11+ (compatible up to 3.13)                              #
+#  Build System: Poetry                                                        #
+#                                                                              #
+#  Changelog:                                                                  #
+#    2025-06-03: Added balance-analyze command-line entry point               #
+#                - New analyzer module for data analysis operations            #
+#                - Updated documentation for all CLI tools                     #
+#    2025-01-06: Refactored to best practices with verbose documentation      #
+#                - Organized dependencies by functional groups                 #
+#                - Added comprehensive tool configurations                     #
+#                - Removed conflicting setuptools configuration               #
+#                - Added type checking and linting configurations             #
+#                                                                              #
+################################################################################
+
+# ============================================================================ #
+#                          POETRY PROJECT METADATA                             #
+# ============================================================================ #
+# This section defines the core metadata for your Python package. Poetry uses  #
+# this information when building distributions and publishing to PyPI.         #
+# ============================================================================ #
+
 [tool.poetry]
+# The package name as it will appear on PyPI and in pip install commands
 name = "balance-pyexcel-pipeline"
+
+# Semantic versioning: MAJOR.MINOR.PATCH
+# - MAJOR: Incompatible API changes
+# - MINOR: Backwards-compatible functionality additions
+# - PATCH: Backwards-compatible bug fixes
 version = "0.1.0"
+
+# A brief, one-line description of what your package does
 description = "Python ETL pipeline for the BALANCE-pyexcel shared finance tracker."
-# Use the standard list format for authors under tool.poetry
-authors = ["Ryan Zimmerman <rzimmerman2022@gmail.com>"] # Updated email
+
+# Package authors - format: "Name <email>"
+# Multiple authors can be listed as array elements
+authors = ["Ryan Zimmerman <rzimmerman2022@gmail.com>"]
+
+# Points to the README file that will be displayed on PyPI
 readme = "README.md"
-# Define where the package source code lives
+
+# Defines the Python package structure
+# - include: package name to include
+# - from: directory where the package is located
+# This tells Poetry to look for 'balance_pipeline' inside the 'src' directory
 packages = [{include = "balance_pipeline", from = "src"}]
 
+# ============================================================================ #
+#                         RUNTIME DEPENDENCIES                                 #
+# ============================================================================ #
+# These are the packages required for your application to run in production.   #
+# Poetry will install these when someone runs 'pip install balance-pyexcel'.   #
+#                                                                              #
+# Version specifiers:                                                          #
+#   ^X.Y.Z - Compatible releases (accepts X.Y.Z up to, but not including X+1)  #
+#   ~X.Y.Z - Compatible patch-level (accepts X.Y.Z up to, but not X.Y+1)      #
+#   >=X.Y.Z,<A.B.C - Specific range                                          #
+#   * - Any version (not recommended)                                          #
+# ============================================================================ #
+
 [tool.poetry.dependencies]
-# Specify the compatible Python version range
-python = ">=3.11,<3.14" # Pinned more specifically than just ^3.11
-# List main runtime dependencies found by 'poetry add'
+# Python interpreter version constraints
+# ^3.11 means >=3.11.0, <4.0.0 (any 3.x version from 3.11 onwards)
+# <3.14 adds upper bound to ensure compatibility isn't assumed for future versions
+python = "^3.11,<3.14"
+
+# ----------------------------------------------------------------------------
+# DATA PROCESSING DEPENDENCIES
+# These packages handle the core data manipulation and storage functionality
+# ----------------------------------------------------------------------------
+
+# pandas: The backbone of data manipulation in Python
+# Used for: Reading/writing Excel files, data transformation, analysis
+# Why this version: 2.2.3 includes important performance improvements
 pandas = "^2.2.3"
-python-dotenv = "^1.1.0"
-# Added PyYAML dependency needed for reading schema_registry.yml
-PyYAML = "^6.0.1" # Assumes latest stable version, adjust if needed
-# Added openpyxl for Excel file reading/writing in CLI
-openpyxl = "^3.1"   # <<< Make sure this line looks like this
-# Optional fallback writer for Parquet if pyarrow isn't available/compatible
-fastparquet = { version = "^2024.5", optional = true }
-camelot-py = "^0.11.0" # For PDF table extraction (removed 'cv' extra)
-pdfplumber = { version = "^0.11", extras = ["no-image"] } # Use no-image extra to avoid pdftopng
-duckdb = "^1.2.2"
-opencv-python = "^4.11.0.86"
+
+# pyarrow: High-performance columnar data library
+# Used for: Parquet file I/O, memory-efficient data processing
+# Provides: 10-100x faster Parquet operations compared to pure Python
 pyarrow = "^15.0.0"
 
-[tool.poetry.extras] # Keep extras section if other optional dependencies exist or might be added
-parquet = ["pyarrow"] # Re-add pyarrow to extras
+# openpyxl: Modern Excel file handler
+# Used for: Reading/writing .xlsx files with full formatting support
+# Alternative to: xlrd (deprecated for .xlsx), xlwt (only .xls)
+openpyxl = "^3.1"
+
+# duckdb: In-process SQL OLAP database
+# Used for: Fast SQL queries on local data without a server
+# Benefit: Can query Parquet/CSV files directly without loading into memory
+duckdb = "^1.2.2"
+
+# ----------------------------------------------------------------------------
+# PDF PROCESSING DEPENDENCIES
+# These packages extract structured data from PDF documents
+# ----------------------------------------------------------------------------
+
+# camelot-py: Advanced PDF table extraction
+# Used for: Extracting tables from PDFs with complex layouts
+# Note: Removed 'cv' extra as it's not needed for basic functionality
+camelot-py = "^0.11.0"
+
+# pdfplumber: Alternative PDF text/table extraction
+# Used for: Simpler PDF parsing when camelot is overkill
+# no-image extra: Avoids heavy image dependencies we don't need
+pdfplumber = {version = "^0.11", extras = ["no-image"]}
+
+# opencv-python: Computer vision library
+# Used for: Image processing support for camelot-py
+# Required by: camelot-py for certain PDF processing operations
+opencv-python = "^4.11.0.86"
+
+# ----------------------------------------------------------------------------
+# CONFIGURATION AND UTILITY DEPENDENCIES
+# These packages handle application configuration and data serialization
+# ----------------------------------------------------------------------------
+
+# python-dotenv: Environment variable management
+# Used for: Loading .env files for configuration (API keys, database URLs, etc.)
+# Best practice: Keep secrets out of code
+python-dotenv = "^1.1.0"
+
+# PyYAML: YAML parser and emitter
+# Used for: Reading schema_registry.yml and other configuration files
+# Why YAML: More readable than JSON for configuration files
+PyYAML = "^6.0.1"
+
+# ----------------------------------------------------------------------------
+# OPTIONAL DEPENDENCIES
+# These are not installed by default but can be included with extras
+# ----------------------------------------------------------------------------
+
+# fastparquet: Alternative Parquet engine
+# Used for: Fallback when pyarrow isn't available or has compatibility issues
+# When to use: Some systems have trouble with pyarrow's C++ dependencies
+fastparquet = {version = "^2024.5", optional = true}
+
+# ============================================================================ #
+#                            OPTIONAL EXTRAS                                   #
+# ============================================================================ #
+# Extras allow users to install additional dependencies for specific features. #
+# Install with: pip install balance-pyexcel-pipeline[parquet-alt]             #
+# ============================================================================ #
+
+[tool.poetry.extras]
+# Alternative Parquet handler for systems where pyarrow is problematic
+parquet-alt = ["fastparquet"]
+
+# ============================================================================ #
+#                         DEVELOPMENT DEPENDENCIES                             #
+# ============================================================================ #
+# These packages are only needed during development, not in production.        #
+# They're installed when you run 'poetry install' but not when end-users      #
+# install your package via pip.                                               #
+# ============================================================================ #
 
 [tool.poetry.group.dev.dependencies]
-# Define development-only dependencies under a SINGLE group header
+
+# ----------------------------------------------------------------------------
+# TESTING FRAMEWORK
+# Essential for maintaining code quality and preventing regressions
+# ----------------------------------------------------------------------------
+
+# pytest: The de facto standard Python testing framework
+# Used for: Writing and running unit tests, integration tests
+# Why pytest: More pythonic than unittest, great plugin ecosystem
 pytest = "^8.3.5"
-pytest-cov = "^6.1.1" # Using version from your later block
-black = "^25.1.0" # Using version from your later block
-ruff = "==0.4.*" # Pinning Ruff version
-# Dependencies from the second block in your paste (excluding redundant python-dotenv)
-mkdocs-material = "^9.5"
-mkdocstrings-python = "^1.9"
+
+# pytest-cov: Coverage plugin for pytest
+# Used for: Measuring test coverage (what % of code is tested)
+# Goal: Aim for >80% coverage on critical paths
+pytest-cov = "^6.1.1"
+
+# ----------------------------------------------------------------------------
+# CODE QUALITY TOOLS
+# Enforce consistent style and catch bugs before runtime
+# ----------------------------------------------------------------------------
+
+# black: The uncompromising code formatter
+# Used for: Auto-formatting code to consistent style
+# Philosophy: "You focus on content, Black focuses on style"
+black = "^25.1.0"
+
+# ruff: Extremely fast Python linter written in Rust
+# Used for: Finding bugs, enforcing style, suggesting improvements
+# Replaces: flake8, pylint, isort, and many other tools
+ruff = "^0.4.0"
+
+# mypy: Static type checker
+# Used for: Catching type-related bugs before runtime
+# Benefit: Makes refactoring safer, improves IDE support
+mypy = "^1.10.0"
+
+# pre-commit: Git hook framework
+# Used for: Running checks before every commit
+# Prevents: Committing code that fails tests or style checks
 pre-commit = "^3.7"
-mypy = "^1.10.0" # Added mypy
-pandas-stubs = "^2.0.0" # Added pandas type stubs
-types-PyYAML = "^6.0.0" # Added PyYAML type stubs
-types-openpyxl = "^3.1.0" # Added openpyxl type stubs
+
+# ----------------------------------------------------------------------------
+# TYPE STUBS
+# These provide type information for packages that don't include it natively
+# ----------------------------------------------------------------------------
+
+# Type definitions for pandas
+# Enables: Better IDE autocomplete and mypy checking for pandas code
+pandas-stubs = "^2.0.0"
+
+# Type definitions for PyYAML
+# Enables: Type checking for YAML operations
+types-PyYAML = "^6.0.0"
+
+# Type definitions for openpyxl
+# Enables: Type checking for Excel file operations
+types-openpyxl = "^3.1.0"
+
+# ----------------------------------------------------------------------------
+# DOCUMENTATION TOOLS
+# For building beautiful, searchable documentation
+# ----------------------------------------------------------------------------
+
+# mkdocs-material: Material Design theme for MkDocs
+# Used for: Creating professional-looking documentation sites
+# Features: Search, mobile-friendly, syntax highlighting
+mkdocs-material = "^9.5"
+
+# mkdocstrings-python: Auto-generate docs from docstrings
+# Used for: Creating API reference from your code comments
+# Benefit: Keeps docs in sync with code
+mkdocstrings-python = "^1.9"
+
+# ============================================================================ #
+#                          COMMAND LINE SCRIPTS                                #
+# ============================================================================ #
+# These define the console commands that get installed with your package.      #
+# After installation, users can run these commands from their terminal.        #
+# ============================================================================ #
 
 [tool.poetry.scripts]
-balance-pipe         = "balance_pipeline.main:balance_pipe_cli"
-balance-legacy-cli   = "balance_pipeline.cli:main" # Points to main function in cli.py
-balance-merchant     = "balance_pipeline.cli_merchant:main_merchant"
+# Main pipeline command
+# Usage: balance-pipe [options]
+balance-pipe = "balance_pipeline.main:balance_pipe_cli"
+
+# Legacy CLI for backwards compatibility
+# Usage: balance-legacy-cli [options]
+balance-legacy-cli = "balance_pipeline.cli:main"
+
+# Merchant-specific operations
+# Usage: balance-merchant [options]
+balance-merchant = "balance_pipeline.cli_merchant:main_merchant"
+
+# Data analysis operations
+# Usage: balance-analyze [options]
+balance-analyze = "balance_pipeline.analyzer:main"
+
+# ============================================================================ #
+#                            BUILD SYSTEM                                      #
+# ============================================================================ #
+# Tells pip and other tools how to build your package.                        #
+# Poetry-core is a lightweight version of Poetry for building.                 #
+# ============================================================================ #
 
 [build-system]
-# Standard build system configuration for Poetry projects
-requires = ["poetry-core>=1.8.0"] # Use a reasonably recent version
+# Minimum Poetry version required to build this package
+requires = ["poetry-core>=1.8.0"]
+
+# The Python callable that builds the package
 build-backend = "poetry.core.masonry.api"
 
-# Optional: Add tool-specific configurations below later if needed
-# [tool.ruff]
+# ============================================================================ #
+#                         TOOL CONFIGURATIONS                                  #
+# ============================================================================ #
+# Configuration for development tools to ensure consistency across the team.    #
+# These settings are read by the respective tools when they run.              #
+# ============================================================================ #
+
+# ----------------------------------------------------------------------------
+# RUFF CONFIGURATION
+# Ruff is an extremely fast Python linter that replaces many other tools
+# ----------------------------------------------------------------------------
+[tool.ruff]
+# Exclude legacy code from linting to focus on maintained code
 exclude = ["legacy_scripts/*"]
-# ...
-# [tool.black]
-# ...
-# [tool.pytest.ini_options]
-# ...
+
+# Maximum line length (88 is Black's default)
+line-length = 88
+
+# Minimum Python version to target for compatibility checks
+target-version = "py311"
+
+# Additional Ruff configurations you might want to add:
+# select = ["E", "F", "I", "N", "W", "UP", "S", "B", "A", "C4", "RET", "SIM"]
+# ignore = ["E501"]  # Ignore line length (Black handles this)
+
+# ----------------------------------------------------------------------------
+# BLACK CONFIGURATION
+# Black is the uncompromising code formatter
+# ----------------------------------------------------------------------------
+[tool.black]
+# Maximum line length (should match Ruff)
+line-length = 88
+
+# Python versions to target for compatibility
+target-version = ["py311"]
+
+# Additional Black configurations you might want:
+# include = '\.pyi?$'
+# extend-exclude = '''
+# /(
+#   # directories
+#   \.eggs
+#   | \.git
+#   | \.hg
+#   | \.mypy_cache
+#   | \.tox
+#   | \.venv
+#   | build
+#   | dist
+# )/
+# '''
+
+# ----------------------------------------------------------------------------
+# MYPY CONFIGURATION
+# Static type checker for Python
+# ----------------------------------------------------------------------------
+[tool.mypy]
+# Python version for type checking
+python_version = "3.11"
+
+# Warn about functions that return Any
+warn_return_any = true
+
+# Warn about unused mypy configurations
+warn_unused_configs = true
+
+# Require type annotations for all functions
+disallow_untyped_defs = true
+
+# Don't error on missing imports (useful for third-party packages)
+ignore_missing_imports = true
+
+# Additional strict options you might want to enable gradually:
+# strict = true  # Enables all strict checks
+# no_implicit_optional = true
+# warn_redundant_casts = true
+# warn_unused_ignores = true
+
+# ----------------------------------------------------------------------------
+# PYTEST CONFIGURATION
+# Testing framework configuration
+# ----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+# Minimum pytest version required
+minversion = "8.0"
+
+# Directories containing tests
+testpaths = ["tests"]
+
+# Add src to Python path for imports
+pythonpath = ["src"]
+
+# Command line options always passed to pytest
+addopts = [
+    "--strict-markers",           # Fail on unknown markers
+    "--tb=short",                 # Shorter traceback format
+    "--cov=balance_pipeline",     # Measure coverage for our package
+    "--cov-report=term-missing",  # Show missing lines in terminal
+    "--cov-report=html",          # Generate HTML coverage report
+]
+
+# ----------------------------------------------------------------------------
+# COVERAGE CONFIGURATION
+# Code coverage measurement settings
+# ----------------------------------------------------------------------------
+[tool.coverage.run]
+# Source code to measure coverage for
+source = ["src/balance_pipeline"]
+
+# Patterns to exclude from coverage
+omit = ["*/tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+# Lines to exclude from coverage reporting
+exclude_lines = [
+    "pragma: no cover",             # Explicit exclusion marker
+    "def __repr__",                 # String representation methods
+    "raise AssertionError",         # Defensive assertions
+    "raise NotImplementedError",    # Abstract methods
+    "if __name__ == .__main__.:",   # Script entry points
+    "if TYPE_CHECKING:",            # Type checking blocks
+]
+
+# ============================================================================ #
+#                              END OF FILE                                     #
+# ============================================================================ #
+# For more information about pyproject.toml configuration:                     #
+# - Poetry: https://python-poetry.org/docs/pyproject/                         #
+# - PEP 517: https://www.python.org/dev/peps/pep-0517/                       #
+# - PEP 518: https://www.python.org/dev/peps/pep-0518/                       #
+# ============================================================================ #

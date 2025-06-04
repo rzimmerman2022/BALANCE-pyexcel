@@ -2,10 +2,10 @@ import re
 import yaml
 from pathlib import Path
 from collections.abc import Iterable
-from typing import Any, cast, Dict, List, Set  # Added Dict, List, Set
+from typing import Any, cast, Dict, List  # Added Dict, List, Set
 
 from balance_pipeline.schema_types import Schema, MatchResult
-from balance_pipeline.config import SCHEMA_REGISTRY_PATH as DETAILED_RULES_PATH
+from balance_pipeline.errors import FatalSchemaError  # Added import
 
 
 def load_registry(path: Path) -> List[Dict[str, Any]]:
@@ -60,7 +60,7 @@ def _load_and_build_schema_maps() -> None:
     for fp in sorted(_SCHEMA_DIR.glob("*.yaml")):
         # Skip the old monolithic registry file if it still exists
         if fp.name == "schema_registry.yml":
-            print(f"INFO: Skipping schema_registry.yml during individual schema load.")
+            print("INFO: Skipping schema_registry.yml during individual schema load.")
             continue
         try:
             with fp.open("r", encoding="utf-8") as f:
@@ -151,30 +151,12 @@ def _find_matching_schema_main_impl(headers: Iterable[str]) -> MatchResult:  # R
     
     if best_match_result:
         return best_match_result
-
-    # Fallback to generic_csv if no other schema matched
-    if _GENERIC_SCHEMA_RULES:
-        # For generic, we don't typically use header_signature for matching,
-        # but calculate missing/extras based on its defined column_map or other fields.
-        # For simplicity, if we reach here, we use generic.
-        # The 'extras' for generic would be all headers not mapped by generic's column_map.
-        
-        # Create a placeholder Schema object for generic_csv
-        generic_schema_obj_for_matchresult = Schema(name="generic_csv", required={}, optional={})
-        
-        # Calculate extras for generic_csv based on its column_map keys
-        generic_column_map_keys_canon = {_canon(k) for k in _GENERIC_SCHEMA_RULES.get("column_map", {}).keys()}
-        extras_for_generic = canonical_headers - generic_column_map_keys_canon
-        
-        return MatchResult(
-            schema=generic_schema_obj_for_matchresult,
-            rules=_GENERIC_SCHEMA_RULES,
-            score=(-1, 0),  # Generic schema gets a low score
-            missing=set(), # Generic doesn't have "missing" in the same way as specific schemas
-            extras=extras_for_generic 
-        )
     else:
-        raise RuntimeError("Generic CSV schema rules not found, cannot provide fallback.")
+        # No specific schema matched, and we are not falling back to generic_csv
+        raise FatalSchemaError(
+            f"No specific schema found for headers: {list(headers)}. "
+            "Fallback to generic_csv is disabled by current policy."
+        )
 
 
 # _find_matching_schema_impl assignment is removed as the shim directly calls the renamed main function.

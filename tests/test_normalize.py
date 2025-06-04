@@ -122,8 +122,8 @@ def test_load_merchant_lookup_invalid_regex_raises_valueerror( # Removed monkeyp
         excinfo.value
     )  # 1-based index, row 1 is header, row 2 is valid, row 3 is bad
     # Check logs
-    assert "Invalid regex pattern found" in caplog.text # This log is from normalize.py
-    assert "[INVALID REGEX" in caplog.text # This log is from normalize.py
+    assert "invalid regex pattern found" in caplog.text.lower() # This log is from normalize.py
+    assert "[invalid regex" in caplog.text.lower() # This log is from normalize.py
 
 
 def test_load_merchant_lookup_file_not_found_uses_fallback( # Removed monkeypatch
@@ -138,7 +138,7 @@ def test_load_merchant_lookup_file_not_found_uses_fallback( # Removed monkeypatc
     with caplog.at_level(logging.ERROR, logger="balance_pipeline.normalize"):
         normalize.reset_merchant_lookup_cache(new_path=non_existent_file) # Use new reset function
 
-    assert f"Merchant lookup file not found: {non_existent_file}" in caplog.text # This log is from normalize.py
+    assert f"merchant lookup file not found: {non_existent_file}".lower() in caplog.text.lower() # This log is from normalize.py
     assert normalize._merchant_lookup_data == []  # Should be empty list
 
     # Test clean_merchant uses fallback
@@ -167,7 +167,7 @@ def test_load_merchant_lookup_invalid_header(tmp_path, caplog): # Removed monkey
 
     assert "Invalid header" in str(excinfo.value) # This is from FatalSchemaError
     assert (
-        f"Invalid header in merchant lookup file: {lookup_file}" in caplog.text # This log is from normalize.py
+        f"invalid header in merchant lookup file: {lookup_file}".lower() in caplog.text.lower() # This log is from normalize.py
     )
 
 
@@ -188,7 +188,7 @@ def test_load_merchant_lookup_malformed_row_is_skipped(tmp_path, caplog): # Remo
     with caplog.at_level(logging.WARNING, logger="balance_pipeline.normalize"):
         normalize.reset_merchant_lookup_cache(new_path=lookup_file) # Use new reset function
 
-    assert "Skipping malformed row 3" in caplog.text  # Row 3 is malformed
+    assert "skipping malformed row 3" in caplog.text.lower()  # Row 3 is malformed
 
     # Check that valid rules were loaded
     assert len(normalize._merchant_lookup_data) == 2

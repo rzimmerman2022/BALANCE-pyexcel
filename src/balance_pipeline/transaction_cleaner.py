@@ -7,11 +7,10 @@ Based on analysis of actual transaction patterns
 import re
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Set, Any
+from typing import Dict, Optional, Any
 import logging
 import json
 from pathlib import Path
-from datetime import datetime
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ class ComprehensiveTransactionCleaner:
         self.initialize_account_patterns()
         self.initialize_institution_patterns()
     
-    def load_analysis_results(self, results_path: Path):
+    def load_analysis_results(self, results_path: Path) -> None:
         """Load the comprehensive analysis results"""
         try:
             # Load the full analysis
@@ -61,7 +60,7 @@ class ComprehensiveTransactionCleaner:
         except Exception as e:
             log.error(f"Error loading analysis results from {results_path}: {e}")
     
-    def initialize_description_patterns(self):
+    def initialize_description_patterns(self) -> None:
         """Initialize patterns for description cleaning"""
         # Based on your analysis showing common prefixes
         self.description_prefixes = [
@@ -100,7 +99,7 @@ class ComprehensiveTransactionCleaner:
             r'\b\d{2}/\d{2}\b(?!\d)',            # Dates MM/DD (but not MM/DD/YY)
         ]
     
-    def initialize_merchant_patterns(self):
+    def initialize_merchant_patterns(self) -> None:
         """Initialize patterns for merchant extraction and standardization"""
         # Special extraction patterns for complex merchants
         self.merchant_extraction_patterns = [
@@ -144,7 +143,7 @@ class ComprehensiveTransactionCleaner:
         else:
             log.warning("Analysis results path not provided. Merchant standardization rules will be empty.")
     
-    def initialize_account_patterns(self):
+    def initialize_account_patterns(self) -> None:
         """Initialize patterns for account cleaning"""
         # Your analysis shows accounts like "EVERYDAY CHECKING ...3850"
         self.account_cleaning_patterns = [
@@ -153,7 +152,7 @@ class ComprehensiveTransactionCleaner:
             (r'WF\s+', 'Wells Fargo '),  # Expand WF abbreviation
         ]
     
-    def initialize_institution_patterns(self):
+    def initialize_institution_patterns(self) -> None:
         """Initialize patterns for institution cleaning"""
         self.institution_cleaning_patterns = [
             (r'WF\s+', 'Wells Fargo '),
