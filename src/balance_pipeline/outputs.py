@@ -1,3 +1,19 @@
+###############################################################################
+# BALANCE-pyexcel – Output Adapters Module
+#
+# Description : Adapters for writing cleaned data to Parquet or Excel files.
+# Key Concepts: - Format-specific DataFrame serialization
+#               - Logging and error handling during file writes
+# Public API  : - BaseOutputAdapter.write(df: pd.DataFrame, **kwargs) -> None
+#               - PowerBIOutput
+#               - ExcelOutput
+# -----------------------------------------------------------------------------
+# Change Log
+# Date        Author            Type        Note
+# 2025-06-05  Codex             docs        Add standard header and docs.
+# 2025-05-24  Ryan Zimmerman    feat        Initial creation of the module.
+###############################################################################
+
 """
 Output Adapters for the Unified Pipeline.
 
@@ -11,6 +27,7 @@ Each adapter:
 - Manages file writing with error handling.
 - Is designed to be independent and testable.
 """
+
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -22,6 +39,7 @@ import pandas as pd
 # import openpyxl
 
 logger = logging.getLogger(__name__)
+
 
 class BaseOutputAdapter(ABC):
     """
@@ -52,6 +70,7 @@ class BaseOutputAdapter(ABC):
             **kwargs: Additional format-specific options.
         """
         pass
+
 
 class PowerBIOutput(BaseOutputAdapter):
     """
@@ -84,10 +103,14 @@ class PowerBIOutput(BaseOutputAdapter):
                       (e.g., engine, compression).
         """
         if df.empty:
-            logger.warning(f"DataFrame is empty. No Parquet file will be written to {self.output_path}.")
+            logger.warning(
+                f"DataFrame is empty. No Parquet file will be written to {self.output_path}."
+            )
             return
 
-        logger.info(f"Writing DataFrame to Parquet file for Power BI: {self.output_path}")
+        logger.info(
+            f"Writing DataFrame to Parquet file for Power BI: {self.output_path}"
+        )
         try:
             # Example: Ensure string columns with all NA are not object type if possible,
             # though to_parquet handles this reasonably well.
@@ -95,9 +118,14 @@ class PowerBIOutput(BaseOutputAdapter):
             # The csv_consolidator already does some defensive typing.
 
             df.to_parquet(self.output_path, index=False, **kwargs)
-            logger.info(f"Successfully wrote Parquet file: {self.output_path} with {len(df)} rows.")
+            logger.info(
+                f"Successfully wrote Parquet file: {self.output_path} with {len(df)} rows."
+            )
         except Exception as e:
-            logger.error(f"Failed to write Parquet file to {self.output_path}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to write Parquet file to {self.output_path}: {e}",
+                exc_info=True,
+            )
             raise
 
 
@@ -133,36 +161,52 @@ class ExcelOutput(BaseOutputAdapter):
                       (e.g., engine, freeze_panes).
         """
         if df.empty:
-            logger.warning(f"DataFrame is empty. No Excel file will be written to {self.output_path}.")
+            logger.warning(
+                f"DataFrame is empty. No Excel file will be written to {self.output_path}."
+            )
             # Optionally, write an empty Excel file with headers if desired
             # For now, just return.
             return
 
-        logger.info(f"Writing DataFrame to Excel file: {self.output_path} (Sheet: {sheet_name})")
+        logger.info(
+            f"Writing DataFrame to Excel file: {self.output_path} (Sheet: {sheet_name})"
+        )
         try:
             # Convert datetime columns to timezone-unaware for Excel compatibility if they are aware
             # Create a copy to avoid SettingWithCopyWarning if df is a slice
             df_copy = df.copy()
             for col in df_copy.columns:
                 if isinstance(df_copy[col].dtype, pd.DatetimeTZDtype):
-                    logger.debug(f"Converting timezone-aware column '{col}' (dtype: {df_copy[col].dtype}) to naive for Excel export.")
+                    logger.debug(
+                        f"Converting timezone-aware column '{col}' (dtype: {df_copy[col].dtype}) to naive for Excel export."
+                    )
                     df_copy[col] = df_copy[col].dt.tz_localize(None)
-            
-            df_copy.to_excel(self.output_path, sheet_name=sheet_name, index=False, **kwargs)
-            logger.info(f"Successfully wrote Excel file: {self.output_path} with {len(df_copy)} rows to sheet '{sheet_name}'.")
+
+            df_copy.to_excel(
+                self.output_path, sheet_name=sheet_name, index=False, **kwargs
+            )
+            logger.info(
+                f"Successfully wrote Excel file: {self.output_path} with {len(df_copy)} rows to sheet '{sheet_name}'."
+            )
         except Exception as e:
-            logger.error(f"Failed to write Excel file to {self.output_path}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to write Excel file to {self.output_path}: {e}", exc_info=True
+            )
             raise
+
 
 if __name__ == "__main__":
     # Example Usage (for basic testing)
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    )
 
     # Create a dummy DataFrame
     data = {
-        'colA': [1, 2, 3],
-        'colB': ['apple', 'banana', 'cherry'],
-        'colC': pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03'])
+        "colA": [1, 2, 3],
+        "colB": ["apple", "banana", "cherry"],
+        "colC": pd.to_datetime(["2023-01-01", "2023-01-02", "2023-01-03"]),
     }
     sample_df = pd.DataFrame(data)
 
@@ -197,12 +241,14 @@ if __name__ == "__main__":
     empty_df = pd.DataFrame()
     try:
         pb_adapter_empty = PowerBIOutput("temp_empty.parquet")
-        pb_adapter_empty.write(empty_df) # Should log a warning and not create file
-        
+        pb_adapter_empty.write(empty_df)  # Should log a warning and not create file
+
         excel_adapter_empty = ExcelOutput("temp_empty.xlsx")
-        excel_adapter_empty.write(empty_df) # Should log a warning
+        excel_adapter_empty.write(empty_df)  # Should log a warning
     except Exception as e:
         logger.error(f"Error testing with empty DataFrame: {e}")
 
     logger.info("Output adapter example usage finished.")
-    logger.info("Remember to manually delete 'temp_test_output.parquet', 'temp_test_output.xlsx', 'temp_empty.parquet', 'temp_empty.xlsx' if created.")
+    logger.info(
+        "Remember to manually delete 'temp_test_output.parquet', 'temp_test_output.xlsx', 'temp_empty.parquet', 'temp_empty.xlsx' if created."
+    )

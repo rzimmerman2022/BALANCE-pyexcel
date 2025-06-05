@@ -1,8 +1,21 @@
-"""
-errors.py
+###############################################################################
+# BALANCE-pyexcel – Error Definitions
+#
+# Description : Custom exception hierarchy for unified pipeline errors.
+# Key Concepts: - Typed exceptions for failure scenarios
+# Public API  : - BalancePipelineError
+#               - FatalSchemaError
+#               - RecoverableFileError
+#               - DataConsistencyError
+# -----------------------------------------------------------------------------
+# Change Log
+# Date        Author            Type        Note
+# 2025-06-05  Codex             docs        Add standard header and docs.
+# 2025-05-19  Ryan Zimmerman    feat        Initial creation of the module.
+###############################################################################
+"""Custom exception hierarchy for the BALANCE-pyexcel pipeline.
 
-Defines custom exception hierarchy for the BALANCE-pyexcel pipeline,
-enabling consistent error handling and classification.
+Enables consistent error handling across modules.
 """
 
 

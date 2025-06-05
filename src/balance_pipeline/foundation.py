@@ -1,24 +1,39 @@
-# src/balance_pipeline/foundation.py
+###############################################################################
+# BALANCE-pyexcel – Foundation Schema
+#
+# Description : Defines core transaction columns and expected pandas dtypes.
+# Key Concepts: - Minimal required ledger schema
+#               - DataFrame dtype declarations
+# Public API  : - CORE_FOUNDATION_COLUMNS
+#               - CORE_FOUNDATION_DTYPES
+# -----------------------------------------------------------------------------
+# Change Log
+# Date        Author            Type        Note
+# 2025-06-05  Codex             docs        Add standard header and docs.
+# 2025-05-25  Ryan Zimmerman    feat        Initial creation of the module.
+###############################################################################
+
 """
 Defines the foundational schema for the BALANCE-pyexcel pipeline.
 This includes the core set of columns that every processed transaction record
 should aim to have, forming the basis for consistent analysis and reconciliation.
 """
-from pandas import StringDtype, Float64Dtype # For pandas dtypes
+
+from pandas import StringDtype, Float64Dtype  # For pandas dtypes
 
 # The 8+1 Core Foundational Columns
 # These columns represent the "gold standard" minimal viable transaction.
 # 'Account' is included as the "+1" for essential bookkeeping.
 CORE_FOUNDATION_COLUMNS = [
-    "TxnID",               # Unique transaction identifier (string)
-    "Owner",               # Owner of the transaction (Ryan/Jordyn) (string)
-    "Date",                # Transaction date (datetime64[ns])
-    "Amount",              # Transaction amount (float64)
-    "Merchant",            # Cleaned merchant name (string)
-    "Description",         # Cleaned, human-readable transaction description (string)
-    "Category",            # Transaction category (string)
-    "Account",             # Account identifier (string)
-    "sharing_status",      # Sharing status ('individual', 'shared', 'split') (string/pd.StringDtype())
+    "TxnID",  # Unique transaction identifier (string)
+    "Owner",  # Owner of the transaction (Ryan/Jordyn) (string)
+    "Date",  # Transaction date (datetime64[ns])
+    "Amount",  # Transaction amount (float64)
+    "Merchant",  # Cleaned merchant name (string)
+    "Description",  # Cleaned, human-readable transaction description (string)
+    "Category",  # Transaction category (string)
+    "Account",  # Account identifier (string)
+    "sharing_status",  # Sharing status ('individual', 'shared', 'split') (string/pd.StringDtype())
 ]
 
 # Expected dtypes for the core foundational columns
@@ -26,8 +41,8 @@ CORE_FOUNDATION_COLUMNS = [
 CORE_FOUNDATION_DTYPES = {
     "TxnID": StringDtype(),
     "Owner": StringDtype(),
-    "Date": "datetime64[ns]", # Pandas handles this well
-    "Amount": Float64Dtype(), # Ensures it's float, not object if all NA
+    "Date": "datetime64[ns]",  # Pandas handles this well
+    "Amount": Float64Dtype(),  # Ensures it's float, not object if all NA
     "Merchant": StringDtype(),
     "Description": StringDtype(),
     "Category": StringDtype(),

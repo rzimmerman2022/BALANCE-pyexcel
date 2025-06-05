@@ -1,3 +1,17 @@
+###############################################################################
+# BALANCE-pyexcel – Export Helpers
+#
+# Description : Thin wrappers for writing Parquet using DuckDB.
+# Key Concepts: - DuckDB COPY operation
+#               - PyArrow-less Parquet support
+# Public API  : - write_parquet_duckdb(df: pd.DataFrame, out_path: pathlib.Path) -> None
+# -----------------------------------------------------------------------------
+# Change Log
+# Date        Author            Type        Note
+# 2025-06-05  Codex             docs        Add standard header and docs.
+# 2025-05-05  Ryan Zimmerman    feat        Initial creation of the module.
+###############################################################################
+
 """
 Thin wrappers for exporting pipeline outputs.
 Currently: Parquet via DuckDB (works on Py 3.13 without PyArrow wheels).
