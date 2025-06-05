@@ -35,16 +35,10 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any, Union
 import argparse
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import Rectangle
-import seaborn as sns
 from scipy import stats
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.io as pio
-import warnings
 import unittest
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 import re
 from reportlab.lib import colors
@@ -61,8 +55,6 @@ from reportlab.platypus import (
     PageBreak,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
-import io
-import base64
 import psutil  # For performance checking
 
 # Configure logging for audit trail
@@ -655,7 +647,7 @@ class EnhancedSharedExpenseAnalyzer:
         self.memory_usage_mb = 0
 
         logger.info(f"Initialized analyzer v2.3 with config: {self.config}")
-        logger.info(f"Data files:")
+        logger.info("Data files:")
         logger.info(f"  - Expense History: {self.expense_file}")
         logger.info(f"  - Transaction Ledger: {self.ledger_file}")
         logger.info(f"  - Rent Allocation: {self.rent_alloc_file}")
@@ -1929,7 +1921,7 @@ class EnhancedSharedExpenseAnalyzer:
         )
         amount_owed_val = abs(final_balance_to_report)
 
-        logger.info(f"Triple Reconciliation Results (v2.3 logic):")
+        logger.info("Triple Reconciliation Results (v2.3 logic):")
         logger.info(
             f"  M1 (Running Balance): ${method1_balance:,.2f} ({'Ryan owes Jordyn' if method1_balance > 0 else 'Jordyn owes Ryan' if method1_balance < 0 else 'Settled'})"
         )
@@ -2902,7 +2894,7 @@ class EnhancedSharedExpenseAnalyzer:
         path = output_dir / "anomaly_scatter.png"
         plt.savefig(path, dpi=300, bbox_inches="tight")
         plt.close(fig)
-        alt_text = f"Anomaly scatter plot of transactions."
+        alt_text = "Anomaly scatter plot of transactions."
         return path, alt_text
 
     def _build_pareto_concentration(
@@ -2992,7 +2984,7 @@ class EnhancedSharedExpenseAnalyzer:
         path = output_dir / "pareto_concentration.png"
         plt.savefig(path, dpi=300, bbox_inches="tight")
         plt.close(fig)
-        alt_text = f"Pareto chart of shared spending concentration."
+        alt_text = "Pareto chart of shared spending concentration."
         return path, alt_text
 
     def _build_sankey_settlements(

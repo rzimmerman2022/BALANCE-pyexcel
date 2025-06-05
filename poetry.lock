@@ -438,6 +438,7 @@ description = "Thin Python bindings to de/compression algorithms in Rust"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"parquet-alt\""
 files = [
     {file = "cramjam-2.10.0-cp310-cp310-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:26c44f17938cf00a339899ce6ea7ba12af7b1210d707a80a7f14724fba39869b"},
     {file = "cramjam-2.10.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:ce208a3e4043b8ce89e5d90047da16882456ea395577b1ee07e8215dce7d7c91"},
@@ -684,6 +685,7 @@ description = "Python support for Parquet file format"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"parquet-alt\""
 files = [
     {file = "fastparquet-2024.11.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:60ccf587410f0979105e17036df61bb60e1c2b81880dc91895cdb4ee65b71e7f"},
     {file = "fastparquet-2024.11.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:a5ad5fc14b0567e700bea3cd528a0bd45a6f9371370b49de8889fb3d10a6574a"},
@@ -762,6 +764,7 @@ description = "File-system specification"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"parquet-alt\""
 files = [
     {file = "fsspec-2025.5.0-py3-none-any.whl", hash = "sha256:0ca253eca6b5333d8a2b8bd98c7326fe821f1f0fdbd34e1b445bddde8e804c95"},
     {file = "fsspec-2025.5.0.tar.gz", hash = "sha256:e4f4623bb6221f7407fd695cc535d1f857a077eb247580f4ada34f5dc25fd5c8"},
@@ -1308,6 +1311,7 @@ files = [
     {file = "packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484"},
     {file = "packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f"},
 ]
+markers = {main = "extra == \"parquet-alt\""}
 
 [[package]]
 name = "paginate"
@@ -2147,9 +2151,9 @@ files = [
 watchmedo = ["PyYAML (>=3.10)"]
 
 [extras]
-parquet = []
+parquet-alt = ["fastparquet"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.11,<3.14"
-content-hash = "4000ae6556bcc570403eaafc8182e42bf091b38d4f42e19332a84c3f052f9ab8"
+python-versions = "^3.11,<3.14"
+content-hash = "e6d6662d0accfa1ec0d6c184e8685b521a317563cc106416c777397450eb957a"
