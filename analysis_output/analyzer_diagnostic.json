@@ -1,0 +1,326 @@
+[
+  {
+    "name": "_generate_outputs",
+    "start_line": 3595,
+    "end_line": 3829,
+    "lines": 235
+  },
+  {
+    "name": "_process_expense_data",
+    "start_line": 815,
+    "end_line": 1008,
+    "lines": 194
+  },
+  {
+    "name": "main",
+    "start_line": 4245,
+    "end_line": 4437,
+    "lines": 193
+  },
+  {
+    "name": "_create_master_ledger",
+    "start_line": 1596,
+    "end_line": 1787,
+    "lines": 192
+  },
+  {
+    "name": "_perform_advanced_analytics",
+    "start_line": 1979,
+    "end_line": 2159,
+    "lines": 181
+  },
+  {
+    "name": "_triple_reconciliation",
+    "start_line": 1813,
+    "end_line": 1977,
+    "lines": 165
+  },
+  {
+    "name": "_build_sankey_settlements",
+    "start_line": 2998,
+    "end_line": 3158,
+    "lines": 161
+  },
+  {
+    "name": "_generate_executive_summary_pdf",
+    "start_line": 3873,
+    "end_line": 4029,
+    "lines": 157
+  },
+  {
+    "name": "_categorize_merchant",
+    "start_line": 3457,
+    "end_line": 3593,
+    "lines": 137
+  },
+  {
+    "name": "_create_visualizations_v22",
+    "start_line": 2273,
+    "end_line": 2402,
+    "lines": 130
+  },
+  {
+    "name": "analyze",
+    "start_line": 1453,
+    "end_line": 1568,
+    "lines": 116
+  },
+  {
+    "name": "_process_rent_data",
+    "start_line": 1117,
+    "end_line": 1227,
+    "lines": 111
+  },
+  {
+    "name": "_comprehensive_risk_assessment",
+    "start_line": 2161,
+    "end_line": 2271,
+    "lines": 111
+  },
+  {
+    "name": "setUp",
+    "start_line": 4034,
+    "end_line": 4131,
+    "lines": 98
+  },
+  {
+    "name": "_build_pareto_concentration",
+    "start_line": 2908,
+    "end_line": 2996,
+    "lines": 89
+  },
+  {
+    "name": "_build_data_quality_table_viz",
+    "start_line": 3160,
+    "end_line": 3247,
+    "lines": 88
+  },
+  {
+    "name": "merge_expense_and_ledger_data",
+    "start_line": 474,
+    "end_line": 560,
+    "lines": 87
+  },
+  {
+    "name": "_build_running_balance_timeline",
+    "start_line": 2405,
+    "end_line": 2491,
+    "lines": 87
+  },
+  {
+    "name": "_validate_results_summary",
+    "start_line": 3353,
+    "end_line": 3432,
+    "lines": 80
+  },
+  {
+    "name": "_build_anomaly_scatter",
+    "start_line": 2828,
+    "end_line": 2906,
+    "lines": 79
+  },
+  {
+    "name": "_build_calendar_heatmaps",
+    "start_line": 2674,
+    "end_line": 2749,
+    "lines": 76
+  },
+  {
+    "name": "_build_treemap_shared_spending",
+    "start_line": 2751,
+    "end_line": 2826,
+    "lines": 76
+  },
+  {
+    "name": "test_full_analysis_run_v23_fixtures",
+    "start_line": 4172,
+    "end_line": 4241,
+    "lines": 70
+  },
+  {
+    "name": "_generate_recommendations",
+    "start_line": 3249,
+    "end_line": 3317,
+    "lines": 69
+  },
+  {
+    "name": "_validate_against_ledger_balance",
+    "start_line": 1326,
+    "end_line": 1392,
+    "lines": 67
+  },
+  {
+    "name": "_build_monthly_shared_trend",
+    "start_line": 2557,
+    "end_line": 2621,
+    "lines": 65
+  },
+  {
+    "name": "_build_waterfall_category_impact",
+    "start_line": 2493,
+    "end_line": 2555,
+    "lines": 63
+  },
+  {
+    "name": "load_transaction_ledger",
+    "start_line": 277,
+    "end_line": 337,
+    "lines": 61
+  },
+  {
+    "name": "merge_rent_data",
+    "start_line": 563,
+    "end_line": 620,
+    "lines": 58
+  },
+  {
+    "name": "_analyze_rent_budget_variance",
+    "start_line": 1394,
+    "end_line": 1451,
+    "lines": 58
+  },
+  {
+    "name": "load_expense_history",
+    "start_line": 221,
+    "end_line": 274,
+    "lines": 54
+  },
+  {
+    "name": "validate_loaded_data",
+    "start_line": 418,
+    "end_line": 470,
+    "lines": 53
+  },
+  {
+    "name": "_handle_calculation_notes_in_processed_data",
+    "start_line": 1010,
+    "end_line": 1062,
+    "lines": 53
+  },
+  {
+    "name": "_impute_missing_date",
+    "start_line": 762,
+    "end_line": 813,
+    "lines": 52
+  },
+  {
+    "name": "_detect_duplicates_in_processed_data",
+    "start_line": 1064,
+    "end_line": 1115,
+    "lines": 52
+  },
+  {
+    "name": "_build_payer_type_heatmap",
+    "start_line": 2623,
+    "end_line": 2672,
+    "lines": 50
+  },
+  {
+    "name": "_create_expense_audit_note",
+    "start_line": 1279,
+    "end_line": 1324,
+    "lines": 46
+  },
+  {
+    "name": "_update_row_data_quality_flags",
+    "start_line": 717,
+    "end_line": 760,
+    "lines": 44
+  },
+  {
+    "name": "__init__",
+    "start_line": 631,
+    "end_line": 672,
+    "lines": 42
+  },
+  {
+    "name": "_log_data_quality_issue",
+    "start_line": 674,
+    "end_line": 715,
+    "lines": 42
+  },
+  {
+    "name": "_generate_dashboard_html",
+    "start_line": 3831,
+    "end_line": 3871,
+    "lines": 41
+  },
+  {
+    "name": "load_rent_allocation",
+    "start_line": 340,
+    "end_line": 379,
+    "lines": 40
+  },
+  {
+    "name": "build_design_theme",
+    "start_line": 133,
+    "end_line": 170,
+    "lines": 38
+  },
+  {
+    "name": "tearDown",
+    "start_line": 4133,
+    "end_line": 4170,
+    "lines": 38
+  },
+  {
+    "name": "load_rent_history",
+    "start_line": 382,
+    "end_line": 415,
+    "lines": 34
+  },
+  {
+    "name": "_create_enhanced_rent_audit_note",
+    "start_line": 1250,
+    "end_line": 1277,
+    "lines": 28
+  },
+  {
+    "name": "_money_to_float",
+    "start_line": 178,
+    "end_line": 202,
+    "lines": 25
+  },
+  {
+    "name": "_explode_audit",
+    "start_line": 1570,
+    "end_line": 1594,
+    "lines": 25
+  },
+  {
+    "name": "_check_performance",
+    "start_line": 3434,
+    "end_line": 3455,
+    "lines": 22
+  },
+  {
+    "name": "_create_rent_audit_note",
+    "start_line": 1229,
+    "end_line": 1248,
+    "lines": 20
+  },
+  {
+    "name": "_generate_transaction_id",
+    "start_line": 1789,
+    "end_line": 1807,
+    "lines": 19
+  },
+  {
+    "name": "_summarize_data_quality_issues",
+    "start_line": 3333,
+    "end_line": 3351,
+    "lines": 19
+  },
+  {
+    "name": "_ensure_unique_df_columns",
+    "start_line": 205,
+    "end_line": 218,
+    "lines": 14
+  },
+  {
+    "name": "_calculate_data_quality_score",
+    "start_line": 3319,
+    "end_line": 3331,
+    "lines": 13
+  }
+]

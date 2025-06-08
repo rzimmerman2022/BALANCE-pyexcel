@@ -1,2 +1,6 @@
-*.xlsm binary
-*.env text eol=lf
+# ----- default: LF everywhere -----
+* text=auto eol=lf
+
+# ----- exceptions (keep CRLF on Windows scripts) -----
+*.ps1 text eol=crlf
+*.bat text eol=crlf
