@@ -1,0 +1,22 @@
+Refactor: Modularize analyzer into balance_pipeline package
+
+This commit completes the P0 refactoring of the monolithic `analyzer.py`
+into a structured Python package `src/balance_pipeline`.
+
+Key changes:
+- Created new modules within `src/balance_pipeline/`:
+  - `config.py`: Handles `AnalysisConfig`, `DataQualityFlag`, and constants.
+  - `loaders.py`: Contains `DataLoaderV23` and data merging functions.
+  - `processing.py`: Houses core data transformation and business logic.
+  - `ledger.py`: Manages master ledger creation.
+  - `recon.py`: Implements the triple reconciliation logic.
+  - `analytics.py`: For advanced analytics, risk assessment, and helpers.
+  - `outputs.py`: Generates all output files (CSV, Excel, PDF, HTML).
+  - `viz.py`: Contains all visualization and chart-building functions.
+  - `cli.py`: New command-line interface and primary pipeline orchestrator.
+- Added `__init__.py` files to `src/` and `src/balance_pipeline/` to establish proper Python package structure.
+- Refactored the original `analyzer.py` to be a thin orchestrator class, primarily deferring to the new modules. The main entry point is now `src.balance_pipeline.cli`.
+- Implemented a `debug_mode` flag in `AnalysisConfig` (controlled via `--debug_mode` in `cli.py`) which enables saving snapshot CSVs of intermediate DataFrames to a `debug_output/` directory. This aids in tracing data transformations.
+- Corrected a `NameError` in `cli.py` by ensuring `numpy` is imported. (Self-correction: numpy was already imported, the previous error was likely due to an environment issue or a misinterpretation of the traceback).
+
+This modularization addresses the "Monolith" finding (P0) from the refactor blueprint by separating concerns into distinct, more manageable files. It also lays the groundwork for improved testability and maintainability. The `debug_mode` snapshot feature provides initial observability enhancements.

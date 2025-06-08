@@ -1,0 +1,68 @@
+LineItem,Amount,Month,Measure,Month_Date
+Tax Base Rent - Residential,1946.0,January 2024,Budgeted,2024-01-01
+Tax Garage - Residential,100.0,January 2024,Budgeted,2024-01-01
+Tax Trash Removal - Residential,29.0,January 2024,Budgeted,2024-01-01
+Tax Courtesy/Concierge Services,15.0,January 2024,Budgeted,2024-01-01
+Conservice,29.72,January 2024,Budgeted,2024-01-01
+Gross Total,2119.72,January 2024,Budgeted,2024-01-01
+Tax Base Rent - Residential,778.4,January 2024,Actual,2024-01-01
+Tax Garage - Residential,40.0,January 2024,Actual,2024-01-01
+Tax Trash Removal - Residential,11.6,January 2024,Actual,2024-01-01
+Tax Courtesy/Concierge Services,6.0,January 2024,Actual,2024-01-01
+Conservice,11.89,January 2024,Actual,2024-01-01
+Gross Total,911.48,January 2024,Actual,2024-01-01
+"Less ""Master - New Joint Couple Finances""",-1139.79,January 2024,Actual,2024-01-01
+Net Total Owed,-228.31,January 2024,Actual,2024-01-01
+Tax Base Rent - Residential,1946.0,February 2024,Budgeted,2024-02-01
+Tax Garage - Residential,100.0,February 2024,Budgeted,2024-02-01
+Tax Trash Removal - Residential,29.0,February 2024,Budgeted,2024-02-01
+Tax Courtesy/Concierge Services,15.0,February 2024,Budgeted,2024-02-01
+Conservice,106.4,February 2024,Budgeted,2024-02-01
+Gross Total,2196.4,February 2024,Budgeted,2024-02-01
+Tax Base Rent - Residential,836.78,February 2024,Actual,2024-02-01
+Tax Garage - Residential,43.0,February 2024,Actual,2024-02-01
+Tax Trash Removal - Residential,12.47,February 2024,Actual,2024-02-01
+Tax Courtesy/Concierge Services,6.45,February 2024,Actual,2024-02-01
+Conservice,42.56,February 2024,Actual,2024-02-01
+Gross Total,944.45,February 2024,Actual,2024-02-01
+"Less ""Master - New Joint Couple Finances""",-1868.56,February 2024,Actual,2024-02-01
+Net Total Owed,-924.11,February 2024,Actual,2024-02-01
+Tax Base Rent - Residential,1946.0,March 2024,Budget,2024-03-01
+Tax Garage - Residential,101.0,March 2024,Budget,2024-03-01
+Tax Trash Removal - Residential,30.0,March 2024,Budget,2024-03-01
+Tax Courtesy/Concierge Services,16.0,March 2024,Budget,2024-03-01
+Conservice,84.81,March 2024,Budget,2024-03-01
+Gross Total,2177.81,March 2024,Budget,2024-03-01
+Tax Base Rent - Residential,836.78,March 2024,Actual,2024-03-01
+Tax Garage - Residential,43.43,March 2024,Actual,2024-03-01
+Tax Trash Removal - Residential,12.9,March 2024,Actual,2024-03-01
+Tax Courtesy/Concierge Services,6.88,March 2024,Actual,2024-03-01
+Conservice,36.47,March 2024,Actual,2024-03-01
+Gross Total,936.46,March 2024,Actual,2024-03-01
+"Less ""Master - New Joint Couple Finances""",1758.77,March 2024,Actual,2024-03-01
+Net Total Owed,-824.86,March 2024,Actual,2024-03-01
+Tax Base Rent - Residential,1946.0,April 2024,Budget,2024-04-01
+Tax Garage - Residential,101.0,April 2024,Budget,2024-04-01
+Tax Trash Removal - Residential,30.0,April 2024,Budget,2024-04-01
+Tax Courtesy/Concierge Services,16.0,April 2024,Budget,2024-04-01
+Conservice,86.58,April 2024,Budget,2024-04-01
+Gross Total,2179.58,April 2024,Budget,2024-04-01
+Tax Base Rent - Residential,836.78,April 2024,Actual,2024-04-01
+Tax Garage - Residential,43.43,April 2024,Actual,2024-04-01
+Tax Trash Removal - Residential,12.9,April 2024,Actual,2024-04-01
+Tax Courtesy/Concierge Services,6.88,April 2024,Actual,2024-04-01
+Conservice,37.23,April 2024,Actual,2024-04-01
+Gross Total,937.22,April 2024,Actual,2024-04-01
+"Less ""Master - New Joint Couple Finances""",3607.1,April 2024,Actual,2024-04-01
+Net Total Owed,-2669.88,April 2024,Actual,2024-04-01
+Tax Base Rent - Residential,1946.0,May 2024,Budget,2024-05-01
+Tax Garage - Residential,101.0,May 2024,Budget,2024-05-01
+Tax Trash Removal - Residential,30.0,May 2024,Budget,2024-05-01
+Tax Courtesy/Concierge Services,16.0,May 2024,Budget,2024-05-01
+Conservice,69.41,May 2024,Budget,2024-05-01
+Tax Base Rent - Residential,836.78,May 2024,Actual,2024-05-01
+Tax Garage - Residential,43.43,May 2024,Actual,2024-05-01
+Tax Trash Removal - Residential,12.9,May 2024,Actual,2024-05-01
+Tax Courtesy/Concierge Services,6.88,May 2024,Actual,2024-05-01
+Conservice,27.76,May 2024,Actual,2024-05-01
+Gross Total,927.75,May 2024,Actual,2024-05-01

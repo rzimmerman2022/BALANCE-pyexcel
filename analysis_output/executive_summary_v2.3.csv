@@ -1,9 +1,13 @@
 Metric,Value
 Overall Balance,$0.00 (Settled)
 Total Shared Processed,$0.00
-Data Quality Score,80.9%
-Overall Risk Level,MEDIUM
+Data Quality Score,0.0%
+Overall Risk Level,HIGH
 Triple Reconciliation Matched,YES
-Ledger Balance Matched,N/A
-Processing Time (s),41.8
-Total Transactions Analyzed,1159
+Ledger Balance Matched,"Mismatch (Diff: $11,856.39)"
+Processing Time (s),0.0
+Total Transactions Analyzed,1551
+Source - expense_history rows,1130
+Source - transaction_ledger rows,397
+Source - rent_allocation rows,46
+Source - rent_history rows,67
