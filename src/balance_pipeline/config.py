@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+import yaml
+from pathlib import Path
+from typing import Dict, Any
 
 # Design constants
 TABLEAU_COLORBLIND_10 = [
@@ -106,3 +109,39 @@ DEFAULT_MERCHANT_CATEGORIES = {
     "Rent": ["rent", "property management", "landlord"],
     "Other Expenses": [] # Fallback
 }
+
+# Cached rules to avoid repeated file I/O
+_CACHED_RULES: Dict[str, Any] = {}
+
+def load_rules(path: str) -> Dict[str, Any]:
+    """
+    Load business rules from YAML file with caching.
+    
+    Args:
+        path: Path to the YAML rules file
+        
+    Returns:
+        Dictionary containing the parsed rules
+    """
+    global _CACHED_RULES
+    
+    # Return cached version if already loaded
+    if path in _CACHED_RULES:
+        return _CACHED_RULES[path]
+    
+    rules_path = Path(path)
+    if not rules_path.exists():
+        raise FileNotFoundError(f"Rules file not found: {rules_path}")
+    
+    try:
+        with open(rules_path, 'r', encoding='utf-8') as f:
+            rules = yaml.safe_load(f)
+        
+        # Cache the loaded rules
+        _CACHED_RULES[path] = rules
+        return rules
+        
+    except yaml.YAMLError as e:
+        raise ValueError(f"Invalid YAML in rules file {rules_path}: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Error loading rules from {rules_path}: {e}")

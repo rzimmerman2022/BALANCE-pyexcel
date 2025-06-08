@@ -1,0 +1,14 @@
+# BALANCE-pyexcel Business Rules Configuration
+# Phase P0: Externalized settlement keywords and payer split percentages
+
+settlement_keywords:
+  - "venmo"
+  - "zelle" 
+  - "square cash"
+  - "settlement"
+  - "cash app"
+  - "paypal"
+
+payer_split:
+  ryan_pct: 0.43
+  jordyn_pct: 0.57

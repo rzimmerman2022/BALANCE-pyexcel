@@ -13,9 +13,9 @@ if os.name == "nt":  # Windows cmd/PowerShell default is cp1252
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # Import from other modules in the pipeline
-from .config import AnalysisConfig
+from .config import AnalysisConfig, load_rules
 from .loaders import DataLoaderV23, merge_expense_and_ledger_data, merge_rent_data
-from .processing import process_expense_data, process_rent_data
+from .processing import expense_pipeline, rent_pipeline
 from .ledger import create_master_ledger
 from .recon import triple_reconciliation
 from .analytics import perform_advanced_analytics, comprehensive_risk_assessment
@@ -104,15 +104,29 @@ def run_analysis_pipeline(
         if not merged_rent_data_full.empty: merged_rent_data_full.to_csv(output_dir / "02b_merged_rent_data_full.csv", index=False)
         logger.info("Debug mode: Merged data snapshots saved.")
 
-    # --- 3. Process Data (Apply Business Logic) ---
-    logger.info("Stage 3: Processing data...")
-    processed_expenses = process_expense_data(merged_expenses_ledger, config, data_quality_issues_list, logger_instance=logger)
-    processed_rent = process_rent_data(merged_rent_data_full, config, data_quality_issues_list, logger_instance=logger)
+    # --- 3. Load Rules and Process Data ---
+    logger.info("Stage 3: Loading rules and processing data...")
+    
+    # Load business rules from YAML
+    try:
+        rules = load_rules("src/balance_pipeline/rules.yaml")
+        logger.info(f"Loaded rules: {list(rules.keys())}")
+    except Exception as e:
+        logger.warning(f"Failed to load rules: {e}. Using defaults.")
+        rules = {
+            "settlement_keywords": ["venmo", "zelle", "cash app", "paypal"],
+            "payer_split": {"ryan_pct": 0.43, "jordyn_pct": 0.57}
+        }
 
+    # Process using new pipeline functions
+    processed_expenses = expense_pipeline(merged_expenses_ledger, config, rules, data_quality_issues_list, logger_instance=logger)
+    processed_rent = rent_pipeline(merged_rent_data_full, config, rules, data_quality_issues_list, logger_instance=logger)
+
+    # Final expense processing snapshot
     if config.debug_mode:
         if not processed_expenses.empty: processed_expenses.to_csv(output_dir / "03a_processed_expenses.csv", index=False)
         if not processed_rent.empty: processed_rent.to_csv(output_dir / "03b_processed_rent.csv", index=False)
-        logger.info("Debug mode: Processed data snapshots saved.")
+        logger.info("Debug mode: Final processed data snapshots saved.")
 
     # --- 4. Build Master Ledger ---
     logger.info("Stage 4: Building master ledger...")

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timezone
 import logging
+from pathlib import Path
 from typing import Dict, List, Any, Union
 
 # Assuming config.py and loaders.py are in the same directory or accessible via PYTHONPATH
@@ -220,6 +221,136 @@ def _detect_duplicates_in_processed_data(
             )
     return df
 
+
+def tag_settlements(df: pd.DataFrame, rules: Dict[str, Any]) -> pd.DataFrame:
+    """
+    Tag settlement transactions based on rules.
+    """
+    df = df.copy()
+    
+    # Get settlement keywords from rules
+    settlement_keywords = rules.get("settlement_keywords", ["venmo", "zelle", "cash app", "paypal"])
+    
+    # Tag settlements based on merchant and description patterns
+    is_settlement_merchant = df["Merchant"].str.lower().str.strip().isin(settlement_keywords)
+    is_settlement_description = df["Description"].str.contains(
+        r"payment\s+(to|from)\s+(ryan|jordyn)", case=False, regex=True, na=False
+    )
+    is_settlement = is_settlement_merchant | is_settlement_description
+    df["TransactionType"] = np.where(is_settlement, "SETTLEMENT", "EXPENSE")
+    
+    return df
+
+
+def apply_two_x_rule(df: pd.DataFrame, config: AnalysisConfig, 
+                     data_quality_issues_list: List[Dict[str, Any]],
+                     logger_instance: logging.Logger = logger) -> pd.DataFrame:
+    """
+    Apply 2x calculation rule for transactions with special notes.
+    """
+    df = df.copy()
+    calculation_note_trigger = "2x to calculate"
+    
+    two_x_mask = df["Description"].str.contains(calculation_note_trigger, case=False, na=False)
+    modified_indices = []
+
+    for idx in df[two_x_mask].index:
+        actual_amount_for_row = df.loc[idx, "ActualAmount"]
+        new_allowed_amount = actual_amount_for_row * 2
+        df.loc[idx, "AllowedAmount"] = new_allowed_amount
+        modified_indices.append(idx)
+        
+        _update_row_data_quality_flags_processing(df, idx, [DataQualityFlag.MANUAL_CALCULATION_NOTE])
+        _log_data_quality_issue_processing(
+            data_quality_issues_list, "expense_2x_note_check", idx, df.loc[idx].to_dict(),
+            [DataQualityFlag.MANUAL_CALCULATION_NOTE], logger_instance
+        )
+
+    if modified_indices:
+        logger_instance.info(f"Applied 2x calculation to {len(modified_indices)} rows")
+    
+    return df
+
+
+def detect_duplicates(df: pd.DataFrame, 
+                     data_quality_issues_list: List[Dict[str, Any]],
+                     logger_instance: logging.Logger = logger) -> pd.DataFrame:
+    """
+    Detect and flag potential duplicate transactions.
+    """
+    df = df.copy()
+    
+    if df.empty:
+        return df
+
+    # Ensure Date column is datetime
+    if "Date" in df.columns and not pd.api.types.is_datetime64_any_dtype(df["Date"]):
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+
+    dup_cols = ["Date", "Payer", "ActualAmount", "Merchant"]
+    available_dup_cols = [col for col in dup_cols if col in df.columns]
+
+    if len(available_dup_cols) < 3:
+        logger_instance.warning(f"Skipping duplicate detection: insufficient columns")
+        return df
+
+    temp_df = df[available_dup_cols].copy()
+    if pd.api.types.is_datetime64_any_dtype(temp_df["Date"]):
+        temp_df["DateForDup"] = temp_df["Date"].dt.date
+        check_cols = ["DateForDup"] + [col for col in available_dup_cols if col != "Date"]
+    else:
+        check_cols = available_dup_cols
+
+    duplicates_mask = temp_df.duplicated(subset=check_cols, keep="first")
+    
+    for idx in df[duplicates_mask].index:
+        _update_row_data_quality_flags_processing(df, idx, [DataQualityFlag.DUPLICATE_SUSPECTED])
+        _log_data_quality_issue_processing(
+            data_quality_issues_list, "duplicate_check", idx, df.loc[idx].to_dict(),
+            [DataQualityFlag.DUPLICATE_SUSPECTED], logger_instance
+        )
+    
+    return df
+
+
+def flag_row_quality(df: pd.DataFrame, config: AnalysisConfig,
+                    data_quality_issues_list: List[Dict[str, Any]],
+                    logger_instance: logging.Logger = logger) -> pd.DataFrame:
+    """
+    Flag data quality issues for individual rows.
+    """
+    df = df.copy()
+    
+    for idx, row in df.iterrows():
+        quality_flags = []
+        
+        # Check for missing date
+        if pd.isna(row["Date"]):
+            quality_flags.append(DataQualityFlag.MISSING_DATE)
+            df.loc[idx, "Date"] = _impute_missing_date_processing(df, idx, "Date", logger_instance)
+
+        # Check for outlier amounts
+        if row["ActualAmount"] > config.OUTLIER_THRESHOLD:
+            quality_flags.append(DataQualityFlag.OUTLIER_AMOUNT)
+            
+        # Check for negative amounts
+        if row["ActualAmount"] < 0:
+            quality_flags.append(DataQualityFlag.NEGATIVE_AMOUNT)
+        if row["AllowedAmount"] < 0:
+            quality_flags.append(DataQualityFlag.NEGATIVE_AMOUNT)
+            logger_instance.warning(f"Row {idx}: Negative AllowedAmount clamped to 0")
+            df.loc[idx, "AllowedAmount"] = 0
+        
+        if quality_flags:
+            _update_row_data_quality_flags_processing(df, idx, quality_flags)
+            _log_data_quality_issue_processing(
+                data_quality_issues_list, "row_quality_check", idx, row.to_dict(), 
+                quality_flags, logger_instance
+            )
+    
+    return df
+
+
 def _create_expense_audit_note(row: pd.Series, config: AnalysisConfig) -> str:
     """Create audit note for expense transactions."""
     try:
@@ -251,6 +382,196 @@ def _create_expense_audit_note(row: pd.Series, config: AnalysisConfig) -> str:
     except Exception as e:
         logger.error(f"Error creating expense audit note for row {row.name if hasattr(row, 'name') else 'UNKNOWN'}: {e}")
         return f"Error in audit note. Quality: {row.get('DataQualityFlag', DataQualityFlag.CLEAN.value)}"
+
+
+def calc_budget_variance(df: pd.DataFrame, config: AnalysisConfig,
+                        data_quality_issues_list: List[Dict[str, Any]],
+                        logger_instance: logging.Logger = logger) -> pd.DataFrame:
+    """
+    Calculate budget variance for rent data.
+    """
+    df = df.copy()
+    
+    # Check baseline variance
+    if config.RENT_BASELINE > 0 and "GrossTotal" in df.columns:
+        variance = (df["GrossTotal"] - config.RENT_BASELINE).abs() / config.RENT_BASELINE
+        high_variance_mask = variance > config.RENT_VARIANCE_THRESHOLD
+        
+        for idx in df[high_variance_mask].index:
+            _update_row_data_quality_flags_processing(df, idx, [DataQualityFlag.RENT_VARIANCE_HIGH])
+            _log_data_quality_issue_processing(
+                data_quality_issues_list, "rent_baseline_variance", idx, df.loc[idx].to_dict(), 
+                [DataQualityFlag.RENT_VARIANCE_HIGH], logger_instance
+            )
+
+    # Check budget variance if available
+    if "Budget_Variance_Pct" in df.columns:
+        high_budget_variance_mask = df["Budget_Variance_Pct"].abs() > config.RENT_BUDGET_VARIANCE_THRESHOLD_PCT
+        
+        for idx in df[high_budget_variance_mask].index:
+            _update_row_data_quality_flags_processing(df, idx, [DataQualityFlag.RENT_BUDGET_VARIANCE_HIGH])
+            _log_data_quality_issue_processing(
+                data_quality_issues_list, "rent_budget_variance", idx, df.loc[idx].to_dict(),
+                [DataQualityFlag.RENT_BUDGET_VARIANCE_HIGH], logger_instance
+            )
+    
+    return df
+
+
+def expense_pipeline(df: pd.DataFrame, config: AnalysisConfig, rules: Dict[str, Any],
+                    data_quality_issues_list: List[Dict[str, Any]],
+                    logger_instance: logging.Logger = logger) -> pd.DataFrame:
+    """
+    Main expense processing pipeline orchestrator.
+    Coordinates all expense processing steps with debug snapshots.
+    """
+    logger_instance.info("Starting expense processing pipeline...")
+    
+    if df.empty:
+        logger_instance.warning("Empty expense data")
+        return pd.DataFrame(columns=[
+            "Date", "ActualAmount", "AllowedAmount", "Payer", "Description", "Merchant",
+            "TransactionType", "DataQualityFlag", "IsShared", "RyanOwes", "JordynOwes",
+            "BalanceImpact", "AuditNote"
+        ])
+
+    # Data preparation
+    rename_map = {"Date of Purchase": "Date", "Name": "Payer"}
+    df.rename(columns=rename_map, inplace=True)
+    
+    for col in ["Payer", "Description", "Merchant"]:
+        if col not in df.columns: df[col] = ""
+        df[col] = df[col].fillna("")
+
+    if "Date" not in df.columns: df["Date"] = pd.NaT
+    if "ActualAmount" not in df.columns: df["ActualAmount"] = 0.0
+    if "AllowedAmount" not in df.columns: df["AllowedAmount"] = np.nan
+    
+    df["AllowedAmount"] = df["AllowedAmount"].fillna(df["ActualAmount"]).fillna(0)
+    df["DataQualityFlag"] = DataQualityFlag.CLEAN.value
+
+    # Step 1: Tag settlements
+    df = tag_settlements(df, rules)
+    if config.debug_mode:
+        Path("debug_output").mkdir(exist_ok=True)
+        df.to_csv("debug_output/03a_settlements_tagged.csv", index=False)
+
+    # Step 2: Apply 2x rule  
+    df = apply_two_x_rule(df, config, data_quality_issues_list, logger_instance)
+    if config.debug_mode:
+        df.to_csv("debug_output/03b_two_x_applied.csv", index=False)
+
+    # Step 3: Detect duplicates
+    df = detect_duplicates(df, data_quality_issues_list, logger_instance)
+    if config.debug_mode:
+        df.to_csv("debug_output/03c_duplicates_flagged.csv", index=False)
+
+    # Step 4: Flag row quality issues
+    df = flag_row_quality(df, config, data_quality_issues_list, logger_instance)
+    if config.debug_mode:
+        df.to_csv("debug_output/03d_quality_flagged.csv", index=False)
+
+    # Final calculations using rules
+    payer_split = rules.get("payer_split", {"ryan_pct": 0.43, "jordyn_pct": 0.57})
+    ryan_pct = payer_split.get("ryan_pct", config.RYAN_PCT)
+    jordyn_pct = payer_split.get("jordyn_pct", config.JORDYN_PCT)
+
+    is_settlement = (df["TransactionType"] == "SETTLEMENT")
+    
+    # Settlement calculations
+    df.loc[is_settlement, "AllowedAmount"] = 0
+    df.loc[is_settlement, "IsShared"] = False
+    df.loc[is_settlement, "RyanOwes"] = 0.0
+    df.loc[is_settlement, "JordynOwes"] = 0.0
+
+    # Non-settlement calculations
+    non_settlement_mask = ~is_settlement
+    df.loc[non_settlement_mask, "IsShared"] = (df.loc[non_settlement_mask, "AllowedAmount"] > 0.005)
+    df.loc[non_settlement_mask, "RyanOwes"] = 0.0
+    df.loc[non_settlement_mask, "JordynOwes"] = 0.0
+    df.loc[non_settlement_mask, "BalanceImpact"] = 0.0
+
+    # Shared expense calculations
+    paid_by_ryan_shared = non_settlement_mask & df["IsShared"] & (df["Payer"].str.lower() == "ryan")
+    paid_by_jordyn_shared = non_settlement_mask & df["IsShared"] & (df["Payer"].str.lower() == "jordyn")
+
+    df.loc[paid_by_ryan_shared, "JordynOwes"] = (df.loc[paid_by_ryan_shared, "AllowedAmount"] * jordyn_pct).round(config.CURRENCY_PRECISION)
+    df.loc[paid_by_jordyn_shared, "RyanOwes"] = (df.loc[paid_by_jordyn_shared, "AllowedAmount"] * ryan_pct).round(config.CURRENCY_PRECISION)
+
+    df.loc[paid_by_ryan_shared, "BalanceImpact"] = -df.loc[paid_by_ryan_shared, "JordynOwes"]
+    df.loc[paid_by_jordyn_shared, "BalanceImpact"] = df.loc[paid_by_jordyn_shared, "RyanOwes"]
+
+    # Settlement balance impacts
+    settlement_keywords = rules.get("settlement_keywords", [])
+    ryan_paid_jordyn = is_settlement & (df["Payer"].str.lower() == "ryan") & \
+                       (df["Description"].str.contains(r"to\s+jordyn", case=False, regex=True, na=False))
+    jordyn_paid_ryan = is_settlement & (df["Payer"].str.lower() == "jordyn") & \
+                       (df["Description"].str.contains(r"to\s+ryan", case=False, regex=True, na=False))
+
+    df.loc[ryan_paid_jordyn, "BalanceImpact"] = -df.loc[ryan_paid_jordyn, "ActualAmount"]
+    df.loc[jordyn_paid_ryan, "BalanceImpact"] = df.loc[jordyn_paid_ryan, "ActualAmount"]
+
+    # Create audit notes
+    df["AuditNote"] = df.apply(lambda row: _create_expense_audit_note(row, config), axis=1)
+
+    logger_instance.info(f"Processed {len(df)} expense records, {is_settlement.sum()} settlements")
+    return df
+
+
+def rent_pipeline(df: pd.DataFrame, config: AnalysisConfig, rules: Dict[str, Any],
+                 data_quality_issues_list: List[Dict[str, Any]],
+                 logger_instance: logging.Logger = logger) -> pd.DataFrame:
+    """
+    Main rent processing pipeline orchestrator.
+    Coordinates all rent processing steps with debug snapshots.
+    """
+    logger_instance.info("Starting rent processing pipeline...")
+    
+    if df.empty:
+        logger_instance.warning("Empty rent data")
+        return pd.DataFrame(columns=[
+            "Date", "GrossTotal", "RyanRentPortion", "TransactionType", "Payer", "IsShared",
+            "ActualAmount", "AllowedAmount", "DataQualityFlag", "RyanOwes", "JordynOwes",
+            "BalanceImpact", "Description", "AuditNote", "Month_Display"
+        ])
+
+    # Data preparation
+    rename_map = {
+        "Month_Date": "Date", "Month": "Month_Display",
+        "Ryan's Rent (43%)": "RyanRentPortion", 
+        "Jordyn's Rent (57%)": "JordynRentPortion",
+        "Gross Total": "GrossTotal"
+    }
+    actual_rename_map = {k: v for k, v in rename_map.items() if k in df.columns}
+    df.rename(columns=actual_rename_map, inplace=True)
+    
+    if "Date" not in df.columns: df["Date"] = pd.NaT
+    if "GrossTotal" not in df.columns: df["GrossTotal"] = 0.0
+    if "RyanRentPortion" not in df.columns: df["RyanRentPortion"] = 0.0
+    if "Month_Display" not in df.columns: df["Month_Display"] = "Unknown"
+
+    df["TransactionType"] = "RENT"
+    df["Payer"] = "Jordyn"
+    df["IsShared"] = True
+    df["ActualAmount"] = df["GrossTotal"]
+    df["AllowedAmount"] = df["GrossTotal"]
+    df["DataQualityFlag"] = DataQualityFlag.CLEAN.value
+
+    # Calculate budget variance
+    df = calc_budget_variance(df, config, data_quality_issues_list, logger_instance)
+    if config.debug_mode:
+        Path("debug_output").mkdir(exist_ok=True)
+        df.to_csv("debug_output/03e_rent_budget_variance.csv", index=False)
+
+    # Final calculations
+    df["RyanOwes"] = df["RyanRentPortion"]
+    df["JordynOwes"] = 0.0
+    df["BalanceImpact"] = df["RyanOwes"]
+    df["Description"] = df.apply(lambda r: f"Rent for {r.get('Month_Display', 'Unknown')}", axis=1)
+    df["AuditNote"] = df.apply(lambda row: _create_enhanced_rent_audit_note(row, config), axis=1)
+
+    logger_instance.info(f"Processed {len(df)} rent records")
+    return df
 
 
 def process_expense_data(

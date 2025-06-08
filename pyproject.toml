@@ -8,11 +8,14 @@
 #  Description: Python ETL pipeline for BALANCE-pyexcel shared finance tracker #
 #  Author: Ryan Zimmerman <rzimmerman2022@gmail.com>                           #
 #  Created: 2024-01-01 (estimated)                                             #
-#  Last Modified: 2025-06-03                                                   #
+#  Last Modified: 2025-06-08                                                   #
 #  Python Version: 3.11+ (compatible up to 3.13)                              #
 #  Build System: Poetry                                                        #
 #                                                                              #
 #  Changelog:                                                                  #
+#    2025-06-08: Added reportlab for PDF report generation                    #
+#                - New dependency for creating formatted PDF documents         #
+#                - Supports financial reports and merchant summaries          #
 #    2025-06-03: Added balance-analyze command-line entry point               #
 #                - New analyzer module for data analysis operations            #
 #                - Updated documentation for all CLI tools                     #
@@ -120,6 +123,17 @@ pdfplumber = {version = "^0.11", extras = ["no-image"]}
 # Used for: Image processing support for camelot-py
 # Required by: camelot-py for certain PDF processing operations
 opencv-python = "^4.11.0.86"
+
+# ----------------------------------------------------------------------------
+# REPORT GENERATION DEPENDENCIES
+# These packages create formatted output documents from processed data
+# ----------------------------------------------------------------------------
+
+# reportlab: Enterprise-grade PDF generation library
+# Used for: Creating professional PDF reports with charts, tables, and formatting
+# Features: Flowable layouts, vector graphics, font embedding, page templates
+# Common uses: Financial statements, merchant reports, transaction summaries
+reportlab = "^4.0"
 
 # ----------------------------------------------------------------------------
 # CONFIGURATION AND UTILITY DEPENDENCIES
@@ -308,9 +322,17 @@ line-length = 88
 # Minimum Python version to target for compatibility checks
 target-version = "py311"
 
-# Additional Ruff configurations you might want to add:
-# select = ["E", "F", "I", "N", "W", "UP", "S", "B", "A", "C4", "RET", "SIM"]
-# ignore = ["E501"]  # Ignore line length (Black handles this)
+# Enable additional rule sets for comprehensive linting
+# E: pycodestyle errors, F: pyflakes, I: isort, N: naming conventions
+# UP: pyupgrade, S: bandit (security), B: bugbear, A: builtins
+# C4: comprehensions, RET: return statements, SIM: simplify
+select = ["E", "F", "I", "N", "UP", "S", "B", "A", "C4", "RET", "SIM"]
+
+# Ignore specific rules that conflict with our style choices
+ignore = [
+    "E501",  # Line length (Black handles this)
+    "S101",  # Use of assert (needed for tests)
+]
 
 # ----------------------------------------------------------------------------
 # BLACK CONFIGURATION
@@ -323,21 +345,27 @@ line-length = 88
 # Python versions to target for compatibility
 target-version = ["py311"]
 
-# Additional Black configurations you might want:
-# include = '\.pyi?$'
-# extend-exclude = '''
-# /(
-#   # directories
-#   \.eggs
-#   | \.git
-#   | \.hg
-#   | \.mypy_cache
-#   | \.tox
-#   | \.venv
-#   | build
-#   | dist
-# )/
-# '''
+# Files and directories to include in formatting
+include = '\.pyi?$'
+
+# Additional patterns to exclude from formatting
+extend-exclude = '''
+/(
+    # Version control
+    \.git
+    | \.hg
+    # Python artifacts
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | __pycache__
+    # Build artifacts
+    | build
+    | dist
+    # Legacy code
+    | legacy_scripts
+)/
+'''
 
 # ----------------------------------------------------------------------------
 # MYPY CONFIGURATION
@@ -347,23 +375,30 @@ target-version = ["py311"]
 # Python version for type checking
 python_version = "3.11"
 
-# Warn about functions that return Any
+# Strict mode options for maximum type safety
 warn_return_any = true
-
-# Warn about unused mypy configurations
 warn_unused_configs = true
-
-# Require type annotations for all functions
 disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
 
-# Don't error on missing imports (useful for third-party packages)
+# Import discovery
 ignore_missing_imports = true
+namespace_packages = true
+explicit_package_bases = true
 
-# Additional strict options you might want to enable gradually:
-# strict = true  # Enables all strict checks
-# no_implicit_optional = true
-# warn_redundant_casts = true
-# warn_unused_ignores = true
+# Per-module options for gradual typing adoption
+[[tool.mypy.overrides]]
+# Legacy modules that haven't been fully typed yet
+module = "balance_pipeline.legacy.*"
+ignore_errors = true
 
 # ----------------------------------------------------------------------------
 # PYTEST CONFIGURATION
@@ -400,10 +435,14 @@ addopts = [
     "--cov-report=term-missing:skip-covered",  # Show missing lines, hide 100% files
     "--cov-report=html:htmlcov",          # Generate HTML report in htmlcov/
     "--cov-report=xml:coverage.xml",      # Generate XML for CI tools
+    "--cov-fail-under=80",                # Fail if coverage drops below 80%
     
     # Performance and debugging
     "--durations=10",                     # Show 10 slowest tests
     "-ra",                                # Show all test summary info
+    
+    # Warnings
+    "-W ignore::DeprecationWarning",      # Ignore deprecation warnings from dependencies
 ]
 
 # Test markers definition
@@ -415,6 +454,7 @@ markers = [
     "smoke: marks tests as smoke tests for quick validation",
     "requires_pdf: marks tests that require PDF processing capabilities",
     "requires_excel: marks tests that require Excel file handling",
+    "requires_reportlab: marks tests that require reportlab for PDF generation",
 ]
 
 # Console output settings
@@ -426,6 +466,10 @@ log_cli_level = "INFO"                   # Default log level for console
 log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
+# Timeout for individual tests (in seconds)
+# Prevents hanging tests from blocking CI/CD pipelines
+timeout = 300
+
 # ----------------------------------------------------------------------------
 # COVERAGE CONFIGURATION
 # Code coverage measurement settings
@@ -434,19 +478,64 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 # Source code to measure coverage for
 source = ["src/balance_pipeline"]
 
+# Use branch coverage (not just line coverage)
+branch = true
+
 # Patterns to exclude from coverage
-omit = ["*/tests/*", "*/test_*.py"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__init__.py",
+    "*/legacy_scripts/*",
+]
+
+# Enable coverage for multiprocessing
+parallel = true
 
 [tool.coverage.report]
+# Minimum coverage percentage required
+fail_under = 80
+
+# Precision for coverage percentages
+precision = 2
+
+# Show missing line numbers
+show_missing = true
+
+# Skip files with 100% coverage in report
+skip_covered = false
+
 # Lines to exclude from coverage reporting
 exclude_lines = [
-    "pragma: no cover",                   # Explicit exclusion marker
-    "def __repr__",                       # String representation methods
-    "raise AssertionError",               # Defensive assertions
-    "raise NotImplementedError",          # Abstract methods
-    "if __name__ == .__main__.:",         # Script entry points
-    "if TYPE_CHECKING:",                  # Type checking blocks
+    # Standard pragmas
+    "pragma: no cover",
+    
+    # Debugging and development code
+    "def __repr__",
+    "def __str__",
+    
+    # Defensive programming
+    "raise AssertionError",
+    "raise NotImplementedError",
+    
+    # Non-runtime code
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    
+    # Abstract methods
+    "@(abc\\.)?abstractmethod",
+    
+    # Unreachable code
+    "pass",
+    "\\.\\.\\.",
 ]
+
+[tool.coverage.html]
+# Directory for HTML coverage reports
+directory = "htmlcov"
+
+# Include branch coverage in HTML report
+show_contexts = true
 
 # ============================================================================ #
 #                              END OF FILE                                     #
@@ -455,4 +544,5 @@ exclude_lines = [
 # - Poetry: https://python-poetry.org/docs/pyproject/                         #
 # - PEP 517: https://www.python.org/dev/peps/pep-0517/                       #
 # - PEP 518: https://www.python.org/dev/peps/pep-0518/                       #
+# - PEP 621: https://www.python.org/dev/peps/pep-0621/                       #
 # ============================================================================ #
