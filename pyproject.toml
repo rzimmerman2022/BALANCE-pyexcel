@@ -239,6 +239,16 @@ mkdocs-material = "^9.5"
 # Benefit: Keeps docs in sync with code
 mkdocstrings-python = "^1.9"
 
+# ----------------------------------------------------------------------------
+# PERFORMANCE PROFILING TOOLS
+# For analyzing and optimizing code performance
+# ----------------------------------------------------------------------------
+
+# snakeviz: Browser-based Python profile result viewer
+# Used for: Visualizing cProfile output to identify performance bottlenecks
+# Usage: python -m cProfile -o profile.prof script.py && snakeviz profile.prof
+snakeviz = "^2.2.2"
+
 # ============================================================================ #
 #                          COMMAND LINE SCRIPTS                                #
 # ============================================================================ #
@@ -357,26 +367,64 @@ ignore_missing_imports = true
 
 # ----------------------------------------------------------------------------
 # PYTEST CONFIGURATION
-# Testing framework configuration
+# Testing framework configuration for comprehensive test management
 # ----------------------------------------------------------------------------
 [tool.pytest.ini_options]
-# Minimum pytest version required
+# Minimum pytest version required for compatibility
 minversion = "8.0"
 
-# Directories containing tests
-testpaths = ["tests"]
-
-# Add src to Python path for imports
+# Python path configuration - CRITICAL for proper imports
+# Adds src directory to PYTHONPATH so 'from balance_pipeline import X' works
 pythonpath = ["src"]
 
+# Test discovery configuration
+# Tells pytest where to find tests and what naming patterns to look for
+testpaths = ["tests"]                    # Directory containing test files
+python_files = ["test_*.py", "*_test.py"] # Test file naming patterns
+python_classes = ["Test*"]                # Test class naming pattern (PascalCase)
+python_functions = ["test_*"]             # Test function naming pattern
+
 # Command line options always passed to pytest
+# These improve the testing experience and provide useful output
 addopts = [
-    "--strict-markers",           # Fail on unknown markers
-    "--tb=short",                 # Shorter traceback format
-    "--cov=balance_pipeline",     # Measure coverage for our package
-    "--cov-report=term-missing",  # Show missing lines in terminal
-    "--cov-report=html",          # Generate HTML coverage report
+    # Strict mode options
+    "--strict-markers",                   # Fail on unknown test markers
+    "--strict-config",                    # Fail on config parsing errors
+    
+    # Output formatting
+    "--tb=short",                         # Shorter, more readable tracebacks
+    "--verbose",                          # More detailed test output
+    
+    # Coverage options
+    "--cov=balance_pipeline",             # Measure coverage for our package
+    "--cov-report=term-missing:skip-covered",  # Show missing lines, hide 100% files
+    "--cov-report=html:htmlcov",          # Generate HTML report in htmlcov/
+    "--cov-report=xml:coverage.xml",      # Generate XML for CI tools
+    
+    # Performance and debugging
+    "--durations=10",                     # Show 10 slowest tests
+    "-ra",                                # Show all test summary info
 ]
+
+# Test markers definition
+# Custom markers for organizing and filtering tests
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests requiring external resources",
+    "unit: marks tests as unit tests (fast, isolated)",
+    "smoke: marks tests as smoke tests for quick validation",
+    "requires_pdf: marks tests that require PDF processing capabilities",
+    "requires_excel: marks tests that require Excel file handling",
+]
+
+# Console output settings
+console_output_style = "progress"         # Show progress bar during test runs
+
+# Logging configuration for tests
+log_cli = true                           # Enable live logging to console
+log_cli_level = "INFO"                   # Default log level for console
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
 # ----------------------------------------------------------------------------
 # COVERAGE CONFIGURATION
@@ -392,12 +440,12 @@ omit = ["*/tests/*", "*/test_*.py"]
 [tool.coverage.report]
 # Lines to exclude from coverage reporting
 exclude_lines = [
-    "pragma: no cover",             # Explicit exclusion marker
-    "def __repr__",                 # String representation methods
-    "raise AssertionError",         # Defensive assertions
-    "raise NotImplementedError",    # Abstract methods
-    "if __name__ == .__main__.:",   # Script entry points
-    "if TYPE_CHECKING:",            # Type checking blocks
+    "pragma: no cover",                   # Explicit exclusion marker
+    "def __repr__",                       # String representation methods
+    "raise AssertionError",               # Defensive assertions
+    "raise NotImplementedError",          # Abstract methods
+    "if __name__ == .__main__.:",         # Script entry points
+    "if TYPE_CHECKING:",                  # Type checking blocks
 ]
 
 # ============================================================================ #
