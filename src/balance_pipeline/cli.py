@@ -4,7 +4,13 @@ import argparse
 import logging
 from pathlib import Path
 import sys # For sys.exit in case of critical errors
+import os
 import numpy as np        #  ← add this right after the other imports
+
+# Windows console UTF-8 configuration to prevent UnicodeEncodeError
+if os.name == "nt":  # Windows cmd/PowerShell default is cp1252
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # Import from other modules in the pipeline
 from .config import AnalysisConfig
@@ -207,12 +213,15 @@ def run_analysis_pipeline(
     for name, path_str in output_file_paths.items():
         logger.info(f"  - {name}: {Path(path_str).name}")
     
+    # Get data quality score from analytics results
+    data_quality_score = analytics_results.get('data_quality_score', 0.0)
+    
     # Log key final results
     logger.info("=" * 80)
     logger.info("FINAL SUMMARY")
     logger.info(f"  Who Owes Whom: {reconciliation_results.get('who_owes_whom', 'N/A')}")
     logger.info(f"  Amount Owed: ${reconciliation_results.get('amount_owed', 0):,.2f}")
-    logger.info(f"  Data Quality Score: {analytics_results.get('data_quality_score', 0.0):.1f}%") # Assuming DQ score is in analytics
+    logger.info(f"  Data Quality Score: {data_quality_score:.2f}%")
     logger.info(f"  Overall Risk Level: {risk_assessment_results.get('overall_risk_level', 'N/A')}")
     logger.info("=" * 80)
 

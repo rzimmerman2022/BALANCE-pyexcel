@@ -193,6 +193,10 @@ def perform_advanced_analytics(
         analytics["rent_budget_analysis"] = {"message": "Processed rent data is empty, skipping budget variance analysis."}
 
 
+    # Calculate and store data quality score
+    data_quality_score = _calculate_data_quality_score(master_ledger, logger_instance)
+    analytics["data_quality_score"] = data_quality_score
+    
     logger_instance.info("Advanced analytics completed.")
     return analytics
 

@@ -31,9 +31,13 @@ def build_design_theme(logger_instance: logging.Logger = logger):
     Sets Matplotlib rcParams and returns Plotly template.
     """
     logger_instance.info("Building design theme for visualizations...")
-    # Matplotlib configuration
+    # Matplotlib configuration - use sans-serif fallback to prevent font warnings
+    import matplotlib
+    matplotlib.rcParams["font.family"] = "sans-serif"
+    
     plt.rcParams.update({
-        "font.family": ["Inter", "DejaVu Sans", "sans-serif"], "font.size": 10,
+        "font.family": "sans-serif", "font.size": 10,
+        "font.sans-serif": ["DejaVu Sans", "Arial", "Liberation Sans"],
         "axes.titlesize": 12, "axes.labelsize": 10,
         "axes.prop_cycle": plt.cycler("color", TABLEAU_COLORBLIND_10),
         "axes.grid": True, "grid.linestyle": "--", "grid.alpha": 0.25,

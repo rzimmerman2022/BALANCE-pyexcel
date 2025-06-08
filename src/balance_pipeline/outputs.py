@@ -148,8 +148,8 @@ def _generate_executive_summary_pdf(
                 img.drawHeight = img_height_pts * final_scale_factor
                 story.append(img)
             except Exception as img_err:
-                logger_instance.error(f"Could not load image for PDF: {viz_file_path.name} - {img_err}")
-                story.append(Paragraph(f"[Could not load image: {viz_file_path.name} - {img_err}]", styles["ItalicCustom"]))
+                logger_instance.warning(f"Placeholder image missing; skipping image block: {viz_file_path.name} - {img_err}")
+                story.append(Paragraph(f"[Image not available: {viz_file_path.name}]", styles["ItalicCustom"]))
             
             alt = alt_texts.get(viz_name, "")
             if alt: story.append(Paragraph(f"{alt}", styles["ItalicCustom"]))
