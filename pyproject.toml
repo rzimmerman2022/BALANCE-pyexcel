@@ -45,7 +45,7 @@ name = "balance-pyexcel-pipeline"
 version = "0.1.0"
 
 # A brief, one-line description of what your package does
-description = "Python ETL pipeline for the BALANCE-pyexcel shared finance tracker."
+description = "Python ETL pipeline for the BALANCE-pyexcel shared finance tracker, including a standalone baseline analyzer."
 
 # Package authors - format: "Name <email>"
 # Multiple authors can be listed as array elements
@@ -58,7 +58,7 @@ readme = "README.md"
 # - include: package name to include
 # - from: directory where the package is located
 # This tells Poetry to look for 'balance_pipeline' inside the 'src' directory
-packages = [{include = "balance_pipeline", from = "src"}]
+packages = [{include = "balance_pipeline", from = "src"}, {include = "baseline_analyzer", from = "src"}]
 
 # ============================================================================ #
 #                         RUNTIME DEPENDENCIES                                 #
@@ -149,6 +149,7 @@ python-dotenv = "^1.1.0"
 # Used for: Reading schema_registry.yml and other configuration files
 # Why YAML: More readable than JSON for configuration files
 PyYAML = "^6.0.1"
+structlog = "^24.1.0" # For structured logging
 
 # ----------------------------------------------------------------------------
 # OPTIONAL DEPENDENCIES
@@ -286,6 +287,10 @@ balance-merchant = "balance_pipeline.cli_merchant:main_merchant"
 # Data analysis operations
 # Usage: balance-analyze [options]
 balance-analyze = "balance_pipeline.analyzer:main"
+
+# Baseline analyzer CLI tool
+# Usage: baseline-analyze
+baseline-analyze = "baseline_analyzer.cli:main"
 
 # ============================================================================ #
 #                            BUILD SYSTEM                                      #
