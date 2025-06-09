@@ -92,7 +92,7 @@ pandas = "^2.2.3"
 # pyarrow: High-performance columnar data library
 # Used for: Parquet file I/O, memory-efficient data processing
 # Provides: 10-100x faster Parquet operations compared to pure Python
-pyarrow = "^15.0.0"
+pyarrow = {version = ">=16.0.0", markers = "python_version < '3.13'"}
 
 # openpyxl: Modern Excel file handler
 # Used for: Reading/writing .xlsx files with full formatting support
@@ -171,6 +171,9 @@ fastparquet = {version = "^2024.5", optional = true}
 [tool.poetry.extras]
 # Alternative Parquet handler for systems where pyarrow is problematic
 parquet-alt = ["fastparquet"]
+# Optional dependency for pyarrow, especially for Python 3.13+ where it's not installed by default.
+# The version constraint is handled in the main [tool.poetry.dependencies] section.
+arrow = ["pyarrow"]
 
 # ============================================================================ #
 #                         DEVELOPMENT DEPENDENCIES                             #

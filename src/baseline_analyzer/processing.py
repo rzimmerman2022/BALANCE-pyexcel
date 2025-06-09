@@ -796,26 +796,13 @@ def process_rent_data(
     return df
 
 
-def build_baseline() -> pd.DataFrame:
+__all__ = ["build_baseline"]
+
+def build_baseline(debug: bool = False) -> pd.DataFrame:
     """
-    Placeholder for the main function to build the baseline snapshot.
-    This function will orchestrate loading, processing, and assembling
-    the data required for baseline_snapshot.csv.
+    Placeholder that returns an empty frame so the CLI & tests import.
+    Flesh out with real logic in Phase P1.
     """
-    logger.info("build_baseline() called. Placeholder implementation.")
-    # In a real implementation, this would involve:
-    # 1. Loading necessary data (e.g., using functions from a loaders.py within baseline_analyzer)
-    # 2. Applying specific configurations or rules for the baseline
-    # 3. Running relevant processing steps (e.g., simplified versions of expense/rent pipelines)
-    # 4. Assembling the final DataFrame for the snapshot.
-    
-    # For now, returning an empty DataFrame with expected columns for the CLI to work.
-    # The actual columns will depend on what 'baseline_snapshot.csv' should contain.
-    # Example columns:
-    # return pd.DataFrame(columns=["Date", "Description", "Amount", "Category", "Status"])
-    
-    # For P0, the user's plan implies `build_baseline().to_csv("baseline_snapshot.csv", index=False)`
-    # So, it needs to return a DataFrame.
-    # Let's return a very simple DataFrame for now.
-    data = {'col1': [1, 2], 'col2': ['A', 'B']}
-    return pd.DataFrame(data)
+    # logger.info(f"build_baseline() called. Debug: {debug}. Placeholder implementation.")
+    cols = ["person", "net_owed"]
+    return pd.DataFrame(columns=cols)
