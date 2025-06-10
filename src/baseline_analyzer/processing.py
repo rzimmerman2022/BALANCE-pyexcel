@@ -6,12 +6,23 @@ from datetime import datetime, timezone
 import logging
 from pathlib import Path
 from typing import Dict, List, Any, Union
+from dataclasses import dataclass
+import re
 
 # Assuming config.py and loaders.py are in the same directory or accessible via PYTHONPATH
 from .config import AnalysisConfig, DataQualityFlag 
+from .lineage_utils import init_lineage, add_step_id, validate_lineage
 # from .loaders import merge_expense_and_ledger_data, merge_rent_data # Not needed directly here if passed as DFs
 
 logger = logging.getLogger(__name__)
+
+@dataclass
+class CleanerStats:
+    """Statistics from the data cleaning process."""
+    rows_in: int
+    rows_out: int
+    duplicates_dropped: int
+    bad_dates: int
 
 # This module will house functions that take DataFrames (potentially from loaders.py)
 # and the AnalysisConfig, then perform processing and business logic application.
@@ -796,13 +807,283 @@ def process_rent_data(
     return df
 
 
-__all__ = ["build_baseline"]
+def _clean_amount_column(series: pd.Series) -> pd.Series:
+    """Clean and convert amount columns from string to float."""
+    if series.dtype == 'object':
+        # Remove dollar signs, commas, and convert to float
+        cleaned = series.astype(str).str.replace('$', '').str.replace(',', '').str.strip()
+        return pd.to_numeric(cleaned, errors='coerce')
+    return series
 
-def build_baseline(debug: bool = False) -> pd.DataFrame:
+
+def _load_sources(inputs_dir: str = "data") -> Dict[str, pd.DataFrame]:
     """
-    Placeholder that returns an empty frame so the CLI & tests import.
-    Flesh out with real logic in Phase P1.
+    Load data sources from CSV files.
+    
+    Args:
+        inputs_dir: Directory containing input CSV files
+        
+    Returns:
+        Dictionary with loaded DataFrames
     """
-    # logger.info(f"build_baseline() called. Debug: {debug}. Placeholder implementation.")
-    cols = ["person", "net_owed"]
-    return pd.DataFrame(columns=cols)
+    sources = {}
+    inputs_path = Path(inputs_dir)
+    
+    # Define expected files and their mappings
+    file_mappings = {
+        "expenses": ["Expense_History_*.csv", "expenses.csv"],
+        "ledger": ["Transaction_Ledger_*.csv", "ledger.csv"],
+        "rent": ["Rent_Allocation_*.csv", "rent.csv"]
+    }
+    
+    for source_name, patterns in file_mappings.items():
+        found_file = None
+        
+        # Try each pattern
+        for pattern in patterns:
+            matching_files = list(inputs_path.glob(pattern))
+            if matching_files:
+                found_file = matching_files[0]  # Take the first match
+                break
+        
+        if found_file and found_file.exists():
+            try:
+                df = pd.read_csv(found_file)
+                # Initialize lineage tracking
+                df = init_lineage(df, source_name)
+                sources[source_name] = df
+                logger.info(f"Loaded {source_name} from {found_file}: {len(df)} rows")
+            except Exception as e:
+                logger.error(f"Failed to load {source_name} from {found_file}: {e}")
+                sources[source_name] = pd.DataFrame()
+        else:
+            logger.warning(f"No file found for {source_name} in {inputs_dir}")
+            sources[source_name] = pd.DataFrame()
+    
+    return sources
+
+
+def _clean_frames(sources: Dict[str, pd.DataFrame]) -> tuple[Dict[str, pd.DataFrame], CleanerStats]:
+    """
+    Clean and normalize data frames.
+    
+    Args:
+        sources: Dictionary of raw DataFrames
+        
+    Returns:
+        Tuple of (cleaned DataFrames, cleaning statistics)
+    """
+    total_rows_in = sum(len(df) for df in sources.values())
+    duplicates_dropped = 0
+    bad_dates = 0
+    cleaned_sources = {}
+    
+    for source_name, df in sources.items():
+        if df.empty:
+            cleaned_sources[source_name] = df
+            continue
+            
+        df_clean = df.copy()
+        
+        # Clean amount columns
+        amount_cols = [col for col in df_clean.columns if 'amount' in col.lower() or 'total' in col.lower()]
+        for col in amount_cols:
+            if col in df_clean.columns:
+                df_clean[col] = _clean_amount_column(df_clean[col])
+        
+        # Normalize date columns
+        date_cols = [col for col in df_clean.columns if 'date' in col.lower()]
+        for col in date_cols:
+            if col in df_clean.columns:
+                original_count = df_clean[col].notna().sum()
+                df_clean[col] = pd.to_datetime(df_clean[col], errors='coerce')
+                new_count = df_clean[col].notna().sum()
+                bad_dates += (original_count - new_count)
+        
+        # Remove duplicates
+        initial_len = len(df_clean)
+        df_clean = df_clean.drop_duplicates()
+        duplicates_dropped += (initial_len - len(df_clean))
+        
+        # Add cleaning step to lineage
+        df_clean = add_step_id(df_clean, "02b_clean")
+        
+        cleaned_sources[source_name] = df_clean
+        logger.info(f"Cleaned {source_name}: {len(df)} -> {len(df_clean)} rows")
+    
+    total_rows_out = sum(len(df) for df in cleaned_sources.values())
+    
+    stats = CleanerStats(
+        rows_in=total_rows_in,
+        rows_out=total_rows_out,
+        duplicates_dropped=duplicates_dropped,
+        bad_dates=bad_dates
+    )
+    
+    return cleaned_sources, stats
+
+
+def _reconcile(sources: Dict[str, pd.DataFrame], config: AnalysisConfig) -> pd.DataFrame:
+    """
+    Perform basic reconciliation to generate baseline snapshot.
+    
+    Args:
+        sources: Dictionary of cleaned DataFrames
+        config: Analysis configuration
+        
+    Returns:
+        DataFrame with person-level net balances
+    """
+    ryan_balance = 0.0
+    jordyn_balance = 0.0
+    lineage_parts = []
+    
+    # Process expenses
+    if not sources["expenses"].empty:
+        expenses_df = sources["expenses"].copy()
+        lineage_parts.append("01a_expenses_raw")
+        
+        # Normalize column names
+        if "Name" in expenses_df.columns:
+            expenses_df["Payer"] = expenses_df["Name"]
+        
+        # Clean amount columns - handle variations in column names
+        actual_col = None
+        allowed_col = None
+        
+        for col in expenses_df.columns:
+            if "actual amount" in col.lower().strip():
+                actual_col = col
+            elif "allowed amount" in col.lower().strip():
+                allowed_col = col
+        
+        if actual_col:
+            expenses_df["ActualAmount"] = _clean_amount_column(expenses_df[actual_col])
+        else:
+            expenses_df["ActualAmount"] = 0.0
+            
+        if allowed_col:
+            expenses_df["AllowedAmount"] = _clean_amount_column(expenses_df[allowed_col])
+        else:
+            expenses_df["AllowedAmount"] = expenses_df["ActualAmount"]
+        
+        # Apply 2x rule if needed
+        if "Description" in expenses_df.columns and "AllowedAmount" in expenses_df.columns:
+            two_x_mask = expenses_df["Description"].str.contains("2x to calculate", case=False, na=False)
+            expenses_df.loc[two_x_mask, "AllowedAmount"] = expenses_df.loc[two_x_mask, "ActualAmount"] * 2
+        
+        # Calculate total shared expenses and what each person paid
+        total_shared = expenses_df["AllowedAmount"].sum()
+        ryan_paid = expenses_df[expenses_df["Payer"].str.lower() == "ryan"]["ActualAmount"].sum()
+        jordyn_paid = expenses_df[expenses_df["Payer"].str.lower() == "jordyn"]["ActualAmount"].sum()
+        
+        # Calculate what each person should pay
+        ryan_should_pay = total_shared * config.RYAN_PCT
+        jordyn_should_pay = total_shared * config.JORDYN_PCT
+        
+        # Calculate balances (positive = owes money, negative = is owed money)
+        ryan_balance += ryan_should_pay - ryan_paid
+        jordyn_balance += jordyn_should_pay - jordyn_paid
+    
+    # Process rent - assume Jordyn pays all rent upfront, Ryan owes his share
+    if not sources["rent"].empty:
+        rent_df = sources["rent"].copy()
+        lineage_parts.append("01a_rent_raw")
+        
+        # Clean rent amounts
+        if "Ryan's Rent (43%)" in rent_df.columns:
+            ryan_rent_total = _clean_amount_column(rent_df["Ryan's Rent (43%)"]).sum()
+            ryan_balance += ryan_rent_total  # Ryan owes this amount
+            jordyn_balance -= ryan_rent_total  # Jordyn is owed this amount (since she paid)
+    
+    # Create final results
+    combined_lineage = "|".join(lineage_parts) + "|02b_clean|03c_reconciled"
+    
+    results = []
+    if ryan_balance != 0:
+        results.append({
+            "person": "Ryan",
+            "net_owed": round(ryan_balance, 2),
+            "lineage": combined_lineage
+        })
+    
+    if jordyn_balance != 0:
+        results.append({
+            "person": "Jordyn",
+            "net_owed": round(jordyn_balance, 2),
+            "lineage": combined_lineage
+        })
+    
+    # If no balances, still return empty DataFrame with correct columns
+    if not results:
+        return pd.DataFrame(columns=["person", "net_owed", "lineage"])
+    
+    return pd.DataFrame(results)
+
+
+def build_baseline(debug: bool = False, inputs_dir: str = "data", 
+                  snapshot_dir: str = "debug_output") -> pd.DataFrame:
+    """
+    Build baseline snapshot with full pipeline implementation.
+    
+    Args:
+        debug: Enable debug mode with snapshot outputs
+        inputs_dir: Directory containing input CSV files
+        snapshot_dir: Directory for debug snapshots
+        
+    Returns:
+        DataFrame with baseline balance snapshot
+    """
+    logger.info(f"build_baseline() called. Debug: {debug}, inputs_dir: {inputs_dir}")
+    
+    config = AnalysisConfig(debug_mode=debug)
+    
+    try:
+        # Step 1: Load sources
+        logger.info("Loading data sources...")
+        sources = _load_sources(inputs_dir)
+        
+        if debug:
+            Path(snapshot_dir).mkdir(exist_ok=True)
+            for name, df in sources.items():
+                if not df.empty:
+                    df.to_csv(f"{snapshot_dir}/01a_{name}_raw.csv", index=False)
+        
+        # Step 2: Clean frames
+        logger.info("Cleaning data frames...")
+        cleaned_sources, stats = _clean_frames(sources)
+        
+        logger.info(f"Cleaning stats: {stats.rows_in} -> {stats.rows_out} rows, "
+                   f"{stats.duplicates_dropped} duplicates dropped, {stats.bad_dates} bad dates")
+        
+        if debug:
+            for name, df in cleaned_sources.items():
+                if not df.empty:
+                    df.to_csv(f"{snapshot_dir}/02b_{name}_clean.csv", index=False)
+        
+        # Step 3: Reconcile
+        logger.info("Performing reconciliation...")
+        baseline_df = _reconcile(cleaned_sources, config)
+        
+        if debug:
+            baseline_df.to_csv(f"{snapshot_dir}/03c_baseline_reconciled.csv", index=False)
+        
+        # Validate results
+        if not baseline_df.empty:
+            total_net = baseline_df["net_owed"].sum()
+            logger.info(f"Reconciliation complete. Total net balance: ${total_net:.2f}")
+            
+            # Validate lineage
+            if validate_lineage(baseline_df):
+                logger.info("Lineage validation passed")
+            else:
+                logger.warning("Lineage validation failed")
+        
+        return baseline_df
+        
+    except Exception as e:
+        logger.error(f"Error in build_baseline: {e}")
+        return pd.DataFrame(columns=["person", "net_owed", "lineage"])
+
+
+__all__ = ["build_baseline", "CleanerStats"]

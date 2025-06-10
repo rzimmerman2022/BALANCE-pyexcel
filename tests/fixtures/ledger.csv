@@ -1,0 +1,5 @@
+Name,Date of Purchase,Account,Merchant,Merchant Description,Actual Amount,Description,Category,Running Balance
+Ryan,2024-01-15,Wells Fargo,Fry's,Grocery Store,$45.50,,Groceries,$45.50
+Jordyn,2024-01-16,Chase,Target,Department Store,$32.25,,Shopping,$77.75
+Ryan,2024-01-17,Mercury,Venmo,Payment Service,$100.00,,Transfer,$177.75
+Jordyn,2024-01-18,Wells Fargo,Whole Foods,Grocery Store,$28.75,,Groceries,$206.50
