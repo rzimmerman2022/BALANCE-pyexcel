@@ -807,6 +807,14 @@ def process_rent_data(
     return df
 
 
+def _normalise_header(col: str) -> str:
+    """
+    Collapse whitespace, strip, lower-snake-case for robust matching.
+    Example: ' Allowed Amount ' → 'allowed_amount'
+    """
+    return re.sub(r'\s+', '_', col.strip()).lower()
+
+
 def _clean_amount_column(series: pd.Series) -> pd.Series:
     """Clean and convert amount columns from string to float."""
     if series.dtype == 'object':
@@ -814,6 +822,26 @@ def _clean_amount_column(series: pd.Series) -> pd.Series:
         cleaned = series.astype(str).str.replace('$', '').str.replace(',', '').str.strip()
         return pd.to_numeric(cleaned, errors='coerce')
     return series
+
+
+# Canonical column mapping for header normalization
+CANONICAL_COLUMNS = {
+    "allowed_amount": "AllowedAmount",
+    "actual_amount": "ActualAmount", 
+    "date_of_purchase": "Date",
+    "name": "Payer",
+    "description": "Description",
+    "merchant": "Merchant",
+    "account": "Account",
+    "gross_total": "GrossTotal",
+    "ryan's_rent_(43%)": "RyanRentPortion",
+    "jordyn's_rent_(57%)": "JordynRentPortion", 
+    "month": "Month_Display",
+    "month_date": "Date",
+    "amount": "ActualAmount",
+    "date": "Date",
+    "payer": "Payer"
+}
 
 
 def _load_sources(inputs_dir: str = "data") -> Dict[str, pd.DataFrame]:
@@ -878,6 +906,13 @@ def _clean_frames(sources: Dict[str, pd.DataFrame]) -> tuple[Dict[str, pd.DataFr
     bad_dates = 0
     cleaned_sources = {}
     
+    # Define required columns for each source type
+    required_columns = {
+        "expenses": {"Payer", "Date", "ActualAmount", "AllowedAmount", "Description"},
+        "ledger": {"Date", "Amount"},
+        "rent": {"Month_Display", "GrossTotal"}
+    }
+    
     for source_name, df in sources.items():
         if df.empty:
             cleaned_sources[source_name] = df
@@ -885,13 +920,46 @@ def _clean_frames(sources: Dict[str, pd.DataFrame]) -> tuple[Dict[str, pd.DataFr
             
         df_clean = df.copy()
         
-        # Clean amount columns
-        amount_cols = [col for col in df_clean.columns if 'amount' in col.lower() or 'total' in col.lower()]
+        # Step 1: Header normalization - Fix the root cause!
+        logger.info(f"Original columns for {source_name}: {list(df_clean.columns)}")
+        
+        # Create mapping of normalized headers to canonical names
+        new_column_names = {}
+        for col in df_clean.columns:
+            normalized = _normalise_header(col)
+            canonical = CANONICAL_COLUMNS.get(normalized, col)  # Use original if no mapping found
+            new_column_names[col] = canonical
+        
+        # Rename columns to canonical names
+        df_clean.rename(columns=new_column_names, inplace=True)
+        logger.info(f"Normalized columns for {source_name}: {list(df_clean.columns)}")
+        
+        # Step 2: Validate required columns are present after normalization
+        if source_name in required_columns:
+            required = required_columns[source_name]
+            missing = required - set(df_clean.columns)
+            if missing:
+                logger.warning(f"{source_name} CSV missing required columns after normalization: {missing}")
+                # Add missing columns with default values
+                for col in missing:
+                    if "Amount" in col:
+                        df_clean[col] = 0.0
+                    elif "Date" in col:
+                        df_clean[col] = pd.NaT
+                    else:
+                        df_clean[col] = ""
+        
+        # Step 3: Clean amount columns (including rent columns)
+        amount_cols = [col for col in df_clean.columns if 
+                      'amount' in col.lower() or 
+                      'total' in col.lower() or
+                      'portion' in col.lower() or
+                      'rent' in col.lower()]
         for col in amount_cols:
             if col in df_clean.columns:
                 df_clean[col] = _clean_amount_column(df_clean[col])
         
-        # Normalize date columns
+        # Step 4: Normalize date columns
         date_cols = [col for col in df_clean.columns if 'date' in col.lower()]
         for col in date_cols:
             if col in df_clean.columns:
@@ -900,12 +968,12 @@ def _clean_frames(sources: Dict[str, pd.DataFrame]) -> tuple[Dict[str, pd.DataFr
                 new_count = df_clean[col].notna().sum()
                 bad_dates += (original_count - new_count)
         
-        # Remove duplicates
+        # Step 5: Remove duplicates
         initial_len = len(df_clean)
         df_clean = df_clean.drop_duplicates()
         duplicates_dropped += (initial_len - len(df_clean))
         
-        # Add cleaning step to lineage
+        # Step 6: Add cleaning step to lineage
         df_clean = add_step_id(df_clean, "02b_clean")
         
         cleaned_sources[source_name] = df_clean
@@ -943,79 +1011,87 @@ def _reconcile(sources: Dict[str, pd.DataFrame], config: AnalysisConfig) -> pd.D
         expenses_df = sources["expenses"].copy()
         lineage_parts.append("01a_expenses_raw")
         
-        # Normalize column names
-        if "Name" in expenses_df.columns:
-            expenses_df["Payer"] = expenses_df["Name"]
+        logger.info(f"Processing {len(expenses_df)} expense rows")
+        logger.info(f"Expenses columns: {list(expenses_df.columns)}")
         
-        # Clean amount columns - handle variations in column names
-        actual_col = None
-        allowed_col = None
-        
-        for col in expenses_df.columns:
-            if "actual amount" in col.lower().strip():
-                actual_col = col
-            elif "allowed amount" in col.lower().strip():
-                allowed_col = col
-        
-        if actual_col:
-            expenses_df["ActualAmount"] = _clean_amount_column(expenses_df[actual_col])
-        else:
+        # The columns should already be normalized from _clean_frames, so use them directly
+        if "ActualAmount" not in expenses_df.columns:
+            logger.warning("ActualAmount column missing after cleaning!")
             expenses_df["ActualAmount"] = 0.0
-            
-        if allowed_col:
-            expenses_df["AllowedAmount"] = _clean_amount_column(expenses_df[allowed_col])
-        else:
-            expenses_df["AllowedAmount"] = expenses_df["ActualAmount"]
+        if "AllowedAmount" not in expenses_df.columns:
+            logger.warning("AllowedAmount column missing after cleaning!")
+            expenses_df["AllowedAmount"] = expenses_df.get("ActualAmount", 0.0)
         
         # Apply 2x rule if needed
         if "Description" in expenses_df.columns and "AllowedAmount" in expenses_df.columns:
             two_x_mask = expenses_df["Description"].str.contains("2x to calculate", case=False, na=False)
             expenses_df.loc[two_x_mask, "AllowedAmount"] = expenses_df.loc[two_x_mask, "ActualAmount"] * 2
+            logger.info(f"Applied 2x rule to {two_x_mask.sum()} rows")
         
         # Calculate total shared expenses and what each person paid
         total_shared = expenses_df["AllowedAmount"].sum()
         ryan_paid = expenses_df[expenses_df["Payer"].str.lower() == "ryan"]["ActualAmount"].sum()
         jordyn_paid = expenses_df[expenses_df["Payer"].str.lower() == "jordyn"]["ActualAmount"].sum()
         
+        logger.info(f"Total shared: ${total_shared:.2f}")
+        logger.info(f"Ryan paid: ${ryan_paid:.2f}")
+        logger.info(f"Jordyn paid: ${jordyn_paid:.2f}")
+        
         # Calculate what each person should pay
         ryan_should_pay = total_shared * config.RYAN_PCT
         jordyn_should_pay = total_shared * config.JORDYN_PCT
         
+        logger.info(f"Ryan should pay: ${ryan_should_pay:.2f}")
+        logger.info(f"Jordyn should pay: ${jordyn_should_pay:.2f}")
+        
         # Calculate balances (positive = owes money, negative = is owed money)
         ryan_balance += ryan_should_pay - ryan_paid
         jordyn_balance += jordyn_should_pay - jordyn_paid
+        
+        logger.info(f"Ryan expense balance: ${ryan_balance:.2f}")
+        logger.info(f"Jordyn expense balance: ${jordyn_balance:.2f}")
     
     # Process rent - assume Jordyn pays all rent upfront, Ryan owes his share
     if not sources["rent"].empty:
         rent_df = sources["rent"].copy()
         lineage_parts.append("01a_rent_raw")
         
-        # Clean rent amounts
-        if "Ryan's Rent (43%)" in rent_df.columns:
-            ryan_rent_total = _clean_amount_column(rent_df["Ryan's Rent (43%)"]).sum()
+        logger.info(f"Processing {len(rent_df)} rent rows")
+        logger.info(f"Rent columns: {list(rent_df.columns)}")
+        
+        # Use the normalized column name from cleaning
+        if "RyanRentPortion" in rent_df.columns:
+            ryan_rent_total = float(rent_df["RyanRentPortion"].sum())
+            logger.info(f"Ryan rent total: ${ryan_rent_total:.2f}")
             ryan_balance += ryan_rent_total  # Ryan owes this amount
             jordyn_balance -= ryan_rent_total  # Jordyn is owed this amount (since she paid)
+        else:
+            logger.warning("RyanRentPortion column missing from rent data!")
+    
+    logger.info(f"Final Ryan balance: ${ryan_balance:.2f}")
+    logger.info(f"Final Jordyn balance: ${jordyn_balance:.2f}")
     
     # Create final results
     combined_lineage = "|".join(lineage_parts) + "|02b_clean|03c_reconciled"
     
     results = []
-    if ryan_balance != 0:
+    if abs(ryan_balance) > 0.01:  # Use small threshold to handle floating point precision
         results.append({
             "person": "Ryan",
             "net_owed": round(ryan_balance, 2),
             "lineage": combined_lineage
         })
     
-    if jordyn_balance != 0:
+    if abs(jordyn_balance) > 0.01:  # Use small threshold to handle floating point precision
         results.append({
-            "person": "Jordyn",
+            "person": "Jordyn", 
             "net_owed": round(jordyn_balance, 2),
             "lineage": combined_lineage
         })
     
     # If no balances, still return empty DataFrame with correct columns
     if not results:
+        logger.info("No significant balances found (all balances < $0.01)")
         return pd.DataFrame(columns=["person", "net_owed", "lineage"])
     
     return pd.DataFrame(results)
@@ -1082,7 +1158,9 @@ def build_baseline(debug: bool = False, inputs_dir: str = "data",
         return baseline_df
         
     except Exception as e:
+        import traceback
         logger.error(f"Error in build_baseline: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return pd.DataFrame(columns=["person", "net_owed", "lineage"])
 
 
