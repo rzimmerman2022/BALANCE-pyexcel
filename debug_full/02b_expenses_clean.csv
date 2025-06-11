@@ -1,0 +1,1131 @@
+Payer,Date,Account,Merchant,ActualAmount,AllowedAmount,Description,Unnamed: 7,Unnamed: 8,Unnamed: 9,Unnamed: 10,Unnamed: 11,Unnamed: 12,Unnamed: 13,Unnamed: 14,Unnamed: 15,Unnamed: 16,Unnamed: 17,lineage
+"September 9th, 2023 - September 24th, 2023",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-14,Mercury,Baldur's Gate 3,84.39,84.39, Looking into overcharge possibility ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-23,Mercury,Walgreens,13.1,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-23,Mercury,Walgreens,22.99,22.99," Hand sanitizer, Prosecco  ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-23,Mercury,Walgreens,44.98,20.0," Astroglide, Milk Thistle ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-24,Mercury,Walgreens,38.88,," Milk Thistle, Deodorant ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-24,Mercury,Walgreens,20.45,20.45," Laundry detergent, tissue ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-24,Mercury,Oklahoma Toll,11.2,22.4, 100% Jordyn (2x to calculate appropriately) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-09,Wells Fargo Everyday Checking x3850,Kimmyz Tatum,56.5,56.5,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-09,Wells Fargo,Tocaya,39.86,39.86,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-09,Wells Fargo,Walmart,56.64,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-15,Wells Fargo,CB & CB,40.0,40.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-15,Wells Fargo,Lings,27.56,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-22,Wells Fargo,NYPD Pizza,51.81,51.81,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-23,Wells Fargo,Mastro's,170.63,170.63," $85.31 (Birthday present portion, 2x to calculate) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-23,Wells Fargo,Postino,58.29,58.29,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-25,Wells Fargo,Walmart,59.75,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-16,Capital One Quicksilver,DoorDash,65.59,30.0, Wine $30 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-18,Capital One Quicksilver,DoorDash,21.0,, Poke Bowl ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-18,Capital One Quicksilver,DoorDash,67.5,67.5," Groceries (Water, Wine, Waterloo, etc.) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-18,Capital One Quicksilver,DoorDash,24.78,," Gatore, Chicken Broth, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-21,Capital One Quicksilver,DoorDash,61.28,61.28, Wine & Water ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-27,Capital One Quicksilver,DoorDash,53.72,53.72," Groceries, water, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-23,Capital One Savor One,Fry's,56.76,56.76,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-23,Capital One Savor One,Fry's,24.53,24.53,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-26,Capital One Savor One,Fry's,2.29,2.29,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-26,Capital One Savor One,Fry's,39.93,39.93,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-09,Apple,Bro,80.0,80.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-11,Apple,Bro,225.0,225.0,,,Key,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-17,Apple,Bro,225.0,225.0,,,Ryan,,Total,"$2,098.33",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-24,Apple,Bro,225.0,225.0,,,Jordyn,,Total,"$1,317.95",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-28,Apple,Bro,235.0,,,,Difference,,Total,$780.38,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-16,Zelle,Ethan,220.0,220.0,,,Amount Owed,,Total,$390.19,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-29,Zelle,Francisco,200.0,200.0,,,Ryan only,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-09,Wells Fargo,Kodo Sushi,90.0,90.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-10,Wells Fargo,Taste of Gilbert,35.81,35.81,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-11,Wells Fargo,Frys,274.82,274.82,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-13,Wells Fargo,Whole Foods,25.5,25.5,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-15,Wells Fargo,CB & CB,40.0,40.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-18,Wells Fargo,Frys,298.08,298.08,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-18,Wells Fargo,Lings,35.56,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-19,Wells Fargo,Five Guys,32.0,32.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-20,Wells Fargo,Sprouts,49.42,49.42,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-25,Wells Fargo,Frys,271.1,271.1,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-09-24,Wells Fargo,Tixr,201.22,201.22,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+"September 25th, 2023 - October 19th, 2023",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-24,Mercury,Walgreens,18.7,18.7," Tide, Arm & Hammer, Puff ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-24,Mercury,Walgreens,32.88,," MIlk Thistle, Deodorant ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-24,Mercury,Oklahoma Tolls,11.2,22.4, Jordyn Tolls ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-27,Mercury,Amazon,23.61,, 3 Ring Binder ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-28,Mercury,Amazon,47.97,," CoQ10, Flaxseed ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-28,Mercury,Amazon,21.58,, L-Theanine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-30,Mercury,Amazon,13.1,, Refund ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-02,Mercury,Amazon,11.87,11.87, Rapid Strips ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-03,Mercury,Public Storage,125.46,, Itemized on Monthly Budget ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-03,Mercury,Amazon,22.57,, Tests ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-10,Mercury,Amazon,86.39,, Refund ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-13,Mercury,Amazon,150.0,, Refund ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-13,Mercury,Amazon,50.0,, Refund ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-13,Mercury,Walmart,34.46,34.46, Ink ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-17,Mercury,Amazon,1185.3,600.0, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-18,Mercury,Amazon,5.93,, Brush ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-18,Mercury,Amazon,15.55,, Retainer Brite Tablets ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-18,Mercury,Amazon,22.46,, Mouthwash ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-01,Wells Fargo,Koi Poke,52.6,52.6,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-09,Wells Fargo,Tocaya,39.85,39.85,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-12,Wells Fargo,Walmart,50.1,, Gas ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-14,Wells Fargo,Trader Joe's,32.38,32.38,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-23,Capital One Quiksilver,DoorDash,61.28,, Water & Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-14,Capital One Quiksilver,DoorDash,48.56,48.56, Water & Tito's ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-16,Capital One Quiksilver,DoorDash,18.01,, CB & CB ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-09-30,Capital One Savor One,Fry's,43.4,43.4, Wine  ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-06,Capital One Savor One,Fry's,14.33,," 10/04 Order (Split $14.33 2463 / $29.06 EBT) Oikos, Beef Jerky, Sponges and Water ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-06,Capital One Savor One,Fry's,11.09,11.09, 3 Seltzers ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-11,Capital One Savor One,Fry's,139.49,139.49, 10/09 Order (Split $139.49 2463 / $76.25 EBT) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-17,Capital One Savor One,Fry's,22.16,, Sushi ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-01,EBT,Fry's,147.66,147.66, 10/01 Order ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-01,EBT,Fry's,39.3,39.3," 10/01 Order Amendment - Chicken tender, Pizza, Luna Bars ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-04,EBT,Fry's,29.06,29.06," 10/04 Order (Split $14.33 2463 / $29.06 EBT) Oikos, Beef Jerky, Sponges and Water ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-09,EBT,Fry's,76.27,76.27, 10/09 Order (Split $139.49 2463 / $76.25 EBT) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-16,EBT,Fry's,177.03,177.03, 10/16 Order (Split $138.76 4296 / 177.03 EBT) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-06,Apple,Bro,225.0,225.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-02,Wells Fargo Checking,Ethan,220.0,220.0,,,Red = Ryan's $0 Charges,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-11,Wells Fargo Checking,Bro,225.0,225.0,,,Ryan,,Total,"$2,794.12",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-16,Wells Fargo Checking,Bro,220.0,220.0,,,Jordyn,,Total,"$1,045.40",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-16,Wells Fargo Checking,Ethan,380.0,380.0,,,Difference,,Total,"$1,748.72",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-01,Wells Fargo,Fry's,133.78,133.78,,,Amount Owed,,Total,$874.36,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-01,Wells Fargo,,1.75,1.75,,,Kindle Ad,,,$854.36,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-01,Wells Fargo,Ling's,77.16,77.16,,,Anker Charging,,,$814.36,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-04,Wells Fargo,A R I Z O N A,96.0,96.0,,,PF Changs Cash,,,$789.36,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-07,Wells Fargo,Intentional Foods,46.3,46.3,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-07,Wells Fargo,Fry's,15.43,15.43,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-09,Wells Fargo,Fry's,29.05,29.05,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-16,Wells Fargo,Fry's,138.76,138.76,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-18,Wells Fargo,Bashas,26.17,26.17,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-11,Wells Fargo,Amazon,144.0,144.0, Vacuum & Brita ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-11,Wells Fargo,Amazon,320.0,322.0," Pans, Charger, Kindle, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,,Wells Fargo,Amazon,15.0,15.0, Simple Mills (Amazon) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+"October 20th, 2023 - November 8th, 2023",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-19,Mercury,Prime Video,3.15,3.15, Curiosty Stream? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-21,Mercury,Amazon,21.6,, Iron Man Shirt ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-21,Mercury,Walmart,50.43,50.43," Luna bar, Band-Aid, Lunch Meat & Tito's ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-22,Mercury,Amazon,20.52,, Iron Man Shirt ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-26,Mercury,Amazon,14.04,14.04, LED Puck Lights ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-26,Mercury,Amazon,21.11,, Hulk Shirt ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-27,Mercury,Amazon,18.97,, Ear Plugs ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-27,Mercury,Amazon,18.34,," ""Pepper Shaker"" :) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-30,Mercury,Manuel's,75.46,75.46,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-01,Mercury,Amazon,50.5,," Eyeglass cleaner, soap dispenser ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-01,Mercury,Amazon,63.54,," Supplements, headlamp ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-16,Capital One Quiksilver,DoorDash,51.56,51.56," Missed - Josh Cab, Vinegar, New Zealand Sauvignon Blanc, Sparkling Watermelon, Polar Lime ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-06,Capital One Quiksilver,DoorDash,21.79,, CB & CB ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-06,Capital One Quiksilver,DoorDash,25.99,, Koibito Poke ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-06,Capital One Quiksilver,DoorDash,45.85,45.85," Wine, Pho Rice Noodles ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-01,Capital One Savor One,Fry's,56.46,, Stephanie ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-22,EBT,Fry's,113.97,113.97,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-21,Wells Fargo Autograph,Kodo,69.35,69.35,,,Red = Ryan's $0 Charges,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-23,Wells Fargo Autograph,Hopdoddy,49.65,49.65,,,Ryan,,Total,"$2,531.00",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-23,Wells Fargo Autograph,Walmart,39.23,," What was this, no record online? ",,Jordyn,,Total,$846.39,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-23,Wells Fargo Autograph,Amazon,90.25,, Chargers & Lysine ,,Difference,,Total,"$1,684.61",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-23,Wells Fargo Autograph,Scottsdale Sports BK,36.33,36.33,,,Amount Owed,,Total,$842.31,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-24,Wells Fargo Autograph,Fry's,32.02,, Prescriptions ,,November 2023 Rent,,,$638.50,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-24,Wells Fargo Autograph,Amazon,6.42,6.42, Fingertip Bandages (charged to my card?) ,,Net Owed,,,$203.81,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-27,Wells Fargo Autograph,Sneaky Bird,20.05,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-28,Wells Fargo Autograph,Taste of China,31.71,31.71,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-28,Wells Fargo Autograph,Culinary Concepts,73.7,73.7,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-28,Wells Fargo Autograph,Culinary Concepts,69.08,69.08,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-28,Wells Fargo Autograph,Culinary Concepts,52.44,30.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-04,Wells Fargo Autograph,Bashas,37.14,37.14,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-05,Wells Fargo Autograph,Sapiens Paleo Kitchen,55.36,55.36,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-23,Wells Fargo,Ethan,545.0,545.0, 545 / 8.9 = $61.23 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-27,Wells Fargo,Lyft,9.14,," $ 45,224.63 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-30,Wells Fargo,Lyft,8.95,8.95," $ 45,227.71 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-30,Wells Fargo,Lyft,12.07,," $ 45,227.88 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-10-31,Wells Fargo,Cantera,365.4,365.4, Administration and Application Fees ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-06,Wells Fargo,Bro,220.0,220.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-06,Wells Fargo,Francisco,150.0,150.0, Clean Zen Den ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-05,Wells Fargo,Rebecca,220.0,120.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,,Wells Fargo,San Palmas,308.45,308.45, Administration and Application Fees ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-22,Wells Fargo,Living Room,79.0,79.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-23,Wells Fargo,DoorDash,51.83,51.83,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-23,Wells Fargo,Fry's,171.39,171.39,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-24,Wells Fargo,Sprouts,23.0,23.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-24,Wells Fargo,Draft Kings,27.27,27.27,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-27,Wells Fargo,Walmart,17.7,17.7,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-28,Wells Fargo,Festival,30.0,30.0, Cash for? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-28,Wells Fargo,Uber,15.0,15.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-28,Wells Fargo,Culinary Concepts,32.48,32.48,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-28,Wells Fargo,Culinary Concepts,16.75,16.75,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-10-29,Wells Fargo,Fry's,240.68,240.68,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-01,,Target,16.21,15.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-04,,Bashas,26.63,26.63,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2023-11-05,,Sapiens Paleo Kitchen,55.35,55.35,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2023-11-08,,Amazon,44.31,44.31,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+"November 9th, 2023 - November 19th, 2023 (11/6 late charge included)",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-10,Mercury,Amazon,102.62,49.99, Dohm & LectroFan Sound Machines ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-12,Mercury,Amazon,97.19,, Sound+Sleep Sound Machine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-12,Mercury,Walmart,51.53,51.53, Hardware for bed + Tool Kit ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-13,Mercury,Walmart,139.12,30.0, Totes & Tito (reassess next time) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-16,Capital One Quiksilver,Doordash,17.66,, Chipotle ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-16,Capital One Savor One,Fry's,325.58,325.58,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2023-11-19,Capital One Savor One,Fry's,88.2,88.2,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-19,Wells Fargo Autograph,Walmart,41.67,," Didn't use number, not available on purchase history (gas) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-15,Wells Fargo Autograph,Target,242.68,, Dyson ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-15,Wells Fargo Autograph,Target,76.01,76.01," Not in history - didn't use number with purchase - need  (rug, wine glasses, etc.) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-15,Wells Fargo Autograph,Culvers,19.64,19.64,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-16,Wells Fargo Autograph,Amazon,77.61,77.61, Bathroom Items ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-16,Wells Fargo Autograph,Amazon,48.0,48.0, Bathroom Items ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-17,Wells Fargo Autograph,Amazon,26.94,26.94, Bathroom Items ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-10,Wells Fargo,Rebecca,225.0,225.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-13,Wells Fargo,SRP,190.0,190.0, Electric ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-14,Wells Fargo,Francisco,150.0,150.0, Zen Den Clean ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-18,Wells Fargo,Cox,119.99,119.99,,,Red = Ryan's $0 Charges,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-12,Apple,Bro,230.0,230.0,,,Ryan,,Total,"$2,544.26",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-18,Apple,Bro,230.0,230.0,,,Jordyn,,Total,$965.80,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-11,Credit One Platinum X5,Frys,62.0,62.0,,,Difference,,Total,"$1,578.46",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-19,Credit One Platinum X6,Target,179.27,179.27," House supplies, cleaning, brooms, etc. (includes Target returns ",,Amount Owed,,Total,$789.23,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-18,Red Card,Target,286.3,288.0,,,Amazon 11/19 ($260 Owed to Jordyn),,,#REF!,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-19,,GoShare,76.5,76.5, Couch moving service ,,Amazon 11/19 ($75 to Ryan),,,#REF!,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-06,Wells Fargo,Frys,368.83,368.83, late charge ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-09,Wells Fargo,Walmart,30.54,30.54," items for mom and Jack coming over before pool party (champagne, dip, cheese, etc) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-09,Wells Fargo,Amazon,44.31,44.31,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-09,Wells Fargo,Amazon,49.5,49.5,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-11,Wells Fargo,Lings,64.19,64.19,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-12,Wells Fargo,Amazon,6.74,6.74,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-12,Wells Fargo,In n Out,23.18,23.18,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-13,Wells Fargo,Sneaky Bird,27.31,27.31,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-13,Wells Fargo,Sprouts,55.0,55.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-14,Wells Fargo,Bed bath and beyond,56.91,56.91, Toaster ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-14,Wells Fargo,Amazon,34.39,34.39,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-14,Wells Fargo,Amazon,30.71,30.71,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-14,Wells Fargo,Amazon,26.35,26.35,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-14,Wells Fargo,Amazon,45.24,45.24,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-15,Wells Fargo,Amazon,39.79,39.79,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-16,Wells Fargo,Amazon,16.81,16.81,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-19,Wells Fargo,Amazon,381.54,46.0," Ryan only purchases: $70 pillow,  office mat $189.99 ($260) Jordyn only $75 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+"November 20th, 2023 - December 11th, 2023",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,,,Amazon Gift Card,50.0,, Reassess next time ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-20,Mercury,Amazon,54.01,, Refund (Sleep Machine) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-25,Mercury,Whole Foods,46.35,46.35, Itemization Unavailable ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-25,Mercury,Robert's Ace Hardware,93.89,, Reassess next time (some items will be returned /refunded) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-26,Mercury,Amazon,10.84,, Clipboard ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-27,Mercury,Fry's,37.97,," Rotisserie Chicken, Oikos, Lettuce ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-30,Mercury,Amazon,18.35,7.5, Placemats ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-01,Mercury,Kohl's,24.89,24.89, Living Room Table ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-02,Mercury,Whole Foods,28.72,28.7, Itemization Unavailable ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-02,Mercury,Whole Foods,26.93,26.93, Itemization Unavailable ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-17,Mercury,Ace Hardware,36.57,36.57, Dresser Mounting Hardware ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-22,Capital One Savor One,Fry's,75.6,75.6, 11/20/2023 Order ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-29,Capital One Savor One,Uber,20.0,, Return TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-04,Capital One Savor One,Hash Kitchen,24.55,24.55, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-05,Capital One Savor One,Fry's,59.34,25.0," Laundry Stain Remover, Flowers, Hydrogen Peroxide, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-10,Capital One Savor One,The Whining Pig,19.92,19.92, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-11,Capital One Savor One,Fry's,270.58,231.8, 12/11/2023 - $231.80 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-08,Wells Fargo,Cox,89.99,89.99," Nov 14, 2023 ($119.99 - $20 ACP Discount) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-15,Wells Fargo Autograph,Target,242.68,242.68," In Store Purchase: Storage Trays, Aquafina, Keurig Water Filter, Measuring Cup, Vanity Tray Crackle Cream, Paper Towel Holder, Suction Sink Caddy, Shower Hooks, Shower Heads, Hamper, Wine Glasses, Rug - Where is this rug?! Order was originally $286, final price charged to credit reflects. See below transaction. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-15,Wells Fargo Autograph,Target,76.01,76.01, Glasses & Wine Glasses ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-15,Wells Fargo Autograph,Culvers,19.64,19.64, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-17,Wells Fargo Autograph,Amazon,48.0,48.0, Shower Items ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-17,Wells Fargo Autograph,Amazon,77.61,6.0," Holder Dispenser, Neck Pillow ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-17,Wells Fargo Autograph,Amazon,26.94,26.94, Shower Bathroom Rug ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-18,Wells Fargo Autograph,Vine Tavern,17.5,17.5,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-18,Wells Fargo Autograph,Robert's Ace Hardware,31.07,31.07, Hardware ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-18,Wells Fargo Autograph,Fry's Fuel,43.12,, When did I get fuel at Fry's? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-20,Wells Fargo Autograph,Amazon,47.89,," Shower Curtain HOoks, Dohm White Noise Machine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-20,Wells Fargo Autograph,GoShare Delivery,76.5,76.5, Couch delivery service ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-20,Wells Fargo Autograph,Amazon,51.19,, Jordyn's Pillow ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-25,Wells Fargo Autograph,Cooper's Hawk,44.99,44.99, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-02,Wells Fargo Autograph,Yama Sushi,35.13,35.13, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-09,Wells Fargo Autograph,Carrabba's Italian Grill,75.44,, Shitttttyyyyyyyyyy assssssss fooooooooooood. ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-20,Credit One Platinum Black,Amazon,22.15,, Nasal Spray ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-29,Credit One Platinum Black,Amazon,24.78,, Drug Panels ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-19,Credit One Platinum Red x5,Valley Ace Hardware,2.0,, Duh ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-21,Credit One Platinum Red x5,Fry's,92.96,, Unknown ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-21,Credit One Platinum Red x5,Walmart,29.82,, Mom Medicine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-26,Credit One Platinum Red x5,Fry's,99.92,99.92, 11/26/2023 - $197.54 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-27,Credit One Platinum Red x5,Walmart,21.79,8.93," Raid refunded, hotels $8.93 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-27,Credit One Platinum Red x5,Fry's,33.12,," Oikos, Chicken, Lettuce ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-04,Credit One Platinum Red x5,Fry's,35.41,35.41," Granola, Luna Bars, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-05,Credit One Platinum Red x5,Fry's,399.47,399.47, 12/05/2023 - $399.47 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-06,Credit One Platinum Red x5,Fry's,20.26,20.26, In Store - Aquafina ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-08,Credit One Platinum Red x5,Fry's,44.55,16.99," In Store - Oikos, Sushi, Wijne ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-11,Credit One Platinum Red x5,Fry's,16.99,16.99, In store - Wine  ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-11,Credit One Platinum Red x5,Fry's,78.39,78.31," 12/11/2023 - $78.31 (Tuna, Cheerios, Tomatoes, Beef Jerky, Small Trash Bags, Lime, Taco Seasoning Mix, Green Bell Pepper, Seltzer ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-23,Apple Wallet,Bro,230.0,230.0, - ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-05,Apple Wallet,Bro,80.0,80.0, - ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-10,Apple Wallet,Bro,230.0,230.0, - ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-17,Wells Fargo,Rebecca,220.0,220.0, - ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-04,Cash,Rebecca,225.0,225.0," (Missed, ATM Withdrawal Due to Rebecca Not Wanting Paper Trail. Caught this time itemizing with text messages) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-02,Apple Pay,Rebecca,60.0,60.0, - ,,Red = Ryan's $0 Charges,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-04,Cash,Rebecca,220.0,220.0, - ,,Ryan,,Total,"$3,714.54",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-08,Cash,Rebecca,220.0,220.0, $210 Cash / $10 Apple Pay ,,Jordyn,,Total,$843.64,,,,,,,01a_expenses_raw|02b_clean
+,2023-11-20,EBT,Fry's,36.34,36.34," Cholula, Granola, Luna Bars ",,Difference,,Total,"$2,870.90",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-22,EBT,Fry's,157.04,157.04, 11/20/2023 - $232.64 (Processed Late - Capital One Itemized Prior Cycle) ,,Amount Owed,,Total,"$1,435.45",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-26,EBT,Fry's,97.62,97.62, 11/26/2023 - $197.54 ,,Jordyn Gummy Bear / Beef Jerky Discount ($100 Less / $200 Of Food Total (Over 3 Months Worth of Haribo & Beef Jerky)),,Total,"$1,335.45",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-22,,Sprouts,37.5,37.5, Itemization Unavailable ,,Jordyn Paid Ryan $300 12/08/2023,,Total,"$1,035.45",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-23,,Amazon,381.54,306.6," Pizza tray, office chair mat, strainer, towel hooks, pillow. Refunded shirts, $25.99, $28.99, $19.99 = 74.94 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-27,,Pokitrition,29.18,29.18, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-29,,Amazon,43.57,, Back Massager ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-11-30,,Fry's,26.11,52.22, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-01,,Whole Foods,46.73,46.73, Itemization Unavailable ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-01,,Amazon,25.87,25.87, Steel decorative balls ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-02,,Yama Sushi,49.13,49.13, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-03,,Sprouts,31.34,31.34, Itemization Unavailable ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-03,,Amazon,21.07,21.07, Stainless Steel Rotation Fruit Bowl ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-04,,Sprouts,45.09,45.09, Itemization Unavailable ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-06,,Amazon,48.5,48.5, Glutenease ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-09,,Fry's,24.9,24.99," Ketchup, Potatoes, BBQ Sauces, Carrots (Hanukkah Dinner) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-09,,Kohl's,14.28,14.28, Gifts for Mom and Jack ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-09,,Amazon,10.77,, Jade Roller ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-09,,Gilbert Butchery,58.8,58.8, Hanukkah Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2023-12-10,,Flower Child,52.34,52.34, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+"December 12th, 2023 - January 1st, 2024 (HAPPY NEW YEARS!!!!)",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-25,Mercury,Robert's Ace Hardware,93.89,83.55," From previous period: ""Reassess next time (some items will be returned /refunded)"" 12/30 - $10.34 Refunded 12/14 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-14,Mercury,Amazon,27.53,27.53, Six Storage Cubes ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-15,Mercury,Amazon,65.15,, White Down Alternative Comforter ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-17,Mercury,Amazon,36.64,36.64, Six Storage Cubes ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-19,Mercury,Kindle Unlimited,12.96,12.96, Do we keep? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-20,Mercury,Staples,9.59,, Book holder/paper weight ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-21,Mercury,PlayStation Network,2.69,2.69, Jordyn Game ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-21,Mercury,PlayStation Network,4.3,4.3, Jordyn Game ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-21,Mercury,Amazon,24.78,, Drug Test - Will Be Refunded ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-22,Mercury,Amazon,73.66,73.66," Picture Frame, Back Massager (Mom Christmas Present) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-22,Mercury,Amazon,19.38,, Trigger Finger Splint ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-22,Mercury,Amazon,39.93,, Waterfall Fountain ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-23,Mercury,Amazon,29.92,, Trigger Finger Splint ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-23,Mercury,PlayStation Network,43.11,43.11, PSN Subscription ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-23,Mercury,Amazon,9.23,, ? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-25,Mercury,WHP Gift Shop,6.5,, Jordyn Christmas Present ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-26,Mercury,Harkins,29.5,29.5, Movie ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-27,Mercury,Amazon,145.41,145.41," Coloring Book, Frame, Back Massager, Heating Pad, Picture Frame (Mom Christmas Present) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-27,Mercury,Amazon,9.44,, 4x6 Picture Frame (Mom Christmas Present) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-27,Mercury,Kohl's,5.69,5.69, House Items - Autopay ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-30,Mercury,Amazon,33.39,," Scale, spray bottles ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-30,Mercury,PlayStation Network,21.34,21.34, Crash Bandicoot 4 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-30,Mercury,Fireworks,4.87,4.87, Fireworks ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-30,Mercury,Robert's Ace Hardware,22.82,22.82, House items ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-11,Capital One Savor One,The Whining,19.92,, Food? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-12,Capital One Savor One,Fry's,231.8,231.8," $ 45,270.00 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-16,Capital One Savor One,Whole Foods Market,29.08,29.08, Unable to itemize ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-18,Capital One Savor One,Fry's,36.94,36.94," Aquafina, Tito's ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-18,Capital One Savor One,Uber,34.08,34.08, A R I Z O N A Concert ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-18,Capital One Savor One,The Van Buren,21.6,21.6, A R I Z O N A Concert ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-18,Capital One Savor One,Uber,31.84,31.84, A R I Z O N A Concert (Additional tip was removed) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-18,Capital One Savor One,Uber Driver Tip,100.0,100.0, A R I Z O N A Concert (Paid to ensure he would help find Jordyn and get her home safely) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-21,Capital One Savor One,Whole Foods Market,38.42,38.42, Unable to itemize ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-26,Capital One Savor One,Safeway,46.2,46.2, Unable to itemize ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-26,Capital One Savor One,Fry's,154.73,154.73," $ 45,284.00 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-26,Capital One Savor One,Ryu Sushi,40.81,40.81, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-26,Capital One Savor One,Target,8.61,, Gum ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-26,Capital One Savor One,Walmart,39.96,, Fuel ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-26,Capital One Savor One,Gus's Fried Chicken,32.2,32.2, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-27,Capital One Savor One,Ling & Louie's,31.0,31.0, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-27,Capital One Savor One,The UPS Store,8.82,, Box to Ship Back Comforter (Amazon Return) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-27,Capital One Savor One,Harkins,28.0,28.0, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-27,Capital One Savor One,Harkins,33.0,33.0, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-29,Capital One Savor One,Whole Foods Market,15.51,15.51," Tea, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-30,Capital One Savor One,Fry's,45.49,45.49," Pizza, wine, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-31,Capital One Savor One,Walmart,75.95,75.95," Ladder, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-18,Capital One Walmart,Walmart,13.99,13.99, Unknown ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-19,Capital One Walmart,Walmart,76.79,35.0," Goo Gone, Swiffer Power Mop, Sexy Outfit, Trigger Finger Splint, 3M Drywall Hanger (Remove outfit and splint) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-24,Credit One x 1559,Amazon,15.98,," Busch Light Sign, No Salt Seasoning ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-28,Credit One x 1559,Amazon,37.79,," Busch Light Sign, No Salt Seasoning ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-19,Credit One x 6396,Target,46.99,, Omitted from above ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-11-21,Credit One x 6396,Fry's,92.96,19.99," Incorrectly listed as ""0"" above. - Upon looking further, only Vizzy is applicable. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-13,Credit One x 6396,Whole Foods Market,34.47,34.47, Unable to itemize ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-13,Credit One x 6396,Robert's Ace Hardware,1.98,1.98, House Items ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-14,Credit One x 6396,Fry's,25.85,25.31," Chobani, Mustard, Lemon, Pepperoni, Artichoke Hearts ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-27,Credit One x 6397,Fry's,26.67,, Possibly fuel ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-27,Credit One x 6398,Fry's,9.64,9.64, Seltzers ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-13,Wells Fargo Autograph,Fry's,25.85,, Pan (Returned) ,,"Summary Box #1: December 12th, 2023 - January 1st, 2024 (HAPPY NEW YEARS!!!!)",,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-14,Wells Fargo Autograph,Fry's,48.56,48.56," Batteries, Wine ",,Red = Ryan's $0 Charges,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-15,Wells Fargo Autograph,Chon Thai,19.22,19.22, Dinner ,,Ryan,,Total,"$2,935.18",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-16,Wells Fargo Autograph,Ziggy's Pizza,23.0,23.0, Dinner ,,Jordyn,,Total,$655.61,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-16,Wells Fargo Autograph,The Van Buren Phoenix,20.7,20.7, A R I Z O N A Concert ,,Difference,,Total,"$2,279.57",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-16,Wells Fargo Autograph,The Van Buren Phoenix,41.4,, A R I Z O N A Concert ,,Amount Owed,,Total,"$1,139.79",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-16,Wells Fargo Autograph,The Van Buren Phoenix,39.0,, A R I Z O N A Concert ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-16,Wells Fargo Autograph,The Van Buren Phoenix,21.6,, A R I Z O N A Concert ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-17,Wells Fargo Autograph,Culver's,23.97,23.97, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-29,Target RedCard,Target,10.12,10.12," Baking sheets, Acetone, Clue, Fork ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-30,Target RedCard,Target,30.71,30.71, Spice Rack ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-30,Target RedCard,Target,71.68,71.68, Plates ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-30,Target RedCard,Target,29.73,4.73," Dawn, Tide, Cheese Grater, Cards, Windex, Bounty ($25 Credit) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-30,Target RedCard,Target,16.39,16.39, Four Forks ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-15,Apple Pay,Bro,250.0,250.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-23,Apple Pay,Bro,80.0,80.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-29,Apple Pay,Bro,225.0,225.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-21,Cash,Rebecca,80.0,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-22,Cash,Rebecca,80.0,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-23,Cash,Rebecca,220.0,220.0, Lost (I will take half the financial burden as a sign of good faith) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-28,Cash,Rebecca,80.0,80.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2023-12-29,Cash,Rebecca,80.0,80.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-31,Cash,Rebecca,225.0,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,,Cash,Bro (Xan),70.0,50.0, Lost (I will take half the financial burden as a sign of good faith) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,,Amazon,Amazon Gift Card,50.0,," From previous period: ""Reassess next time"". 12/30 - Very difficult to determine who used what. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-11,,Fry's,16.93,16.93,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-12,,Fry's,25.31,25.31, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-12,,Walmart,9.09,9.09, Pizza ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-15,,Twin Thai,19.22,19.22,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-17,,Amazon,33.41,, Probiotics ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-19,,Sprouts,79.87,79.87, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-22,,Ryu Sushi,42.82,42.82,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-22,,Whole Foods Market,31.75,31.75,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-23,,Gus's Fried Chicken,32.2,32.2,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-25,,Harkin's,9.0,9.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-26,,Ling & Louie's,105.0,105.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-28,,Thirsty Lion,73.75,73.75,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-29,,Sneaky Bird,24.36,24.36,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-30,,Dollar Tree,9.43,9.43,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-30,,Fry's,176.88,176.88,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+"January 2nd, 2024 - February 5th, 2024",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-03,Mercury,Amazon,8.07,8.07, Prime student fee?? Why is this on Mercury x4893? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-04,Mercury,Amazon,114.57,," Knee massager, eufy Scale, Lunix hand massager, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-04,Mercury,Amazon,24.78,, Mouse Mover ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-08,Mercury,Prime Video,6.46,, Oppenheimer Movie ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-11,Mercury,Amazon,52.82,, Kindle  ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-11,Mercury,Fry's,74.08,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-14,Mercury,Prime Video,12.93,," Paramount+ with SHOWTIME (How did this get passed my Subscriptions lists?) Did Jordyn order, do we want to keep? ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-16,Mercury,Amazon,73.75,," Acetaminophen, Ibuprofen, TheraTeras Dry Eye  (74.38 + 2.99 - 2.35 - 1.56 - 2.99 - 2.40 - 68.07. + 5.68 = 73.75). Deduct $23.12 for ThereaTeras Dry Eye ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-19,Mercury,Amazon,11.2,, Triamcinolone Nasal Allergy Spray ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-20,Mercury,Amazon,8.07,, Mothers PowerPlastic 4Lights (Monitor Scratch) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-21,Mercury,Amazon,199.81,," BACtrack (123.87), Exercise devices.  Order# 113-3583335-6728210 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-27,Mercury,Amazon,40.95,11.53," Reading PIllow (Free for Jordyn from Ryan as a present, heart emoji), touch-toe stopper (11.53) Order# 113-3380358-9555412 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-28,Mercury,Whole Foods,44.18,44.18, $ 44.18 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-28,Mercury,Ace Hardware,34.98,34.98, Household Items ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-29,Mercury,Amazon,42.02,," Zip Ties, Wood Squatting Toilet (Ryan 100%) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-29,Mercury,UPS Store,20.24,20.24, Box for Air Mattress Return ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-02,Mercury,Barnes & Noble,64.66,, Ryan Purchases ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-03,Mercury,Amazon,83.98,," LetsGetChecked, Breather Fit, L-Serine, Spermcheck (Order# 113-1499724-0624207) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-04,Mercury,Amazon,35.71,35.71, Cord Cover Raceway Kit. If this is returned pay Jordyn ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-04,Mercury,Amazon,10.77,10.77, Levoit Water Filter ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-04,Mercury,Amazon,89.7,," D-Line Cord Hider Kit, Legrand Cable Management Kit ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-04,Mercury,Ace Hardware,121.34,121.34," Household Items (Drill, Lightbulbs, etc.) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-05,Mercury,Amazon,10.55,10.55, Zinc Self Drilling Anchors (Order# 111-6450316-5362616) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-05,Mercury,Costco,128.52,128.52, Annual Membership ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-05,Mercury,Best Buy,100.0,, MacBook Down Payment ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-06,Mercury,Amazon,32.76,32.76, Scale / Amber Glass ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-02,Capital One Savor One,In-N-Out Burger,16.27,, Free for Jordyn ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-02,Capital One Savor One,Whole Foods,19.22,, Unknown - Free ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-03,Capital One Savor One,Safeway,90.09,90.09, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-09,Capital One Savor One,Fry's,142.59,142.59, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-11,Capital One Savor One,Fry's,47.31,47.31, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-16,Capital One Walmart,Walmart,41.18,41.18, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-27,Credit One x 6396,Fry's,9.64,9.64, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-30,Credit One x 6396,Fry's,26.67,26.67, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-02,Credit One x 6396,Fry's,1.63,1.63, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-18,Credit One x 6396,Fry's,44.72,44.72, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-19,Credit One x 6396,Fry's,24.43,24.43, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-20,Credit One x 6396,Whole Foods,15.09,15.09,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-20,Credit One x 6396,Fry's,27.97,27.97,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-21,Credit One x 6396,Whole Foods,29.1,29.1,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-22,Credit One x 6396,Whole Foods,28.01,28.01,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-25,Credit One x 6396,Whole Foods,14.0,14.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-26,Credit One x 6396,Whole Foods,28.01,28.01,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-27,Credit One x 6396,Fry's,27.61,27.61,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-29,Credit One x 6396,Whole Foods,29.1,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-30,Credit One x 6396,Fry's,53.5,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-31,Credit One x 6396,Whole Foods,29.1,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-02,Credit One x 6396,Whole Foods,23.37,23.37,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-03,Credit One x 6396,Whole Foods,30.49,30.49,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-06,Wells Fargo Autograph,The Whining Pig Bar,28.52,28.52,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-08,Wells Fargo Autograph,Stadium Club,14.51,14.51,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-08,Wells Fargo Autograph,Thirsty Lion,37.51,37.51,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-08,Wells Fargo Autograph,Snooze,42.58,42.58,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-13,Wells Fargo Autograph,International Foods Cafe,5.42,5.42,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-13,Wells Fargo Autograph,Whole Foods,74.44,74.44,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-16,Wells Fargo Autograph,Jewel's Bakery & Cafe,72.82,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-20,Wells Fargo Autograph,Carquest,24.83,, ??? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-20,Wells Fargo Autograph,Robert's Ace Hardware,9.26,9.26,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-26,Wells Fargo Autograph,Kodo Sushi,72.37,72.37,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-26,Wells Fargo Autograph,Netflix,24.78,24.78, Look into dropping to the cheaper plan ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-02,Wells Fargo Autograph,Cooper's Hawk,59.57,59.57,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-03,Wells Fargo Autograph,Taste of China,50.72,50.72,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-04,Wells Fargo Autograph,Snooze,33.84,33.84,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-13,Target Redcard,Target,16.39,16.39,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-15,Target Redcard,Target,5.3,5.3,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-22,Best Buy Citi ,Best Buy,146.0,, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-22,Best Buy Citi ,Best Buy,146.0,, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-03,Best Buy Citi ,Best Buy,500.0,146.0, TV - $500 Less $146 Autopay ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-04,Kohl's,Kohl's,343.94,50.0," Patio Chairs, Kitchen Towels, Heated Blanket, Super Rest Down Comforter (343.94 - 240.59) Kohl's cash?? Ryan response: Partially, but I worked for this Kohl's' cash. We will need to discuss further, as that Kohl's cash I earned with hours of time invested. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-15,Kohl's,Kohl's,100.69,100.69," Spice Rack, Back Stretching Device, 4 Pillows (100.69-32.98) ***Remove $29.99 for Back Stretching Device*** ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-26,Bed Bath & Beyond,Bed Bath & Beyond,251.99,, Glass Top Computer Desk (251.99-50.40-200.00) - Discuss further. ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-02,EBT,Fry's,37.04,37.04, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-09,EBT,Fry's,91.03,91.03, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-15,EBT,Fry's,164.74,164.74, Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-12-19,Wells Fargo Checking,SRP,166.5,166.5, Electric - Missed ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-05,Wells Fargo Checking,Cox,89.99,89.99, Internet ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-02-05,Wells Fargo Checking,Cox,90.0,90.0, Internet ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-18,Wells Fargo Checking,SRP,74.32,74.32, Electric ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-04,Affirm,Amazon,149.95,149.95," SoundAsleep Air Mattress --- what happened to the one returned??? Ryan response: this is the original, the return was $0.00. Note the date of purchase is 01/04/2024. Order #111-2504086-5973049 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-26,Target,Target,105.61,105.61, 3x3 Cube Organizer ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-03,Cash,Rebecca,220.0,220.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-07,Cash,Rebecca,220.0,220.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-11,Cash,Rebecca,220.0,220.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-26,Cash,1853,220.0,220.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-03,Cash,Rebecca,220.0,220.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-11-27,Cash,Rebecca,220.0,220.0, Missed ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-14,Wallet,Bro,235.0,235.0,,,"Summary Box #2: January 2nd, 2024 - February 5th, 2024",,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-22,Wallet,Bro,230.0,,,,Red = Ryan's $0 Charges,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-27,Wallet,Bro,225.0,,,,Ryan,,Total,"$4,845.31",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-03,Wallet,Bro,225.0,225.0,,,Jordyn,,Total,"$1,564.81",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-15,Amazon Gift Card/ 4893/ 0651,Amazon,85.58,, CoQ10 200 x2 (Jordyn & Ryan) ,,Difference,,Total,"$3,280.50",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-20,Mastercard x9585,Amazon,61.72,," Drawer Organizer, investigate. (61.72-39.56 Refund) Order# 113-3380358-9555412 ",,Gross Total,,Total,"$1,640.25",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-01-20,Ally,Amazon,19.99,19.99, 25' Ethernet Cable ,,Jordyn Owes Ryan From Last Cycle,,Total,$228.31,,,,,,,01a_expenses_raw|02b_clean
+Ryan,,Klarna,Bed Bath & Beyond,193.68,193.68, 12/12/2023 - Missed due to Klarna (Lateral File Cabinet & Baking Sheets) ,,Less Feb. 2024 Rent,,Total,-$944.45,,,,,,,01a_expenses_raw|02b_clean
+,,,,,,,,Net Total,,Total,$924.11,,,,,,,01a_expenses_raw|02b_clean
+Jordyn ,,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-21,Chase,Kindle Unlimited ,12.96,12.96,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-12-18,Chase,Bobs,72.95,72.95,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-21,Chase,Bobs,72.95,72.95,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-03,Chase,Sprouts,54.12,54.12,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn ,2024-01-05,Chase,Frys,25.38,25.38,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-05,Chase,Home Depot,13.43,13.43,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-06,Chase,Bashas,90.23,90.23,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-06,Chase,Snooze,42.58,42.58,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-07,Chase,Chipotle,28.43,28.43,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn ,2024-01-07,Chase,Amazon,14.54,14.54,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-08,Chase,Thirsty Lion,37.52,37.52,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-09,Chase,Frys,92.05,92.05,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-10,Chase,Target,8.51,8.51,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-13,Chase,Intentional Foods,49.28,49.28,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn ,2024-01-14,Chase,Amazon,29.92,29.92,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-14,Chase,Amazon,36.86,36.86,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-16,Chase,Whole Foods,11.26,11.26,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-16,Chase,Frys,11.86,11.86,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-16,Chase,Frys,7.09,7.09,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-19,Chase,Sprouts,35.26,35.26,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-23,Chase,Frys,58.6,58.6,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-23,Chase,Frys,270.3,270.3,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-23,Chase,Flower Child,34.41,34.41,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-24,Chase,Amazon,67.86,67.86,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-26,Chase,Sprouts,18.86,18.86,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-27,Chase,The Forum (bar),52.95,52.95,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-01-28,Chase,Whole Foods,18.34,18.34,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-01,Chase,Frys,25.38,25.38,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-02,Chase,Cooper's Hawk,59.97,59.97,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-03,Chase,Whole Foods,41.07,41.07,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-03,Chase,Snooze,33.83,33.83,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-05,Chase,Whole Foods,25.74,25.74,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-05,Chase,Frys,110.32,110.32,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+"February 5th, 2024 - March 11th, 2024",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-09,Mercury,Amazon,34.81,, Refund - back pillow ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-10,Mercury,Oculus,10.77,, Surgineer ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-10,Mercury,Oculus,21.55,21.55, Loco Dojo Unleashed ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-10,Mercury,Oculus,16.16,, Pinball FX2 VR ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-10,Mercury,Oculus,21.55,, ForeVR Bowl ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-15,Mercury,Amazon,6.9,, Word Search Puzzles ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-15,Mercury,Amazon,3.82,, Word Search Puzzles ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-18,Mercury,Playstation Network,53.89,, Wurzer Paid Video Game - Prince of Persia ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Mercury,Keto Kitchen,18.3,18.3, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Mercury,Native Winds,48.51,, Dinner / Fun- earrings ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Mercury,Black Orchards,13.39,13.39, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Mercury,Sprouts,17.0,17.0, Steaks ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Mercury,The Sleepy Whale,48.24,48.24, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-25,Mercury,Kindle Unlimited,12.93,12.93, We must be on my Kindle Unlimited plan or Amazon is screwing with me lol - occurrence #6 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-25,Mercury,Fry's,37.31,37.31," Rotisserie Chicken, HIgh Noon, Cutwater Mango Tequila ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-26,Mercury,Oculus,10.77,, Hand Physics Lab ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-27,Mercury,Amazon,20.82,," Compression socks, arm sleeves, and GPU Brace ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-27,Mercury,Amazon,25.86,, Compression arm sleeves ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-29,Mercury,Amazon,34.46,34.46, Meat Thermometers- being returned ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-02,Mercury,Amazon,37.7,, SI-LOC & Weight LIfting Belt ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-03,Mercury,Playstation Network,12.92,, Dirt 5 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-03,Mercury,Playstation Network,64.67,, UFC 5 Deluxe Edition ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-03,Mercury,Playstation Network,21.55,, Resident Evil Village Gold Edition ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-03,Mercury,Playstation Network,18.85,, Yoga Master ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-06,Mercury,Amazon,7.49,, SoulGenie TipGuard ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-06,Mercury,Amazon,43.07,, SI-LOC & Weight LIfting Belt ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-07,Mercury,Amazon,29.61,22.0," Shea Moisture Curl, CoQ10 & Wrist Brace ($11 for SheaMoisture Curl and Shine Shampoo) - $22 listed to reflect $11 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-07,Mercury,Amazon,70.0,30.0," Shea Moisture Hair Conditioner, AmazeFan Leg Stretcher, Stiff Bristle 4 Piece Drill Brush ($15 for Shea Moisture Conditioner) $30 listed to reflect $15 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-07,Mercury,Amazon,43.07,, Amber Glass 1 oz & Water Fountain ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-08,Mercury,Amazon,15.08,15.08," Shea Moisture Hair Conditioner, AmazeFan Leg Stretcher, Stiff Bristle 4 Piece Drill Brush ($15 for Shea Moisture Conditioner) $30 listed to reflect $15 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-26,Capital One Savor One,Fry's,19.45,19.45, Water Bottles ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-27,Capital One Savor One,Whole Foods Market,32.1,32.1, Probs wines yo ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-28,Capital One Savor One,Fry's,21.24,21.24, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-29,Capital One Savor One,Fry's,17.28,, Rotisserie Chicken ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-29,Capital One Savor One,Fry's,19.11,19.11, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-01,Capital One Savor One,Fry's,21.24,21.24, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-02,Capital One Savor One,Fry's,19.11,19.11, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-04,Capital One Savor One,Fry's,50.99,50.99, Wine & Tito's ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-05,Capital One Savor One,Fry's,29.78,29.78, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-06,Capital One Savor One,Fry's,29.73,29.73, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-07,Capital One Savor One,Fry's,33.98,33.98, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-07,Capital One Savor One,Culver's,9.49,, Ice Cream (Free for my baaaaaabyyyyyyyyyyyy) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-08,Capital One Savor One,Fry's,6.08,6.08, Summer Sausage ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Capital One Quicksilver,DoorDash,34.73,34.73, Five Guys --what about what I paid for Picazzos? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-02,Capital One Walmart,Walmart,6.64,, Batteries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-12,Capital One Walmart,Walmart,58.26,, Flaxseed Oil & L-Theanine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-16,Capital One Walmart,Walmart,13.99,13.99,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-06,Credit One x 6396,Fry's,71.85,71.85, Claussen Pickles & Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-08,Credit One x 6396,Fry's,51.6,51.6, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-11,Credit One x 6396,Fry's,54.44,54.44," Distilled Water, Tito's & Vizzy ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-11,Credit One x 6396,Fry's,165.93,165.93, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-15,Credit One x 6396,Fry's,34.17,34.17, Wine & White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-12,Credit One x 6396,Fry's,20.45,, Valentines Day Presents (free for my baaaaaaaaaaaaaaaaby) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-12,Credit One x 6396,Fry's,148.89,," (freeeeeeeeeee for my babbbbbbbbbbyy, i know she loves that paper towel!) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-13,Credit One x 6396,Whole Foods Market,15.09,15.09,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-14,Credit One x 6396,Fry's,40.74,, Beef Jerky & Chocolate (freeeeeeeeeeeeee for my baaaaaabyyyyyyy) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-15,Credit One x 6396,Fry's,17.28,, Rotisserie Chicken & Calipower (freeeeeeeeeee) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-17,Credit One x 6396,Fry's,37.17,37.17, Wine & White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-18,Credit One x 6396,Fry's,22.61,22.61," PIzza, Honey, Gatorade ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-19,Credit One x 6396,Fry's,72.77,72.77," Caulipower, Polar, Wine, Pizza, Carrots, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-20,Credit One x 6396,Whole Foods Market,30.16,30.16, Probs wines yo ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-21,Credit One x 6396,Whole Foods Market,15.62,15.62, Probs wines yo ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-22,Credit One x 6396,Whole Foods Market,14.0,14.0, Probs wines yo - how much wine we drinksssss for real ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Credit One x 6396,Fry's,19.11,19.11, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Credit One x 6396,Fry's,9.63,9.63, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-09,Wells Fargo Autograph,Pier 54,30.73,30.73, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-10,Wells Fargo Autograph,Cactus Jack,19.23,19.23, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-10,Wells Fargo Autograph,Via 313,32.03,32.03, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-10,Wells Fargo Autograph,Gus's Fried Chicken,32.75,32.75, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-11,Wells Fargo Autograph,The Hub Bar & Grill,56.78,56.78, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-11,Wells Fargo Autograph,Wicked Brews,78.64,78.64, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-14,Wells Fargo Autograph,King's Fish House,176.26,176.26, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-15,Wells Fargo Autograph,In n Out,13.94,13.94, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-16,Wells Fargo Autograph,Casa Tempe,64.86,64.86, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-17,Wells Fargo Autograph,Lobby Bar,53.78,53.78, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-17,Wells Fargo Autograph,Kabuki,59.24,59.24, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-23,Wells Fargo Autograph,Pier 54,22.12,22.12, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Wells Fargo Autograph,Stamper Cheese,10.3,10.3, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-25,Wells Fargo Autograph,Thirsty Lion,31.0,31.0, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-25,Wells Fargo Autograph,Netflix,24.78,24.78, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-02,Wells Fargo Autograph,Culvers,20.4,20.4, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-03,Wells Fargo Autograph,The Hub Bar & Grill,25.5,25.5, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-03,Wells Fargo Autograph,The Hub Bar & Grill,51.31,51.31, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-09,Wells Fargo Autograph,Snooze,66.47,66.47, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-09,Wells Fargo Autograph,Culver's,11.33,11.33, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Wells Fargo Autograph,Page Springs Cellars,19.46,19.46, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Wells Fargo Autograph,Food 4 Your Skin,36.22,36.22, Dinner / Fun-- what the heck is this? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Wells Fargo Autograph,Downtown Tempe Fou,35.0,35.0, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Wells Fargo Autograph,Parking,10.0,10.0, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-17,Target Redcard,"Mucus Relief, Luden's Soothing Throat Drops",11.07,11.07, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-02,Target Redcard,Float,32.76,, Dinner / Fun-- I paid for my own ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Target Redcard,Stainless Steel Mesh Filter,27.64,27.64, Dinner / Fun -- being returned ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-22,Kohl's,Statement Balance,184.55,," Kohl's Purchases (Full, chairs, etc.) -- already paid months ago ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-05,Wells Fargo,Cox,90.0,90.0, Internet ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-20,Wells Fargo,SRP,124.61,124.61, Electric ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-07,Wells Fargo,Cox,90.0,90.0, Internet ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-13,Apple Wallet,Bro,225.0,225.0, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-23,Apple Wallet,Bro,225.0,225.0, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-29,Apple Wallet,Bro,225.0,225.0, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-04,Apple Wallet,Fry's,27.2,27.2, Dinner / Fun ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-06,Apple Wallet,Bro,225.0,225.0, Dinner / Fun ,,"Summary Box #3: February 5th, 2024 - March 11th, 2024",,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-11,Apple Wallet,Bro,225.0,225.0, Dinner / Fun ,,Red = Ryan's $0 Charges,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-11,Cash,Rebecca,220.0,220.0, Dinner / Fun ,,Ryan,,Total,"$4,133.59",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-24,Cash,Rebecca,220.0,220.0, Dinner / Fun ,,Jordyn,,Total,"$1,646.21",,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-06,Cash,Rebecca,220.0,, Freeeee for my babbbbbbbbbbbbbbbbbbby (yayyyyyyyyyyyy) ,,Difference,,Total,"$2,487.38",,,,,,,01a_expenses_raw|02b_clean
+Jordyn ,2024-02-21,Chase,Kindle Unlimited,12.96,12.96,,,Total,,Total,"$1,243.69",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-21,Bob's ,,72.95,72.95,,,Plus: Jordyn Owed From Last Cycle,,Total,$924.11,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-11,Wells Fargo,Seasonings,37.84,37.84,,,Gross Total,,Total,"$2,167.80",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-11,,Downtown Tempe (Wine Tasting),35.0,35.0,,,Less: Early Payment $400 - 02/29/24,,,$400.00,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-08,,Espo's,41.76,41.76,,,Less: Other Half of Garage Remote,,,$50.00,,,,,,,01a_expenses_raw|02b_clean
+Jordyn ,2024-03-06,,Amazon,27.98,," Eraser Kit, Beauty Curl ",,Less: Amazon Western Digital,,,$125.75,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-05,,Amazon,125.75,, Western Digital HD (Will itemize to right) ,,Less: Pedicure,,,$40.00,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-05,,Fry's,274.67,274.67,,,Less: March 2024 Rent,,,$936.46,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-05,,Pedicure,41.0,, Ryan pays for this (will itemize to right) ,,Less: Net Total,,,"$1,552.21",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-01,,Fry's,36.5,36.5,,,Net Total,,Total,$615.59,,,,,,,01a_expenses_raw|02b_clean
+Jordyn ,2024-02-29,,William Sonoma,20.67,20.67,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-25,,Fry's,146.88,146.88,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,,,02/24,33.5,33.5,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-24,,Amazon,21.53,21.53, Fruit Basket ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-24,,Sprouts,31.47,31.47,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn ,2024-02-24,,Over Easy,59.58,59.58,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-23,,Word of Mouth Grill,43.19,43.19,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-23,,Whole Foods,19.35,19.35,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-18,,Whole Foods,29.38,29.38,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-17,,The Hub,124.38,124.38,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-17,,Kabuki,59.24,59.24,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-13,,Fry's,30.56,30.56,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-12,,Ticket Master (Creed),261.12,261.12,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-10,,Gus's Fried Chicken,31.74,31.74,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-10,,Adam and Eve,131.89,131.89,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-10,,Sprouts,17.37,17.37,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-10,,Via 313,28.07,28.07,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-07,,Amazon,27.47,, Vitamin D & Probiotics ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-02-06,,Caldwell County,44.61,44.61,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+"March 12th, 2024 - July 3rd, 2024",,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan Expenses,,,,,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-29,Wells Fargo Everyday Checking x3850,SRP,82.92,82.92, Electric ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-05,Wells Fargo Everyday Checking x3850,Cox,90.0,90.0, Internet ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-17,Wells Fargo Everyday Checking x3850,SRP,77.71,77.71, Electric ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-15,Wells Fargo Everyday Checking x3850,Target,45.0,45.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-06,Wells Fargo Everyday Checking x3850,Cox,90.0,90.0, Internet ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-09,Wells Fargo Everyday Checking x3850,Target Card,76.11,76.11,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-13,Wells Fargo Everyday Checking x3850,Premium Parking,8.99,8.99,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-17,Wells Fargo Everyday Checking x3850,SRP,81.86,81.86,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-05,Wells Fargo Everyday Checking x3850,Cox,106.0,106.0, Internet ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-10,Wells Fargo Everyday Checking x3850,Target,168.15,168.15,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-20,EVERYDAY CHECKING ...3850,SRP SUREPAY-S1 240619 XXXXX9006 ZIMMERMEN RYAN W [Srp Surepay-s],137.42,137.42,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-24,EVERYDAY CHECKING ...3850,Best Buy,146.0,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-24,EVERYDAY CHECKING ...3850,Menards,20.0,20.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-26,EVERYDAY CHECKING ...3850,MONEY TRANSFER AUTHORIZED ON 06/24 APPLE CASH SENT MO 1INFINITELOOP CA S304176797747875 CARD 0968,62.85,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-27,EVERYDAY CHECKING ...3850,MONEY TRANSFER AUTHORIZED ON 06/25 APPLE CASH SENT MO 1INFINITELOOP CA S304178123094455 CARD 0968,5.0,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-27,EVERYDAY CHECKING ...3850,MONEY TRANSFER AUTHORIZED ON 06/25 APPLE CASH SENT MO 1INFINITELOOP CA S584178121977703 CARD 0968,220.0,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-28,EVERYDAY CHECKING ...3850,RECURRING PAYMENT AUTHORIZED ON 06/27 AFFIRM * PAY T73VT CA S464179399248594 CARD 0968 [Affirm],21.12,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-07-01,EVERYDAY CHECKING ...3850,PURCHASE AUTHORIZED ON 06/29 PARKMOBILE GA S584182015221078 CARD 0968 [Parkmobile],6.0,6.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-12,Capital One Quicksilver,Door Dash,34.73,34.73, Five Guys ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-12,Capital One Quicksilver,Door Dash,22.73,22.73, Picazzo's ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-12,Capital One Quicksilver,Walgreens,42.51,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-08,Capital One Quicksilver,Pixlr,5.59,5.59, OnlyFan's Photo Editing ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-22,Capital One Quicksilver,DD DOORDASH SPINATOSP [Spinatosp],9.98,9.98, Spinatos ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-07,Capital One Quicksilver,DD DOORDASH FIVEGUYSB [Five Guys],52.72,52.72, Five Guys ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-10,Capital One Quicksilver,DD *DOORDASHDASHPASS [Dashpass],4.99,4.99, Dash Pass ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-11,Capital One Quicksilver,DD *DOORDASH TOTALWINE [Total Wine & More],22.41,22.41, Total Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-11,Capital One Quicksilver,DD DOORDASH SPINATOSP [Spinatosp],44.3,44.3, Spinatos ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-11,Capital One Quicksilver,DD DOORDASH TARGET [Target],34.56,34.56," Target - Water, etc. ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-07-01,,,38.45,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-12,Capital One Savor One,Fry's,40.59,40.59," PIzza, Wine, Parm Cheese ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-14,Capital One Savor One,Fry's,29.32,29.32," Asparagus, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-15,Capital One Savor One,Fry's,13.19,13.19," Sargento Cheese, Rotisserie Chicken ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-15,Capital One Savor One,Fry's,31.78,31.78," Oxi-Clean, Light Bulbs ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Capital One Savor One,Fry's,23.36,23.36, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-18,Capital One Savor One,Butler Amusements Inc.,10.0,10.0, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-18,Capital One Savor One,Butler Amusements Inc.,20.0,20.0, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-18,Capital One Savor One,Butler Amusements Inc.,30.0,30.0, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-18,Capital One Savor One,Fry's,25.93,25.93," Pizza, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-18,Capital One Savor One,Fry's,50.99,50.99, Unknown ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-19,Capital One Savor One,Fry's,23.36,23.36, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-19,Capital One Savor One,Whole Foods,15.09,15.09, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-20,Capital One Savor One,Fry's,23.36,23.36, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-22,Capital One Savor One,Fry's,31.78,31.78, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-17,Capital One Savor One,Fry's,19.12,19.12, White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-18,Capital One Savor One,Fry's,20.43,20.43, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-18,Capital One Savor One,Fry's Food and Drug,19.12,19.12, White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-19,Capital One Savor One,Fry's Food and Drug,20.43,20.43, White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-20,Capital One Savor One,Fry's Food and Drug,19.12,19.12, White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-20,Capital One Savor One,Trader Joe's,15.37,15.37, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-23,Capital One Savor One,Fry's Food and Drug,83.87,83.87," Charmin, Chaleston Chew, Swedish Fish, Banana, Onion, Chicken, Sushi ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-24,Capital One Savor One,Fry's Food and Drug,19.12,19.12, White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-24,Capital One Savor One,Whole Foods,15.09,15.09, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-25,Capital One Savor One,Fry's Food and Drug,59.99,59.99," Chicken, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-26,Capital One Savor One,Fry's Food and Drug,32.08,32.08," Wine, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-27,Capital One Savor One,Fry's Food and Drug,40.57,40.57, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-02,Capital One Savor One,Fry's Food and Drug,54.04,54.04," White Claw, Wine, Cheese ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-03,Capital One Savor One,Fry's Food and Drug,37.96,27.96," Water, Chicken, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-04,Capital One Savor One,Fry's Food and Drug,49.08,49.08," White Claw, Wine, Cheese ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-06,Capital One Savor One,Fry's Food and Drug,45.68,45.68," Cutwater, Wine, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-07,Capital One Savor One,Fry's Food and Drug,59.93,49.93," Chicken, Granola, Banana, Luna Bars, Water, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-08,Capital One Savor One,Fry's Food and Drug,34.45,34.45," Distilled Water, Carrots, Wine, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-09,Capital One Savor One,Fry's Food and Drug,45.42,45.42," PIckles, Wine, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-13,Capital One Savor One,Fry's Food and Drug,20.59,," Yogurt, Cetaphil ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-13,Capital One Savor One,Fry's Food and Drug,70.22,70.22," Luna Bars, Chicken, White Claw, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-14,Capital One Savor One,Fry's Food and Drug,51.94,51.94," Whtie Claw, Wine, Distilled Water ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-15,Capital One Savor One,Fry's Food and Drug,49.02,49.02," Chicken, Dental Floss, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-16,Capital One Savor One,Fry's Food and Drug,38.55,38.55, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-17,Capital One Savor One,Fry's Food and Drug,37.38,37.38, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-18,Capital One Savor One,Fry's Food and Drug,49.07,49.07, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-20,Capital One Savor One,Fry's Food and Drug,41.5,41.5," Polar Seltzers, Oikos Yogurt, Water, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-21,Capital One Savor One,Fry's Food and Drug,39.25,39.25," Chicken, Granola, Luna Bars, Bananas, Lysol ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-21,Capital One Savor One,Fry's Food and Drug,53.51,53.51," Wine, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-22,Capital One Savor One,Fry's Food and Drug,49.79,49.79," Oikos, Carrots, Pickles, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-11,Capital One Savor One,Fry's Food and Drug,48.52,48.52," Haribo, Pizza, White Claw, Chicken ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-17,Capital One Savor One,Fry's Food and Drug,30.36,30.36, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-17,SavorOne,Uber,10.18,10.18,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-18,SavorOne,Fry's Food and Drug,30.36,30.36, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-19,SavorOne,Fry's Food and Drug,40.11,40.11, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-20,SavorOne,Fry's Food and Drug,28.25,28.25,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,SavorOne,Uber,3.0,3.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,SavorOne,Uber,5.56,5.56,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,SavorOne,Uber,8.88,8.88,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,SavorOne,Uber,11.44,11.44,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,SavorOne,Uber,21.07,21.07,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-21,CreditOne x6396,Fry's,23.36,23.36, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-22,CreditOne x6396,Fry's,12.75,12.75, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-24,CreditOne x6396,Fry's,31.99,31.99," Titos, Yogurt ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-24,CreditOne x6396,Fry's,33.98,33.98, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-26,CreditOne x6396,Fry's,25.49,25.49, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-27,CreditOne x6396,Fry's,9.12,9.12, Baked Chicken ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-27,CreditOne x6396,Fry's,26.8,26.8," Distilled Water, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-28,CreditOne x6396,Fry's,27.62,27.62, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-31,CreditOne x6396,Fry's,9.56,9.56, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-31,CreditOne x6396,Fry's,37.0,37.0," Pineapple, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-31,CreditOne x6396,Whole Foods,28.55,28.55, Whole Foods ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-01,CreditOne x6396,Fry's,33.79,33.79," Wine, Butter, Yogurt ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-02,CreditOne x6396,Fry's,40.79,40.79," Pickles, Rotisserie Chicken, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-03,CreditOne x6396,Fry's,33.55,33.55," Power Mop Cleaner, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-04,CreditOne x6396,Fry's,24.43,24.43, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-05,CreditOne x6396,Fry's,27.65,27.65, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-05,CreditOne x6396,FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug],26.55,26.55, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-07,CreditOne x6396,Fry's,26.55,26.55, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-07,CreditOne x6396,CULVERS OF CHANDLER CHANDLER AZ D [Culver's],7.11,7.11," Ice Cream (put twice, second one deleted) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-07,CreditOne x6396,FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug],36.46,25.0," Chicken, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-08,CreditOne x6396,Fry's,36.46,26.46," Rotisserie Chicken, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-08,CreditOne x6396,Fry's,27.62,27.62, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-09,CreditOne x6396,Fry's,29.95,29.95, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-11,CreditOne x6396,Fry's,15.08,15.08, Wine (1 Bottle) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,CreditOne x6396,Fry's,40.57,, why duplicated? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,CreditOne x6396,FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug],40.57,, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-13,CreditOne x6396,Fry's,90.21,," Wine, Flowers, Yougurt, Sushi - Adjust Accordingly ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-14,CreditOne x6396,Fry's Food and Drug,40.57,40.57, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-14,CreditOne x6396,Fry's Food and Drug,90.21,," Flowers, Oikos, Sushi, Wine (No Charge) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-15,CreditOne x6396,Fry's,38.96,38.96, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-15,CreditOne x6396,Fry's,230.63,230.63, 04/15 Groceries ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-16,CreditOne x6396,Fry's,19.12,19.12, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-16,CreditOne x6396,Fry's Food and Drug,38.96,25.0," Chicken, Sop, Tooth Picks, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-17,CreditOne x6396,FRYS 5051 [Frys],230.63,230.63, Food+ ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-17,CreditOne x6396,Fry's Food and Drug,19.12,19.12, White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-20,CreditOne x6396,FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug],59.7,59.7," White Claw, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-21,CreditOne x6396,FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug],56.26,56.26," White Claw, Wine, Mustard, Italian Sausage ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-28,CreditOne x6396,FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug],87.89,87.89," Chicken, Asaparagus, Frozen Vegetables, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-29,CreditOne x6396,FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug],28.17,28.17," Romaine Lettuce, Carrots, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-30,CreditOne x6396,FRYS-FOOD-DRG #051 CHANDLER AZ D [Fry's Food and Drug],44.15,34.15," Chicken, Pickles, BBQ, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-23,CreditOne x6396,Fry's Food and Drug,61.02,51.02," Chicken, Granola, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-24,CreditOne x6396,Fry's Food and Drug,38.69,38.69," Distilled Water, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-26,CreditOne x6396,Fry's Food and Drug,40.57,40.57, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-26,CreditOne x6396,Whole Foods,52.07,52.07, Wine & Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-29,CreditOne x6396,Fry's Food and Drug,70.44,70.44," Bannas, Astroglide, Wine, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-30,CreditOne x6396,Fry's Food and Drug,52.07,52.07," White Claw, Titos ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-31,CreditOne x6396,Fry's Food and Drug,29.33,20.33," Haribos, Albanese, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-02,CreditOne x6396,Fry's Food and Drug,17.24,17.24, Cutwater ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-02,CreditOne x6396,Whole Foods,8.11,, Fun Celebration Night For Jordyn Completing 1 Year and Summer Vacation (Free!) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-02,CreditOne x6396,Whole Foods,94.57,, Fun Celebration Night For Jordyn Completing 1 Year and Summer Vacation (Free!) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-04,CreditOne x6396,Fry's Food and Drug,54.58,54.58," Wine, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-05,CreditOne x6396,Fry's Food and Drug,22.41,22.41," Luna Bars, Pickles ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-06,CreditOne x6396,Fry's Food and Drug,19.12,19.12, White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-07,CreditOne x6396,Fry's Food and Drug,40.22,15.0," White Claw, Pickles, Crest 3D Toothpaste  ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-09,CreditOne x6396,Fry's Food and Drug,42.49,42.42," Cutwater, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-09,CreditOne x6396,Fry's Food and Drug,43.55,43.55," Cider, Top Chico, Wine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-12,CreditOne x6396,Fry's Food and Drug,35.74,25.74," Chicken, Chips, Green Pepper, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-13,CreditOne x6396,Fry's Food and Drug,35.39,35.39," Luna Bars, Pickles, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-14,CreditOne x6396,Fry's Food and Drug,21.09,21.09," Romaine Lettuce, White Claw ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-16,CreditOne x6396,Fry's Food and Drug,18.06,18.06, White Claw ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-16,CreditOne x6396,Whole Foods,19.39,19.39, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-23,Visa,Fry's Food and Drug,41.98,41.98, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-24,Visa,Fry's Food and Drug,29.93,29.93, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-25,Visa,Fry's Food and Drug,48.22,48.22, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-26,Visa,Fry's Food and Drug,38.33,38.33, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-30,Visa,Fry's Food and Drug,92.25,92.25, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-07-02,Visa,Whole Foods,32.51,32.51, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-18,Walmart Rewards Card,Walmart,13.99,13.99, Walmart+ ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-03,Wells Fargo Autograph,The Hub,25.5,25.5, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-03,Wells Fargo Autograph,The Hub,51.31,51.31, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-09,Wells Fargo Autograph,Stadium Club,16.59,16.59, Beverages ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-09,Wells Fargo Autograph,Culver's,11.33,11.33, Ice Cream ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-09,Wells Fargo Autograph,Snooze,66.47,66.47, Snooze ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Wells Fargo Autograph,Foundation,35.0,35.0, Foundation Downtown Tempe ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Wells Fargo Autograph,Foor 4 Your Skin,36.22,36.22, Art Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Wells Fargo Autograph,Page Springs Cellars,19.46,19.46, Art Fesitval ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-10,Wells Fargo Autograph,Parking,10.0,10.0, Art Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-12,Wells Fargo Autograph,Little Szechuan,12.81,12.81, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-12,Wells Fargo Autograph,Little Szechuan,35.4,35.4, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-15,Wells Fargo Autograph,Cooper's Hawk,54.44,54.44, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Wells Fargo Autograph,Butler Amusements Inc.,20.0,20.0, BUTLER AMUSEMENTS INC ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Wells Fargo Autograph,Hill House,9.0,9.0, HILL HOUSE ENTERPRISEPEORIA [Hill House Enterprise] ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Wells Fargo Autograph,Ostrich Festival,13.48,, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Wells Fargo Autograph,Ostrich Festival,18.0,18.0, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Wells Fargo Autograph,Ostrich Festival,84.0,84.0, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Wells Fargo Autograph,Steven Levine Entertainment,15.0,15.0, STEVE LEVINE ENTERTAINMENSCOTTSDALE [Steve Levine Entertainmens] ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Wells Fargo Autograph,Hash Kitchen,22.46,, TST* HASH KITCHEN - CHANDCHANDLER [Hash Kitchen Chandler] Only you drank ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-16,Wells Fargo Autograph,Walgreen's,7.28,7.28, Walgreens ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-17,Wells Fargo Autograph,Hilton,61.08,61.08, Hilton [Hilton Chandler Fb] ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-17,Wells Fargo Autograph,Hilton,331.07,331.07, Hilton [Hilton Hotels & Resorts] ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-17,Wells Fargo Autograph,Ostrich Festival,9.0,9.0, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-17,Wells Fargo Autograph,Ostrich Festival,26.52,26.52, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-17,Wells Fargo Autograph,Ostrich Festival,38.0,38.0, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-17,Wells Fargo Autograph,Ostrich Festival,40.96,40.96, Ostrich Festival ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-18,Wells Fargo Autograph,Fry's,8.63,8.63, Fry's Food and Drug ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-23,Wells Fargo Autograph,Dave & Buster's,48.65,48.65, Dave & Buster's ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-23,Wells Fargo Autograph,Pokitrition,14.59,, TST* POKITRITION- CHANDLEChandler [Pokitrition Sushi Burritos & Poke] You ate alone ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-24,Wells Fargo Autograph,Ulta,4.3,4.3, Chap Stick ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-24,Wells Fargo Autograph,Whole Foods,19.4,19.4, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-24,Wells Fargo Autograph,Zinburger Gilbert,40.51,40.51, ZINBURGER GILBERT [Zinburger Wine & Burger Bar] ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-25,Wells Fargo Autograph,Netflix,24.78,24.78, Netflix ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-28,Wells Fargo Autograph,Blue Wasabi,48.78,48.78, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-29,Wells Fargo Autograph,AMF,30.14,30.14, Bownling ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-29,Wells Fargo Autograph,Cobblestone,22.0,," Car Wash - your charge, not mine ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-30,Wells Fargo Autograph,Harkin's,28.0,28.0, Movie ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-30,Wells Fargo Autograph,Sprouts,25.26,25.26, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-30,Wells Fargo Autograph,Thirsty Lion,41.11,41.11, Beverages ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-30,Wells Fargo Autograph,Whole Foods,18.32,18.32, Wine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,Chon Thai Food,49.4,49.4, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,La Ristra,52.5,52.5, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,The Hub,39.89,39.89, Beverages or Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,West Alley BBQ Smokehouse,44.88,44.88, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,Whole Foods,60.02,60.02, Wine  & ? ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-07,Wells Fargo Autograph,Black Sheep Wine Bar,66.7,66.7, Beverages ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,Wells Fargo Autograph,Culver's,25.9,25.9, Dinner ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-16,Wells Fargo Autograph,Amazon,13.57,13.57, 0.22um Filter ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-17,Wells Fargo Autograph,Amazon,184.91,142.92," Floor Lamp, 6 Pack Reusable Mop Pads, 20x 20ml Luer Locks, ZAMAT Pillow (Adjust Price $41.99) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,CHON THAI FOOD,49.4,49.4, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,TST* LA RISTRA - CHANDLERChandler [La Ristra New Mexican Kitchen],52.5,52.5, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,TST* THE HUB BAR & GRILL [The Hub Bar & Grill],39.89,39.89, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,WEST ALLEY BBQ SMOKEHOU [West Alley BBQ and Smokehouse],44.88,, Dining Out-- you ate alone ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Wells Fargo Autograph,Whole Foods,60.02,60.02, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-07,Wells Fargo Autograph,TST* BLACK SHEEP WINE BARChandler [BlackSheep Wine Bar & Merchant],66.7,66.7, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,Wells Fargo Autograph,CULVERS OF CHANDLER [Culver's],25.9,25.9, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-17,Wells Fargo Autograph,Amazon,13.57,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-18,Wells Fargo Autograph,Amazon,184.91,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-19,Wells Fargo Autograph,TST* PEDAL HAUS BREWERY [Pedal Haus Brewery],31.49,31.49, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-20,Wells Fargo Autograph,81398 - 725 ASH AVENUE [Ash Avenue Comics & Books],7.0,7.0, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-26,Wells Fargo Autograph,TST* THE HUB BAR & GRILL [The Hub Bar & Grill],35.79,35.79, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-27,Wells Fargo Autograph,BLUE WASABI SUSHI & MARTIGILBERT [Blue Wasabi Sushi & Martini Bar],89.99,89.99, - ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-28,Wells Fargo Autograph,ENDGAME BAR,122.06,82.0, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-28,Wells Fargo Autograph,IN-N-OUT CHANDLER 2 [In-N-Out Burger],5.78,5.78, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-30,Wells Fargo Autograph,YouTube TV g.co/helppay#CA [YouTube TV],89.54,89.54, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-01,Wells Fargo Autograph,Walgreens,2.83,, Unknown ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-04,Wells Fargo Autograph,CULVERS OF CHANDLER [Culver's],15.44,15.44, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-09,Wells Fargo Autograph,CHEMLAB SUPPLY,10.86,10.86, Misc ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-09,Wells Fargo Autograph,TST* O.H.S.O. - GILBERT [O.h.s.o.],79.18,79.18, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-11,Wells Fargo Autograph,PHO CHANDLER,46.28,46.28, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-11,Wells Fargo Autograph,TST* THE HUB BAR & GRILL [The Hub Bar & Grill],36.5,36.5, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-12,Wells Fargo Autograph,FARM AND CRAFT SCOTTSDALESCOTTSDALE [Farm & Craft],84.15,84.15, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-17,Wells Fargo Autograph,PICAZZOS HEALTHY ITALI [Picazzo's Healthy Italian Kitchen],43.21,43.21, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-18,Wells Fargo Autograph,TST* THIRSTY LION GASTROPChandler [Thirsty Lion Gastropub & Grill],71.69,71.69, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-19,Wells Fargo Autograph,CULVERS OF CHANDLER [Culver's],24.17,24.17, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-19,Wells Fargo Autograph,TST* O.H.S.O. - GILBERT [O.h.s.o.],33.03,33.03, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-26,Wells Fargo Autograph,Whole Foods,55.63,55.63, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-27,Wells Fargo Autograph,TST* THE HUB BAR & GRILL [The Hub Bar & Grill],46.1,46.1, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-28,Wells Fargo Autograph,Netflix,24.78,24.78, Entertainment ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-28,Wells Fargo Autograph,TACO`S CHIWAS [Tacos Chiwas],2.7,2.7, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-31,Wells Fargo Autograph,SPINATOS PIZZA - SFR 05 [Spinatos Pizza],85.13,85.13, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-01,Wells Fargo Autograph,IN-N-OUT CHANDLER 2 [In-N-Out Burger],16.32,16.32, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-08,Wells Fargo Autograph,UNPHOGETTABLE CHANDLER [unPhogettable],46.78,46.78, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-09,Wells Fargo Autograph,CLEAN FREAK - CHANDLER [Clean Freak],22.0,22.0, Entertainment ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-09,Wells Fargo Autograph,HARKINS CHANDLER FASHON,28.0,28.0, Entertainment ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-12,Wells Fargo Autograph,IN-N-OUT CHANDLER 2 [In-N-Out Burger],18.65,18.65, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-14,Wells Fargo Autograph,STARLITE BBQ,88.47,88.47, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-15,Wells Fargo Autograph,Whole Foods,24.62,24.62, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-16,Wells Fargo Autograph,Bourbon Jacks,39.8,39.8, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-16,Wells Fargo Autograph,Drury Hotels,27.02,27.02, Entertainment ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-16,Wells Fargo Autograph,Drury Hotels,200.0,, Entertainment ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-16,Wells Fargo Autograph,Whole Foods,32.88,32.88, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-16,Wells Fargo Autograph,Fry's Food and Drug,144.17,144.17, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-22,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,GDP*Against the Grain gluMesa [Against The Grain Glumesa],60.59,60.59,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-22,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,TST* THE BRASS TAPS - VERGILBERT [The Brass Tap],21.7,21.7,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-22,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,TST* THE FORUM COMPLEX [The Forum Complex],82.74,82.74,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-23,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,TST* O.H.S.O. - GILBERT [O.h.s.o.],80.47,80.47,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-27,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,DRURY INNS [Drury Inn & Suites Phoenix Chandler Fashion Center],133.99,133.99,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-27,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,Netflix,24.78,24.78,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-28,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,CHON THAI FOOD,49.4,49.4,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,ARIZONA POODLE RESCUEMaricopa [Arizona Poodle Rescue],600.0,600.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,FARISH HOUSE [The Farish House],128.83,128.83,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,HYATT REG PHOENIX F&B [Hyatt Resorts],161.41,161.41,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-29,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,PetSmart,23.88,23.88,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-30,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,CULVERS OF CHANDLER [Culver's],27.41,27.41,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-07-01,WELLS FARGO AUTOGRAPH VISA® CARD ...5037,TST* SNOOZE - AHWATUKEE [Snooze],82.13,82.13,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-07-01,WELLS FARGO AUTOGRAPH VISA® CARD ...5038,Whole Foods,23.78,23.78,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-07-01,WELLS FARGO AUTOGRAPH VISA® CARD ...5039,Sneaky Bird,28.01,28.01,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-07-02,WELLS FARGO AUTOGRAPH VISA® CARD ...5040,Whole Foods,24.4,24.4,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-07-02,WELLS FARGO AUTOGRAPH VISA® CARD ...5041,PetSmart,2.15,2.15,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-07-02,WELLS FARGO AUTOGRAPH VISA® CARD ...5042,Postinos,41.84,41.84,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-17,Mercury,Pearl,60.0,60.0, Lawyer ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-22,Mercury,Amazon,52.82,, Teeth Whitening ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-23,Mercury,Playstation Nework,43.11,43.11, PlayStation Subscription ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-25,Mercury,Amazon,22.69,22.69, 20x Amber Nasal Spray Bottle + 2 Funnels ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-29,Mercury,Harkin's,29.5,29.5, Movie ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-06,Mercury,Amazon,245.38,, Govee Table Lamp ($59.00) + 6 Pack Reusable Mops ($16.99) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-08,Mercury,Amazon,25.57,25.57, Chomps (Jordyn - I'll pay 50%) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-09,Mercury,Blizzard,16.17,, World of Warcraft ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-09,Mercury,Amazon,74.99,," DEVOPS 3 Pack Men's Athletic Compression Shirts Sleeveless (Medium, Black/Blue/White); DEVOPS 3 Pack Men's Compression Pants Athletic Leggings (Medium, Black/Black/Black); ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-10,Mercury,Amazon,179.49,," Homedics Tabletop Water Fountain, Home Décor Soothing Sound Machine - Automatic Pump, Deep Basin & Natural River Rocks. Indoor Zen Relaxation for Office, Living Room, or Bedroom, 8.25” Tall; Under Armour Men's ColdGear Armour Fitted Crew, Black (001)/White, Medium; Under Armour Men's ColdGear Armour Leggings, Black (001)/White, Medium; Under Armour Men's Armour HeatGear Compression Long-Sleeve T-Shirt , Black (001)/White , Medium; Under Armour Men's Armour HeatGear Compression Long-Sleeve T-Shirt , Black (001)/White , Small; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-10,Mercury,Amazon,38.0,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,Mercury,Target,4.3,4.3, Back to the Future; ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,Mercury,Amazon,22.54,," NOW Supplements, BioCell Collagen® Hydrolyzed Type II, Clinically Validated, 120 Veg Capsules; Nature's Bounty Calcium Carbonate & Vitamin D, Supports Immune Health & Bone Health, 1200mg Calcium & 1000IU Vitamin D3, 120 Softgels; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,Mercury,Amazon,14.57,," NOW Supplements, BioCell Collagen® Hydrolyzed Type II, Clinically Validated, 120 Veg Capsules; Nature's Bounty Calcium Carbonate & Vitamin D, Supports Immune Health & Bone Health, 1200mg Calcium & 1000IU Vitamin D3, 120 Softgels; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,Mercury,Amazon,158.3,," Under Armour Men's ColdGear Armour Leggings, Black (001)/White, Medium; Under Armour Men's Armour HeatGear Compression Long-Sleeve T-Shirt , Black (001)/White , Small; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,Mercury,Amazon,31.15,," Now Supplements, Lutein & Zeaxanthin with 25 mg Lutein and 5 mg Zeaxanthin, 60 Softgels (2 Pack); ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-12,Mercury,Walgreens,85.36,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-13,Mercury,Amazon,48.86,," NOW Supplements, Quercetin with Bromelain, Balanced Immune System*, 120 Veg Capsules; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-13,Mercury,Amazon,65.49,65.49," 2 Pieces Keychain Pill Holder Tiny Keychain Pill Case Titanium Keychain Medication Pill Holder Waterproof Pill Container Portable Titanium Pill Case with Keychain for Men Women Travel Purse Pocket; 5 Pack - Aluminum Keychain Medication Pill Box. Waterproof Portable Mini Travel Pill Boxes Medicine Vitamin Holder case. Bottle Container, Organizer, Dispenser, Reminder Weekly 7 Day, Daily, am pm; Pill Pod 3 Pack - Keychain Pill Holder: Luxe Colors - Micro-Sized & Lightweight with Magnetic Slide - Handmade for Secure Daily Medication Storage (Luxe 3 Pack); We Like Vitamins Diosmin Hesperidin 1000mg – 180 Capsules – 90 Day Supply - Diosmin and Hesperidin Supplement – Helps to Support Healthy Circulation, Veins, Capillaries, and Lymphatic Drainage; NOW Supplements, L-Tyrosine 500 mg, Supports Mental Alertness*, Neurotransmitter Support*, 120 Capsules; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-13,Mercury,Amazon,145.28,," Gotu Kola Capsules (Centella Asiatica) 1,000mg of Per Serving (120 Capsules) No Fillers, Vega, Safe, Manufactured in The USA (Gotu Kola Extract for Relaxation and Cognitive Function) by Double Wood; NOW Supplements, Hawthorn Extract 300 mg, Cardiovascular Support*, 90 Veg Capsules; NOW Supplements, Horse Chestnut 300 mg with Added Rutin, Circulatory Support*, 90 Veg Capsules; NOW Supplements, Taurine 1,000 mg, Double Strength, Nervous System Health*, 100 Veg Capsules; Nature Made Vitamin D3 2000 IU (50 mcg), Dietary Supplement for Bone, Teeth, Muscle and Immune Health Support, 400 Tablets, 400 Day Supply; NOW Supplements, Probiotic-10™, 25 Billion, with 10 Probiotic Strains, Dairy, Soy and Gluten Free, Strain Verified, 100 Veg Capsules; NOW Supplements, L-Glutamine 500 mg, Nitrogen Transporter*, Amino Acid, 120 Veg Capsules; Nature Made Magnesium Citrate 250 mg per serving, Dietary Supplement for Muscle, Nerve, Bone and Heart Support, 120 Softgels, 60 Day Supply; Calcium 1200 mg with Vitamin D3, Dietary Supplement for Bone and Teeth Support, Calcium Supplements for Women & Men, Max Absorption Carbonate, Nature's Absorbable Calcium Supplement - 240 Tablets; Nature Made Vitamin E 180 mg (400 IU) dl-Alpha, Dietary Supplement for Antioxidant Support, 300 Softgels, 300 Day Supply; Nature Made Magnesium Glycinate 200 mg per serving, Dietary Supplement for Muscle, Heart, Nerve and Bone Support, 180 Capsules, 90 Day Supply; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-13,Mercury,Amazon,30.42,," Gotu Kola Capsules (Centella Asiatica) 1,000mg of Per Serving (120 Capsules) No Fillers, Vega, Safe, Manufactured in The USA (Gotu Kola Extract for Relaxation and Cognitive Function) by Double Wood; NOW Supplements, Hawthorn Extract 300 mg, Cardiovascular Support*, 90 Veg Capsules; NOW Supplements, Horse Chestnut 300 mg with Added Rutin, Circulatory Support*, 90 Veg Capsules; NOW Supplements, Taurine 1,000 mg, Double Strength, Nervous System Health*, 100 Veg Capsules; Nature Made Vitamin D3 2000 IU (50 mcg), Dietary Supplement for Bone, Teeth, Muscle and Immune Health Support, 400 Tablets, 400 Day Supply; NOW Supplements, Probiotic-10™, 25 Billion, with 10 Probiotic Strains, Dairy, Soy and Gluten Free, Strain Verified, 100 Veg Capsules; NOW Supplements, L-Glutamine 500 mg, Nitrogen Transporter*, Amino Acid, 120 Veg Capsules; Nature Made Magnesium Citrate 250 mg per serving, Dietary Supplement for Muscle, Nerve, Bone and Heart Support, 120 Softgels, 60 Day Supply; Calcium 1200 mg with Vitamin D3, Dietary Supplement for Bone and Teeth Support, Calcium Supplements for Women & Men, Max Absorption Carbonate, Nature's Absorbable Calcium Supplement - 240 Tablets; Nature Made Vitamin E 180 mg (400 IU) dl-Alpha, Dietary Supplement for Antioxidant Support, 300 Softgels, 300 Day Supply; Nature Made Magnesium Glycinate 200 mg per serving, Dietary Supplement for Muscle, Heart, Nerve and Bone Support, 180 Capsules, 90 Day Supply; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-13,Mercury,Target,33.12,33.12,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-13,Mercury,Sendik's,62.99,, Flowers for mom ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-14,Mercury,Amazon,8.61,8.61," 2 Pieces Keychain Pill Holder Tiny Keychain Pill Case Titanium Keychain Medication Pill Holder Waterproof Pill Container Portable Titanium Pill Case with Keychain for Men Women Travel Purse Pocket; 5 Pack - Aluminum Keychain Medication Pill Box. Waterproof Portable Mini Travel Pill Boxes Medicine Vitamin Holder case. Bottle Container, Organizer, Dispenser, Reminder Weekly 7 Day, Daily, am pm; Pill Pod 3 Pack - Keychain Pill Holder: Luxe Colors - Micro-Sized & Lightweight with Magnetic Slide - Handmade for Secure Daily Medication Storage (Luxe 3 Pack); We Like Vitamins Diosmin Hesperidin 1000mg – 180 Capsules – 90 Day Supply - Diosmin and Hesperidin Supplement – Helps to Support Healthy Circulation, Veins, Capillaries, and Lymphatic Drainage; NOW Supplements, L-Tyrosine 500 mg, Supports Mental Alertness*, Neurotransmitter Support*, 120 Capsules; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-15,Mercury,Amazon,56.29,56.29,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-20,Mercury,Amazon,240.69,," Under Armour Men's ColdGear Armour Leggings, Black (001)/White, Medium; Under Armour Men's Armour HeatGear Compression Long-Sleeve T-Shirt , Black (001)/White , Small; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-20,Mercury,Amazon,86.14,," OPTP SI-LOC, SI Joint Belt for Women, Sacroiliac Belt, Lower Back Support Belts for Men, Low Back & Pelvic Pain Relief - Small/Medium; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-22,Mercury,Blizzard,100.0,," Upgrade for Jordyn Character (Free, No Charge) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-27,Mercury,Amazon,63.13,63.13," WORLD WIN Smart Led Floor Lamps, RGB Color Changing with APP & Remote Control, 62 Inch DIY Mode Music Sync Standing Modern Corner Lamp Decor for Living Room Bedroom Game, 1 Piece; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-28,Mercury,Amazon,96.92,," Serola Sacroiliac SI Belt, Medium; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-29,Mercury,Amazon,22.86,," NOW Supplements, BioCell Collagen® Hydrolyzed Type II, Clinically Validated, 120 Veg Capsules; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-29,Mercury,Amazon,26.27,," Nature's Bounty Fish Oil 1200 mg, Supports Heart Health With Omega 3 EPA & DHA, 360 Rapid Release Softgels, Twin Pack; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-03,Mercury,Amazon,10.77,," Logest Metal Hand Grip Set, 100LB-350LB 6 Pack No Slip Heavy-Duty Grip Strengthener with Gift Box, Great Wrist & Forearm Hand Exerciser, Home Gym, Hand Gripper Grip Strength Trainer; Bronson Vitamin K2 as MK-7 Menaquinone 100 mcg Non-GMO, 120 Capsules; Grip Strength Trainer Finger Strengthener-Hand Strengthener 8 Resistant Level Exerciser-Adjustable Hand for Therapy, Relieve Pain Arthritis(Black+Grey, 2PCS); Quality Reusable Earplugs 100 Pair - 25dB Corded Silicone Ear Plugs for Shooting Noise Reduction Construction Work - Motorcycle Ear Plugs with String Hunting Ear Protection Range Hearing Protection; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-03,Mercury,Amazon,8.4,, Remember I Love You Mom Gifts for Her Pocket Hug Token for Womens Keychain Accessories for Mom Christmas Birthday Gifts for Women Mother Gifts from Daughter Son Mama Mom Engraved Holiday Gifts Ideas; ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-04,Mercury,Amazon,30.51,30.51," TV Antenna,TV Antenna Indoor, HD Antenna for Smart TV and All TV,TV Antenna for Local Channels,Support 4K 1080p with Signal Booster Antenna TV Digital HD Indoor & Outdoor- 15FT Coax HDTV Cable; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-04,Mercury,Amazon,29.39,," Pet Memorial Wind Chime - 18"" Metal Casted Pawprint Wind Chime - A Beautiful Remembrance Gift for a Grieving Pet Owner - Includes Pawprints Left by You Poem Card; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-09,Mercury,Blizzard,16.17,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-10,Mercury,Amazon,22.97,," NOW Silymarin 2X - 300 mg,200 Veg Capsules; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-10,Mercury,Amazon,29.4,29.4," Membrane Solutions 10 Pack Syringe Filter Sterile PES Hydrophilic Filtration 0.22um Pore Size, 33mm Membrane Diameter Sterile PES Membrane Individually Packed; 
+ ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-10,Mercury,Aamzon,37.99,,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-15,Mercury,Amazon,13.55,13.55," Uineko Plastic Spray Bottle (4 Pack, 24 Oz, All-Purpose) Heavy Duty Spraying Bottles Leak Proof Mist Empty Water Bottle for Cleaning Solution Planting Pet with Adjustable Nozzle and Measurements; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-19,Mercury,Aamzon Prime,4.3,4.3, Back to the Future; ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-20,Mercury,Amazon,13.57,13.57," ZAMAT Contour Memory Foam Pillow for Neck Pain Relief, Adjustable Ergonomic Cervical Pillow for Sleeping, Orthopedic Neck Pillow with Washable Cover, Bed Pillows for Side, Back, Stomach Sleepers; 6 Pack Reusable Mop Pads Compatible with Swiffer PowerMop, Power Mop Refills Power Mop Refill Pads Wet Pads Refill Mop Pads Refills Machine Washable Thicken Microfiber Mop Pads for Hardwood Floor; 20ml Luer Lock Syringe 20-Pack Plastic 20ml Syringes with Luer Lock Tip, Individually Sterile Sealed, No Needle (20ML, 20.00); Membrane Solutions 10 Pack Syringe Filter Sterile PES Hydrophilic Filtration 0.22um Pore Size, 33mm Membrane Diameter Sterile PES Membrane Individually Packed; LEONC Design Floor Lamp, LEONC Standing Lamp, RGB 7 Colors Changing LED Bulbs and 10 Levels Brightness, Remote Control and Fabric Shade, Modern for Bedroom, Kids Room and Play Room; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-23,Mercury,Amazon,43.1,," DEVOPS 3 Pack Men's Athletic Compression Shirts Sleeveless (Small, Black/Black/Black); DEVOPS 3 Pack Men's Dry-Fit Workout Tank Tops Gym Sleeveless Shirts (Medium, Z Black 3 Pack); DEVOPS 3 Pack Men's Athletic Compression Shirts Sleeveless (Medium, Black/Black/Black); ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-23,Mercury,Amazon,21.55,," DEVOPS 3 Pack Men's Athletic Compression Shirts Sleeveless (Small, Black/Black/Black); DEVOPS 3 Pack Men's Dry-Fit Workout Tank Tops Gym Sleeveless Shirts (Medium, Z Black 3 Pack); DEVOPS 3 Pack Men's Athletic Compression Shirts Sleeveless (Medium, Black/Black/Black); ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-27,Mercury,Amazon Prime,4.09,4.09, Freaky; ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-06,Mercury,Amazon,14.0,14.0," 100 Pack 3ml Syringes Luer Lock Syringe without Needle, Individually Sterile Wrapped, with Cap; 
+ ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-08,Mercury,Amazon Prime,4.09,4.09, Inside Out; ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-08,Mercury,Amazon,19.45,19.45," Care Touch CTSLL10 10mL Syringe Only - Luer Lock Syringe Tip (No Needle),100 Count (Pack of 1); ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-08,Mercury,Mesmerica,34.57,34.57, Dining Out ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-08,Mercury,Harkins,29.5,29.5, Entertainment ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-09,Mercury,Blizzard,16.17,16.17, Entertainment ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-09,Mercury,Amazon Prime,12.93,12.93, What Should Danny Do? (The Power to Choose Series); ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-10,Mercury,Amazon,25.86,," VIVO Steel Reinforcement Bracket Mount Plate for Thin, Glass, and Other Fragile Table Tops, Clamp Compatible with Most Monitor Stand C-Clamp Installations, Black, STAND-AC01R; MOUNTUP Monitor Mount Reinforcement for Tempered Glass Desk, Monitor Arm Plate, Steel Bracket for Thin and Most Fragile Table, for Desk C Clamp Installation of Monitor Stand; CompressionZ Compression Arm Sleeves for Men & Women UV Protection (Black, M); RENPHO Eyeris 2 Extended - Eye Massager with Heating Pad for Migraines, Heated Eye Mask for Relax, Eye Care, Face Massager for Eye Strain Eye Bags Dry Eyes, Improve Sleep, Ideal Birthday Gift; Govee RGBIC Table Lamp, Smart Lamp Work with Alexa, LED Lamp with Music Sync and 43 Scene Modes, Color Changing Lamp for Bedroom Decor, Dimmable Night Light (Corded Electric); 6 Pack Reusable Mop Pads Compatible with Swiffer Powermop, Papclean Power Mop Refills Microfiber Power Mop Mopping Pads for Powermop Multi-Surface & Wood Mop Kit All Types of Floor Cleaning, Purple; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-11,Mercury,Amazon,41.39,41.39," Rapid Response Fentanyl Test Strips - 5 Test Strips Per Pack - #1 Global Selling Fentanyl Strips - Harm Reduction Tool - Overdose Prevention; Rapid Response Xylazine Test Strips - #1 Global Selling Xylazine Strips - Harm Reduction Tool - Overdose Prevention (5); Areta Multi-Drug Test Cup: 14 Panel at Home Drug Test Kit, Testing 14 Drugs BUP,THC,OPI 2000, AMP,BAR,BZO,COC,MET,MDMA,MTD,OXY,PCP,PPX,TCA-#ACDOA-1144-5 Pack; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-11,Mercury,Whole Foods,20.29,20.29, Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-12,Mercury,Amazon,74.83,74.83," AUVON Large Insulin Cooler Travel Case, Longer Cooling Effect with 4 * 160g Ice Packs, Compact Medication Cooler Bag for 8 Insulin Pens and Diabetic Supplies, Ideal Travel Partner with Handle Design; Hydro Flask Standard Flex Cap Black 24 Oz; AUVON Insulin Cooler Travel Case, Expandable Insulated Diabetic Bag with 2 * 180g Ice Packs for Double Cooling Time, Portable Medication Cooler Bag for Insulin Pens and Blood Glucose Monitor Supplies; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-13,Mercury,Amazon,9.85,, Standard Mouth Sport Cap Black; Hydro Flask Standard Flex Cap Dew 24 Oz; ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-14,Mercury,Amazon,27.26,27.26," Kleenex Ultra Soft Facial Tissues, 3 Flat Boxes, 120 Tissues per Box, 3-Ply (360 Total Tissues), Packaging May Vary; Amazon Basics Sky Blue Cabana Stripe Pool & Beach Towel, 100% Cotton, Soft & Absorbant, 2 Pack, 30"" x 60""; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-14,Mercury,Amazon,30.07,30.07, Standard Mouth Sport Cap Black; Hydro Flask Standard Flex Cap Dew 24 Oz; ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-06-20,,Amazon,29.21,29.21," Rapid Response Fentanyl Test Strips, .22 um ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-06-21,,Amazon,49.47,49.47, TP-Link AC1750 WiFi Extender ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-06-23,,PlayStation Network,43.11,43.11, PSN ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-06-24,,Amazon,5.63,5.63, Zinc ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-06-24,,Amazon,13.63,13.63, .22 um ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-06-30,,Whole Foods,70.09,70.09, Wine / Food ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+,2024-07-02,,Amazon,45.95,45.95," Burt's Bees, Vet's Best, Dog Oral Care Additive ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-04,Ally,Amazon,10.66,10.66, Rapid Response Fentanyl Test Strips - 5 Test Strips Per Pack - #1 Global Selling Fentanyl Strips - Harm Reduction Tool - Overdose Prevention; ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-19,Ally,Amazon,33.87,33.87," Membrane Solutions 20 Pack Syringe Filter Sterile PES Hydrophilic Filtration 0.22um Pore Size, 33mm Membrane Diameter Sterile PES Membrane Individually Packed; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-19,Ally,Amazon,22.99,22.99," Semmerfeld 10 Pack PES Sterile Syringe Filter 0.22um Pore Size 22 Micron Hydrophilic Filtration, 33mm Diameter Sterile Individually Packed PES Membrane; 10ml Luer Lock Syringe 20-Pack Plastic 10ml Syringes with Luer Lock Tip, Individually Sterile Sealed, No Needle; ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-27,Target RedCard,Target,85.33,85.33," Charmin, Cascade, Bounty ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-10,Target RedCard,Target,239.59,239.59, 20 + Household Items ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-02-22,Best Buy Citi,Best Buy,146.0,, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-22,Best Buy Citi,Best Buy,146.0,, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-22,Best Buy Citi,Best Buy,146.0,, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-22,Best Buy Citi,Best Buy,146.0,, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-22,Best Buy Citi,Best Buy,146.0,, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-20,Credit One x1559,Best Buy,38.0,, TV ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-13,Credit One x9585,Starz (Amazon),10.77,10.77, Starz Subscription ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-14,Apple Wallet,Bro,230.0,230.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-18,Apple Wallet,Bro,450.0,450.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-28,Apple Pay,Bro,450.0,450.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-07,Apple Pay,Bro,450.0,450.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-18,Apple Pay,Bro,230.0,230.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-24,Apple Pay,Bro,230.0,230.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-04-27,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-03,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-07,Apple Pay,Bro,450.0,450.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-05-26,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-04,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-14,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-17,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-20,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-24,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-06-30,Apple Pay,Bro,225.0,225.0, N/A ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-28,Apple Pay,Rebecca,220.0,220.0, N/A ,,"Summary Box #4: March 12th, 2024 - July 3rd, 2024",,,,,,,,,,01a_expenses_raw|02b_clean
+Ryan,2024-03-19,Cash,Rebecca,220.0,220.0, N/A ,,Category,Sub-Category,Amount,Footnote,,Step,Description,Amount,Running Total,Notes,01a_expenses_raw|02b_clean
+Ryan,2024-04-09,Cash,Rebecca,220.0,220.0, N/A ,,Expenses,Ryan," $ 19,112.90 ",,,1,Ryan's Expenses,"$19,112.90",,,01a_expenses_raw|02b_clean
+Ryan,2024-04-23,Cash,Rebecca,220.0,220.0, N/A ,,,Jordyn,"$5,380.94",,,2,Jordyn's Expenses,"$5,380.94",,,01a_expenses_raw|02b_clean
+Ryan,2024-05-07,Cash,Rebecca,220.0,220.0, N/A ,,Difference*,,"$13,731.96",(Ryan's Expenses - Jordyn's Expenses),,3,Difference (Ryan - Jordyn),"$13,731.96",,This is how much more Ryan spent,01a_expenses_raw|02b_clean
+Ryan,2024-05-16,Cash,Rebecca,220.0,220.0, N/A ,,Total**,,"$6,865.98","(Difference / 2, used as a midpoint for calculations)",,4,Split Difference (÷2),"$6,865.98","$6,865.98",This is what Jordyn owes Ryan to equalize expenses,01a_expenses_raw|02b_clean
+Ryan,2024-05-24,Cash,Rebecca,220.0,220.0, N/A ,,Plus:,Jordyn (Prior Bal.),$824.86,(Amount Jordyn owes from previous period),,5,Add Jordyn's Prior Balance,$824.86,"$7,690.84",Amount Jordyn owed from previous period,01a_expenses_raw|02b_clean
+Ryan,2024-06-04,Cash,Rebecca,220.0,220.0, N/A ,,Minus:,Bob's Balance,-$347.44,(Amount owed to Bob),,6,Subtract Bob's Balance,-$347.44,"$7,343.40",Amount owed to Bob,01a_expenses_raw|02b_clean
+Ryan,2024-06-14,Cash,Rebecca,220.0,220.0, N/A ,,,Zelle (04/09/2024),-$800.00,,,7,Subtract Zelle Payment (04/09/2024),-$800.00,"$6,543.40",,01a_expenses_raw|02b_clean
+Ryan,2024-06-17,Cash,Rebecca,220.0,220.0, N/A ,,,Zelle (05/21/2024),-$500.00,,,8,Subtract Zelle Payment (05/21/2024),-$500.00,"$6,043.40",,01a_expenses_raw|02b_clean
+Ryan,2024-06-24,Cash,Rebecca,62.85,62.85, N/A ,,,Amazon (Hand Grip),-$114.34,,,9,Subtract Amazon (Hand Grip),-$114.34,"$5,929.06",,01a_expenses_raw|02b_clean
+Jordyn Expenses,,,,,,,,,Amazon (Vitamin K),-$10.77,,,10,Subtract Amazon (Vitamin K),-$10.77,"$5,918.29",,01a_expenses_raw|02b_clean
+Jordyn,2024-03-12,Wells Fargo,The Vig,18.0,18.0,,,,Discover Payments,643.74,,,11,Add Discover Payments,$643.74,"$6,562.03","Ryan's responsibility, added back to what Jordyn owes",01a_expenses_raw|02b_clean
+Jordyn,2024-03-12,Wells Fargo,Gurtrude's,48.26,48.26,,,Gross Total***,,"$6,562.03","(Total + Jordyn's Prior Bal. - Listed Expenses, EXCLUDING Discover if TBD)",,12,Subtract Rent (Apr. 2024),-$937.22,"$5,624.81",Ryan's share of rent,01a_expenses_raw|02b_clean
+Jordyn,2024-03-14,Wells Fargo,Fry's,33.32,33.32,,,Less:,Rent (Apr. 2024),$937.22,,,13,Subtract Rent (May 2024),-$928.55,"$4,696.26",Ryan's share of rent,01a_expenses_raw|02b_clean
+Jordyn,2024-03-15,Wells Fargo,Cooper's Hawk,47.44,47.44,,,Less:,Rent (May 2024),$928.55,,,14,Subtract Rent (Jun. 2024),-$934.76,"$3,761.50",Ryan's share of rent,01a_expenses_raw|02b_clean
+Jordyn,2024-03-16,Wells Fargo,Ostrich Fest,19.0,19.0,,,Less:,Rent (Jun. 2024),$934.76,,,15,Subtract Rent (Jul. 2024),-$934.76,"$2,826.74",Ryan's share of rent,01a_expenses_raw|02b_clean
+Jordyn,2024-03-16,Wells Fargo,Los Taquitos,23.46,23.46,,,Less:,Rent (Jul. 2024),$934.76,,,Final Balance,,"$2,826.74",,Amount Jordyn owes Ryan after all adjustments,01a_expenses_raw|02b_clean
+Jordyn,2024-03-16,Wells Fargo,Whole Foods,9.12,9.12,,,Net Total****,,"$2,826.74","(Gross Total - Rent, this is the AMOUNT LEFT OVER after accounting for all known expenses, NOT the final amount owed by each person)",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-19,Wells Fargo,Amazon,68.92,68.92," GlutenEase, Generic Xyxal ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-19,Wells Fargo,Fry's,150.46,150.46,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-20,Wells Fargo,Fry's,35.86,35.86,,,Summary Box #5,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-22,Wells Fargo,Amazon,36.8,36.8," Paint Tray, Paint Set, Wood Easel, Paint ",,Step,Description,Amount,Running Total,Notes,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-23,Wells Fargo,Spinatto's Pizza,124.22,124.22,,,1,Ryan's Expenses,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-23,Wells Fargo,Whole Foods,24.33,24.33,,,2,Jordyn's Expenses,#VALUE!,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-23,Wells Fargo,Total Wine,33.07,33.07,,,3,Difference (Ryan - Jordyn),"$13,731.96",,This is how much more Ryan spent,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-23,Wells Fargo,Dave & Busters,24.06,24.06,,,4,Split Difference (÷2),"$6,865.98","$6,865.98",This is what Jordyn owes Ryan to equalize expenses,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-24,Wells Fargo,Zinburger,38.98,38.98,,,5,Add Jordyn's Prior Balance,"$2,826.74","$9,692.72",Amount Jordyn owed from previous period,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-25,Wells Fargo,Amazon,65.91,65.91," Rabbit Automatic Electric Corkscrew Wine Bottle Opener, Burt's Bees, etc. ",,6,Subtract Zelle Payment,-$347.44,"$7,343.40",Amount owed to Bob,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-25,Wells Fargo,Sprout's,24.8,24.8,,,7,Subtract Zelle Payment,-$800.00,"$6,543.40",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-26,Wells Fargo,Fry's,135.76,135.76,,,8,Subtract Zelle Payment,-$500.00,"$6,043.40",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-28,Wells Fargo,Blue Wasabi,48.77,48.77,,,9,Subtract Zell Payment,-$114.34,"$5,929.06",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-29,Wells Fargo,Amazon,21.19,21.19," Longzon 4-in-1 Knife Sharpener, Mercer Culinary Knife Guard ",,10,Subtract...,-$10.77,"$5,918.29",,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-29,Wells Fargo,AMF,25.62,25.62,,,11,Subtract Rent,$643.74,"$6,562.03","Ryan's responsibility, added back to what Jordyn owes",,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-30,Wells Fargo,Thirsty Lion,40.43,40.43,,,12,Subtract Rent,-$937.22,"$5,624.81",Ryan's share of rent,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-30,Wells Fargo,BJ's Restaurant,67.73,67.73,,,13,,-$928.55,"$4,696.26",Ryan's share of rent,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-03-30,Wells Fargo,Sprouts,27.47,27.47,,,14,,-$934.76,"$3,761.50",Ryan's share of rent,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-01,Wells Fargo,Amazon,21.55,21.55, Neurodiversity T-Shirt ,,15,,-$934.76,"$2,826.74",Ryan's share of rent,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-02,Wells Fargo,Amazon,12.6,12.6, OMOTON Adjustsable Table STand for Desk (Kindle) ,,Final Balance,,"$2,826.74",,Amount Jordyn owes Ryan after all adjustments,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-02,Wells Fargo,Fry's,91.74,91.74,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-05,Wells Fargo,The Hub,35.89,35.89,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-06,Wells Fargo,La Ristra,52.51,52.51,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-06,Wells Fargo,Amazon,8.6,8.6, Butterfly Coloring Book ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-06,Wells Fargo,Sister's Addict (Lamps),77.57,77.57,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-06,Wells Fargo,Whole Foods,18.52,18.52,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-08,Wells Fargo,Fry's,169.25,169.25,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-09,Wells Fargo,Amazon,25.92,25.92," CASEKOO for iPhone 13 Pro Case, Miracle-Gro ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-12,Wells Fargo,Target,48.51,48.51,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-14,Wells Fargo,Sprouts,47.98,47.98,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-14,Wells Fargo,Taste of China,48.39,48.39,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-16,Wells Fargo,Amazon,114.34,," Hand Grip Set, Grip Strength Trainer, etc (Ryan 100%) - ADD TO FINAL ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-16,Wells Fargo,Amazon,10.77,, Vitamin K (Ryan 100%) - ADD TO FINAL ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-19,,Brewing - Gilbert,11.8,11.8,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-19,,Sprout's,17.59,17.59,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-23,,Fry's,38.51,38.51,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-26,,The Hub,34.36,34.36,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-28,,Endgame,7.5,7.5,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-28,,Endgame,6.5,6.5,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-28,,Uber,10.67,10.67,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-28,,Lowes - Chandler ,128.0,, Flowers / Paid by Zelle ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-30,,Target,20.59,20.59,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-30,,Target,2.62,2.62,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-04-30,,Target,3.22,3.22,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-02,,Amazon,9.89,9.89, Pocket Hug Token Long Distance Relationship Keepsake Stainless Steel Double Sided Inspirational Gift with PU Leather Keychain (Sobriety) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-03,,Cooper's Hawk,49.72,49.72,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-03,,Fry's,27.39,27.39,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-04,,Whole Foods,16.13,16.13,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-04,,Whole Foods,9.73,9.73,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-04,,Whole Foods,16.22,16.22,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-05,,Amazon,24.13,24.13," Under Armour Men's Training Stretch Shorts , Pitch Gray (012)/Black , Large ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-06,,Fry's,13.98,13.98,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-06,,Blizzard,96.38,96.38, Diablo 4 ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-08,,Sprout's,40.09,40.09,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-11,,Snooze,59.35,59.35,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-11,,Fry's,56.68,56.68,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-11,,The Hub,35.03,35.03,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-12,,Farm & Craft,83.15,83.15,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-14,,Fry's,77.0,77.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-15,,Fry's,19.26,19.26,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-18,,Seat Geeks,75.08,75.08," Daughtry (Opener), Finger 11 ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-18,,SP The Collective Mark,50.65,50.65,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-18,,Picazzo's,43.21,43.21,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-18,,Fry's,51.7,51.7,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-19,,OSHO,71.57,71.57,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-19,,OSHO,7.47,7.47,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-21,,Amazon,28.41,28.41," Boiron Arnicare Bruise Cream for Pain Relief from Bruising and Swelling or Discoloration from Injury - 1.4 oz(Pack of 1) & Chomps Snack Size Grass-Fed and Finished Sea Salt Beef Jerky Snack Sticks 0.5oz 24-Pack - Keto, Paleo, Whole30, 4g Lean Meat Protein, Gluten-Free, Zer ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-21,,Taste of China,43.58,43.58,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-23,,Sprout's,47.3,47.3,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-23,,Fry's,289.99,289.99,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-24,,Espo's,35.64,35.64,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-24,,Espo's,4.33,4.33,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-24,,Amazon,12.93,12.93, What Should Danny Do? (The Power to Choose Series) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-26,,Whole Foods,13.89,13.89,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-27,,The Hub,34.22,34.22,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-27,,In & Out,18.65,18.65,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-28,,Taco Chiuahs,19.46,19.46,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-29,,Fry's,26.45,26.45,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-31,,Fry's,26.23,26.23,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-05-31,,Amazon,35.03,35.03," Orville Redenbacher's Original Gourmet Popping Corn Kernels, 8 lb. & DASH Hot Air Popcorn Popper Maker with Measuring Cup to Portion Popping Corn Kernels + Melt Butter, 16 Cups - Aqua ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-02,,Sprout's,62.24,62.24,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-05,,Fry's,34.75,34.75,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-06,,Amazon,25.86,," Physician's CHOICE Probiotics 60 Billion CFU - 10 Strains + Organic Prebiotics - Immune, Digestive & Gut Health - Supports Occasional Constipation, Diarrhea, Gas & Bloating - for Women & Men - 60ct ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-07,,Whole Foods,47.89,47.89,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-08,,Cooper's Hawk,93.0,93.0,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-14,,Amazon,9.12,9.12," 
+Mantova Ghee Oil, 100% Pure Cooking Oil Spray, Omega-3, perfect for Keto snacks, baking, grilling, or cooking, our oil dispenser bottle lets you spray, drip, or stream with no waste, 5 oz ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-15,,Chon Thai,31.85,31.85,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-15,,Snooze,61.58,61.58,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-15,,Amazon,43.11,, Florensi Meditation Cushion - Comfortable Floor Pillow - Traditional Crescent Meditation Pillow with Beautiful Velvet Cover - Large Floor Cushion Seating for Adults - Premium Yoga Buckwheat Bolster ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-15,,Amazon,14.54,14.54," WIBIMEN Grill Mats for Ourdoor Grill, Set of 7 Copper Grill Mat 100% PFOA Free Non-Stick 15.75 x 13"", Heavy Duty, Resuable and Easy to Clean, Works on Gas Charcoal and Electric BBQ (7pcs) (Copper) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-15,,Amazon,25.33,," Gifts for Dad, Dad Gifts from Daughter Son, Fathers Day Birthday Gifts for Dad Grandpa, Gifts for Dad Who Wants Nothing, Soy Candle, Long Burning & Highly Scented & Bommex Dear Dad We Hope Every Time You Hug This Pillow It Reminds You How Much We Love You Throw Pillow Cover Cushion Case Dad Gift Reminder Gift Birthday Gift (dad-we) ",,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-16,,Uber,7.47,7.47,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-18,,Fry's,95.98,95.98,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-20,,Amazon,23.73,, Glutenase & Shampoo ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-21,,IKEA,73.42,73.42,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-21,,Island Fin Poke,32.36,32.36,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-23,,Rebel Wine Lounge,24.57,24.57,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-23,,The Hub,81.1,81.1,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-25,,Fry's,224.66,224.66,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-26,,Whole Foods,25.94,25.94,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-26,,Amazon,31.83,31.83, Preg Test & L-lysine ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-27,,Gu's Fried Chicken,62.6,62.6,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-27,,Sprout's,31.11,31.11,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-30,,Home Goods,35.81,35.81,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-06-30,,Amazon,39.56,39.56, Ollie (aka Prince Ali!) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-07-01,,Amazon,34.48,34.48, Ollie (aka Prince Ali!) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-07-01,,Amazon,57.53,57.53, Ollie (aka Prince Ali!) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-07-01,,Amazon,9.69,9.69, Ollie (aka Prince Ali!) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-07-03,,Amazon,10.72,10.72, Ollie (aka Prince Ali!) ,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-07-03,,PetMarket,130.91,130.91,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-07-03,,Amazon,19.1,19.1,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-07-03,,Postino's,41.84,41.84,,,,,,,,,,,,,01a_expenses_raw|02b_clean
+Jordyn,2024-07-03,,Vet Doctor of Chandler,380.0,380.0, Ollie (aka Prince Ali!) ,,,,,,,,,,,,01a_expenses_raw|02b_clean

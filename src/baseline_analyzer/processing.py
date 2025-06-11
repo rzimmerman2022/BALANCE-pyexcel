@@ -824,6 +824,88 @@ def _clean_amount_column(series: pd.Series) -> pd.Series:
     return series
 
 
+# --- Ledger shape coercion helpers --------------------------------------------------
+
+def _parse_vertical_ledger(raw_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert a vertical-layout transaction export (single column with running balance)
+    into a standard three-column dataframe containing Date, Description, Amount.
+
+    The vertical format appears as:
+
+        05/27/25
+        Apple Pay
+        -23.45
+        Running Balance
+        3,245.18
+        05/26/25
+        Zelle Transfer
+        1,000.00
+        …
+
+    The parser walks the column, detects date tokens, and captures the two following
+    rows as description and amount respectively.  It ignores any “Running Balance”
+    header/value pairs.  Invalid lines are skipped gracefully.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: Date (pandas-datetime), Description (str), Amount (float)
+    """
+    if raw_df.empty or raw_df.shape[1] != 1:
+        return raw_df  # Already tabular – nothing to transform.
+
+    col = raw_df.columns[0]
+    lines = raw_df[col].astype(str).str.strip()
+
+    records: list[dict[str, Any]] = []
+    idx = 0
+    date_re = re.compile(r"^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}$")  # quick MM/DD/YY matcher
+
+    while idx < len(lines) - 2:
+        token = lines.iloc[idx]
+        if date_re.match(token):
+            desc = lines.iloc[idx + 1]
+            # Skip “Running Balance” meta section
+            if desc.lower().startswith("running balance"):
+                idx += 1
+                continue
+            amt_raw = lines.iloc[idx + 2].replace(",", "")
+            try:
+                amt_val = float(amt_raw)
+            except ValueError:
+                idx += 1
+                continue
+            records.append(
+                {
+                    "Date": pd.to_datetime(token, errors="coerce"),
+                    "Description": desc,
+                    "Amount": amt_val,
+                }
+            )
+            idx += 3
+        else:
+            idx += 1
+
+    return pd.DataFrame(records)
+
+
+def _coerce_ledger_shape(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ensure a ledger dataframe provides 'Date' and 'Amount' columns.
+
+    • If already present, pass through.
+    • If vertical format detected (≤2 columns or explicit 'Running Balance'), reshape.
+    """
+    if {"Date", "Amount"}.issubset(df.columns):
+        return df
+
+    if df.shape[1] <= 2 or any(df.columns.str.contains("Running Balance", case=False, na=False)):
+        reshaped = _parse_vertical_ledger(df)
+        return reshaped
+
+    return df  # Return as-is; later validation will catch missing columns.
+
 # Canonical column mapping for header normalization
 CANONICAL_COLUMNS = {
     "allowed_amount": "AllowedAmount",
@@ -834,6 +916,7 @@ CANONICAL_COLUMNS = {
     "merchant": "Merchant",
     "account": "Account",
     "gross_total": "GrossTotal",
+    "running_balance": "RunningBalance",
     "ryan's_rent_(43%)": "RyanRentPortion",
     "jordyn's_rent_(57%)": "JordynRentPortion", 
     "month": "Month_Display",
@@ -877,6 +960,14 @@ def _load_sources(inputs_dir: str = "data") -> Dict[str, pd.DataFrame]:
         if found_file and found_file.exists():
             try:
                 df = pd.read_csv(found_file)
+                if source_name == "ledger":
+                    df = _coerce_ledger_shape(df)
+                    # Fail fast if still unusable
+                    if not {"Date", "Amount"}.issubset(df.columns):
+                        raise ValueError(
+                            f"Ledger unusable after shape coercion; missing columns: "
+                            f"{ {'Date','Amount'} - set(df.columns) }"
+                        )
                 # Initialize lineage tracking
                 df = init_lineage(df, source_name)
                 sources[source_name] = df

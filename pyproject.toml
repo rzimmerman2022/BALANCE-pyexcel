@@ -42,7 +42,7 @@ name = "balance-pyexcel-pipeline"
 # - MAJOR: Incompatible API changes
 # - MINOR: Backwards-compatible functionality additions
 # - PATCH: Backwards-compatible bug fixes
-version = "0.1.0"
+version = "0.3.0"
 
 # A brief, one-line description of what your package does
 description = "Python ETL pipeline for the BALANCE-pyexcel shared finance tracker, including a standalone baseline analyzer."
