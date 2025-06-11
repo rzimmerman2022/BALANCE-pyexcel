@@ -897,14 +897,23 @@ def _coerce_ledger_shape(df: pd.DataFrame) -> pd.DataFrame:
     • If already present, pass through.
     • If vertical format detected (≤2 columns or explicit 'Running Balance'), reshape.
     """
+    # Already good → pass through
     if {"Date", "Amount"}.issubset(df.columns):
         return df
 
-    if df.shape[1] <= 2 or any(df.columns.str.contains("Running Balance", case=False, na=False)):
-        reshaped = _parse_vertical_ledger(df)
+    # Always give the vertical parser a chance using the first column
+    reshaped = _parse_vertical_ledger(df.iloc[:, [0]].copy())
+    if {"Date", "Amount"}.issubset(reshaped.columns) and not reshaped.empty:
         return reshaped
 
-    return df  # Return as-is; later validation will catch missing columns.
+    # Fallback: if original looked vertical (≤2 cols or 'Running Balance' header) try full df
+    if df.shape[1] <= 2 or any(df.columns.str.contains("Running Balance", case=False, na=False)):
+        reshaped2 = _parse_vertical_ledger(df)
+        if {"Date", "Amount"}.issubset(reshaped2.columns) and not reshaped2.empty:
+            return reshaped2
+
+    # Otherwise return unchanged – caller’s guard will error if still unusable
+    return df
 
 # Canonical column mapping for header normalization
 CANONICAL_COLUMNS = {
@@ -959,8 +968,11 @@ def _load_sources(inputs_dir: str = "data") -> Dict[str, pd.DataFrame]:
         
         if found_file and found_file.exists():
             try:
-                df = pd.read_csv(found_file)
+                # Expenses & rent load via normal CSV; ledger needs special handling
                 if source_name == "ledger":
+                    # Read raw text to avoid comma-splitting numeric values
+                    raw_lines = found_file.read_text().splitlines()
+                    df = pd.DataFrame({"Col": raw_lines})
                     df = _coerce_ledger_shape(df)
                     # Fail fast if still unusable
                     if not {"Date", "Amount"}.issubset(df.columns):
@@ -968,6 +980,8 @@ def _load_sources(inputs_dir: str = "data") -> Dict[str, pd.DataFrame]:
                             f"Ledger unusable after shape coercion; missing columns: "
                             f"{ {'Date','Amount'} - set(df.columns) }"
                         )
+                else:
+                    df = pd.read_csv(found_file)
                 # Initialize lineage tracking
                 df = init_lineage(df, source_name)
                 sources[source_name] = df
