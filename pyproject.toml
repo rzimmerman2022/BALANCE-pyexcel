@@ -123,6 +123,12 @@ pdfplumber = {version = "^0.11", extras = ["no-image"]}
 # Used for: Image processing support for camelot-py
 # Required by: camelot-py for certain PDF processing operations
 opencv-python = "^4.11.0.86"
+# ----------------------------------------------------------------------------
+# SYSTEM / PERFORMANCE OBSERVABILITY
+# ----------------------------------------------------------------------------
+# psutil: cross-platform process and system utilities
+# Used by: analyzer.py for CPU / memory telemetry (optional but imported)
+psutil = "^7.0"
 
 # ----------------------------------------------------------------------------
 # REPORT GENERATION DEPENDENCIES

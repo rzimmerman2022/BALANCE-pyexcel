@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Any, Union
 from dataclasses import dataclass
 import re
+import csv
 
 # Assuming config.py and loaders.py are in the same directory or accessible via PYTHONPATH
 from .config import AnalysisConfig, DataQualityFlag 
@@ -890,6 +891,86 @@ def _parse_vertical_ledger(raw_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
+def _parse_tabular_ledger(raw_lines: list[str]) -> pd.DataFrame:
+    """
+    Parse a standard comma-separated ledger export that may contain thousands
+    separators and an optional “Transaction Type” (CREDIT / DEBIT or CR / DR)
+    column.
+
+    The parser:
+    • preserves quoted fields with embedded commas via csv.reader
+    • normalises headers using _normalise_header + CANONICAL_COLUMNS
+    • cleans the Amount field with a single regex stripping every non-numeric
+      char except minus and decimal point
+    • infers sign:
+        – prefer explicit Transaction Type (CR = +, DR = –)
+        – else positive if description contains “to Ryan”, otherwise negative
+    • returns a DF with exactly Date, Amount, Description
+    """
+    # csv.reader respects quotes and embedded commas
+    reader = csv.reader(raw_lines, skipinitialspace=True)
+    rows = list(reader)
+    if not rows:
+        return pd.DataFrame()
+
+    header = rows[0]
+    data_rows = rows[1:]
+    df = pd.DataFrame(data_rows, columns=header)
+
+    # Header normalisation → canonical names
+    rename_map: dict[str, str] = {}
+    for col in df.columns:
+        norm = _normalise_header(col)
+        rename_map[col] = CANONICAL_COLUMNS.get(norm, col)
+    df.rename(columns=rename_map, inplace=True)
+
+    # Harmonise key columns
+    if "Date" not in df.columns and "Date of Purchase" in df.columns:
+        df.rename(columns={"Date of Purchase": "Date"}, inplace=True)
+    if "Amount" not in df.columns and "ActualAmount" in df.columns:
+        df.rename(columns={"ActualAmount": "Amount"}, inplace=True)
+
+    # Early exit if still missing basics
+    if {"Date", "Amount"}.issubset(df.columns) is False:
+        return df  # Caller will decide on fallback / failure
+
+    # Clean currency strings → float
+    df["Amount"] = (
+        df["Amount"]
+        .astype(str)
+        .str.replace(r"[^0-9.\\-]", "", regex=True)  # drop $, commas, spaces
+        .replace("", "0")
+        .astype(float)
+    )
+
+    # Sign correction
+    signs: list[int] = []
+    for _, row in df.iterrows():
+        sign = -1  # default: money leaving Ryan
+        txn_type = str(row.get("Transaction Type", "")).strip().upper()
+        if txn_type:
+            sign = 1 if txn_type.startswith(("CR", "CREDIT")) else -1
+        else:
+            desc = str(row.get("Description", ""))
+            payer = str(row.get("Payer", ""))
+            # Text-based inference
+            if re.search(r"\bto\s+ryan\b", desc, flags=re.I):
+                sign = 1
+            # Fallback heuristic: payments *from* Jordyn to Ryan are positive
+            elif payer.lower().startswith("jordyn"):
+                sign = 1
+        signs.append(sign)
+    df["Amount"] = df["Amount"] * pd.Series(signs, index=df.index)
+
+    # Dates to datetime
+    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+
+    # Sub-select canonical output order
+    out_cols = ["Date", "Amount"]
+    if "Description" in df.columns:
+        out_cols.append("Description")
+    return df[out_cols].copy()
+
 def _coerce_ledger_shape(df: pd.DataFrame) -> pd.DataFrame:
     """
     Ensure a ledger dataframe provides 'Date' and 'Amount' columns.
@@ -970,10 +1051,17 @@ def _load_sources(inputs_dir: str = "data") -> Dict[str, pd.DataFrame]:
             try:
                 # Expenses & rent load via normal CSV; ledger needs special handling
                 if source_name == "ledger":
-                    # Read raw text to avoid comma-splitting numeric values
+                    # Read raw text and parse via robust tabular parser
                     raw_lines = found_file.read_text().splitlines()
-                    df = pd.DataFrame({"Col": raw_lines})
-                    df = _coerce_ledger_shape(df)
+                    df = _parse_tabular_ledger(raw_lines)
+
+                    # Fallback: give vertical parser a chance if tabular parse failed
+                    if not {"Date", "Amount"}.issubset(df.columns):
+                        df_fallback = pd.DataFrame({"Col": raw_lines})
+                        df_fallback = _coerce_ledger_shape(df_fallback)
+                        if {"Date", "Amount"}.issubset(df_fallback.columns):
+                            df = df_fallback
+
                     # Fail fast if still unusable
                     if not {"Date", "Amount"}.issubset(df.columns):
                         raise ValueError(

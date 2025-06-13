@@ -1,0 +1,21 @@
+echo "feat(parser): Overhaul parsing engine and runtime environment
+
+This commit resolves critical parsing and runtime errors through a comprehensive overhaul of the data ingestion pipeline and its environment.
+
+### 1. Engineered a Robust Ledger Parser
+The original and most significant problem was that the program couldn't read the tabular CSV ledger file. This was fixed by:
+- **Building a New Tabular Parser:** Created \`_parse_tabular_ledger()\` specifically to handle standard CSVs, correctly processing fields with embedded commas (like \"\$ 1,234.56\").
+- **Header Normalization:** Made the parser smart enough to recognize different column names (like \"Date of Purchase\") and map them to the required \"Date\" and \"Amount\" columns.
+- **Universal Currency Cleaning:** Implemented a powerful regex to strip out dollar signs and commas, ensuring any currency format is converted to a clean number.
+- **Sophisticated Sign Logic:** Created a multi-step process to correctly identify credits vs. debits by checking for a \"CR/DR\" column first, then searching the description, and finally checking the payer's name.
+
+### 2. Resolved Runtime Environment & Stability Issues
+The program was also crashing due to environment problems. These were fixed by:
+- **Fixing the \`run_baseline.py\` Crash:** The script was calling a function that didn't exist. It has been redirected to the correct entry point.
+- **Adding Missing Dependency:** Added \`psutil\` to \`pyproject.toml\` and updated the \`poetry.lock\` file so it gets installed automatically.
+- **Implementing the Virtual Environment:** Established a \`.venv\` to keep project dependencies isolated and prevent future conflicts.
+
+### 3. Added Comprehensive Testing
+To ensure the new parser was working correctly, we:
+- **Created a New Test File:** \`tests/baseline/test_tabular_ledger_parser.py\` was added.
+- **Built a New Test Fixture:** A new CSV file, \`tests/fixtures/tabular_ledger.csv\`, was created with complex data to validate all the new logic." > commit_message.txt

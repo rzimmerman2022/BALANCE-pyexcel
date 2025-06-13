@@ -1,0 +1,4 @@
+Name,Date of Purchase,Transaction Type,Actual Amount ,Description
+Ryan,07/01/2024,DEBIT,$ 50.00,Groceries run
+Jordyn,07/02/2024,CREDIT,$ 100.00,Transfer – Payment to Ryan
+Jordyn,07/03/2024,,$ 200.00,Payment to Ryan for July expenses

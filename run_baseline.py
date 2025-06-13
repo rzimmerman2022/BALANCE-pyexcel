@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import logging
 
-import analyzer
+from baseline_analyzer.cli import main as cli_main
 
 
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +27,7 @@ log = logging.getLogger("run_baseline")
 def main() -> None:
     """Run the legacy analyzer with default arguments."""
     try:
-        analyzer.main()
+        cli_main()
     except Exception as exc:  # pragma: no cover - best effort logging
         log.exception("Baseline calculation failed", exc_info=exc)
     else:
