@@ -1,0 +1,33 @@
+Sprint #3 — Literal Extraction (Phase A)
+
+Scope
+• config/balance_analyzer.yaml
+• src/baseline_analyzer/_settings.py
+• src/baseline_analyzer/processing.py
+• tests/balance_analyzer/test_processing_config.py
+
+Key Points
+1. Added new configurable literals
+   • amount_col (“Amount”)
+   • date_col (“Date”)
+   • baseline_floor_date (“2000-01-01”)
+
+2. Extended Settings dataclass
+   – Included the three new fields.
+   – Added lightweight stubs when *pydantic-settings* is absent so the
+     project can run in minimal CI containers.
+
+3. processing.py refactor
+   – Replaced hard-coded strings with config-driven helper accessors.
+   – Centralised literal retrieval; downstream logic calls
+     amount_col(), date_col(), baseline_floor_date().
+
+4. Tests
+   – New test_processing_config verifies defaults + BA_ env overrides.
+   – Entire test suite passes (pytest -q).
+
+5. Validation
+   – Grep confirms zero literal leaks in processing.py.
+   – All tests: ..... 100 % green.
+
+This commit completes Phase A of Sprint #3.

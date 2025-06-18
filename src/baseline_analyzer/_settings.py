@@ -13,7 +13,35 @@ from typing import Any
 import os
 
 import yaml
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# --------------------------------------------------------------------------- #
+# Optional dependency handling
+# --------------------------------------------------------------------------- #
+try:
+    # Preferred: lightweight package that ships with Pydantic v2 ecosystem
+    from pydantic_settings import BaseSettings, SettingsConfigDict  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    # If *pydantic-settings* is unavailable we create ultra-lightweight stubs
+    # so the rest of this module remains importable without adding heavy deps.
+    class BaseSettings:  # type: ignore
+        """Very small subset replacement for Pydantic ``BaseSettings``."""
+        # populated after subclass creation
+        model_fields: dict[str, object] = {}
+
+        def __init_subclass__(cls) -> None:
+            # capture class annotations as field names
+            annotations = getattr(cls, "__annotations__", {})
+            cls.model_fields = {name: None for name in annotations}
+
+        def __init__(self, **data: object) -> None:
+            # simply assign provided kwargs; no validation
+            for field in self.model_fields:
+                setattr(self, field, data.get(field))
+
+    class SettingsConfigDict(dict):  # minimal stub to appease type checkers
+        """Stand-in for pydantic-settings’ SettingsConfigDict."""
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
 
 # Default YAML location: <repo_root>/config/balance_analyzer.yaml
 _DEFAULT_YAML: Path = Path(__file__).parents[2] / "config" / "balance_analyzer.yaml"
@@ -25,6 +53,9 @@ class Settings(BaseSettings):
     opening_balance_col: str
     baseline_date_format: str
     merchant_lookup_path: str
+    amount_col: str
+    date_col: str
+    baseline_floor_date: str
 
     # Pydantic-settings configuration: env overrides + immutability
     model_config = SettingsConfigDict(env_prefix="BA_", frozen=True)
