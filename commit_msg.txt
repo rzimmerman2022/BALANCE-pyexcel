@@ -1,33 +1,36 @@
-Sprint #3 — Literal Extraction (Phase A)
+feat(opening_balance): implement Opening Balance injection logic and tests
 
-Scope
-• config/balance_analyzer.yaml
-• src/baseline_analyzer/_settings.py
-• src/baseline_analyzer/processing.py
-• tests/balance_analyzer/test_processing_config.py
+Sprint #4 completion – Baseline Analyzer
+---------------------------------------
 
-Key Points
-1. Added new configurable literals
-   • amount_col (“Amount”)
-   • date_col (“Date”)
-   • baseline_floor_date (“2000-01-01”)
+### ✨  New functionality
+* Added full algorithm to `src/baseline_analyzer/opening_balance.py`
+  – Inserts one synthetic “Opening Balance” row **one day before** the first
+    transaction in each distinct account.
+  – Maintains prior behaviour of returning an unchanged copy when the required
+    columns are absent, preserving generic-DataFrame callers and stub tests.
+  – Auto-detects a descriptive column (`Merchant` → `Description` → creates
+    `Merchant`) and stamps `cfg.opening_balance_col` as the label.
+  – Sets the configured *Amount* column to **0** and keeps column order.
 
-2. Extended Settings dataclass
-   – Included the three new fields.
-   – Added lightweight stubs when *pydantic-settings* is absent so the
-     project can run in minimal CI containers.
+### 🧪  Tests & fixtures
+* `tests/balance_analyzer/fixtures/mini.csv`
+  Minimal 3-row sample covering two accounts.
+* `tests/balance_analyzer/test_inject_opening_balance_basic.py`
+  Validates:
+    – row-count increase equals #accounts,
+    – first row per account has opening-balance label,
+    – date equals (first_txn_date – 1 day).
+* Adjusted legacy stub test to expect a silent no-op when the “Account”
+  column is missing.
 
-3. processing.py refactor
-   – Replaced hard-coded strings with config-driven helper accessors.
-   – Centralised literal retrieval; downstream logic calls
-     amount_col(), date_col(), baseline_floor_date().
+### ✅  Result
+All Balance-Analyzer tests pass:
 
-4. Tests
-   – New test_processing_config verifies defaults + BA_ env overrides.
-   – Entire test suite passes (pytest -q).
+    pytest tests/balance_analyzer -q
+    ......  [100%]
 
-5. Validation
-   – Grep confirms zero literal leaks in processing.py.
-   – All tests: ..... 100 % green.
+No additional configuration keys were required; YAML already exposes
+`opening_balance_col`.
 
-This commit completes Phase A of Sprint #3.
+Closes Sprint #4 tasks 4-1 → 4-5.
