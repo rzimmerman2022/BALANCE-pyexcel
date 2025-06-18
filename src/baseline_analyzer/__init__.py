@@ -19,3 +19,8 @@ Core modules:
 __version__ = "0.1.0"
 __author__ = "Ryan Zimmerman"
 __description__ = "Single-run ledger baseline finder for Balance"
+
+# Public re-exports (BA Sprint 1)
+from ._settings import load_config, Settings  # noqa: F401
+
+__all__ = ["load_config", "Settings"]

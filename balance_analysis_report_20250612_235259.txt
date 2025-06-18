@@ -1,0 +1,250 @@
+BALANCE VERIFICATION REPORT
+============================================================
+Generated: 2025-06-12 23:52:59.652304
+
+{
+  "files_found": {
+    "expenses": "data\\Expense_History_20250527.csv",
+    "rent": "data\\Rent_Allocation_20250527.csv"
+  },
+  "data_quality": {
+    "expenses": {
+      "total_records": 1130,
+      "date_range": "2023-09-09 00:00:00 to 2024-12-31 00:00:00",
+      "payers": {
+        "Ryan": 832,
+        "Jordyn": 260,
+        "Jordyn ": 8,
+        "September 9th, 2023 - September 24th, 2023": 1,
+        "October 20th, 2023 - November 8th, 2023": 1,
+        "September 25th, 2023 - October 19th, 2023": 1,
+        "November 9th, 2023 - November 19th, 2023 (11/6 late charge included)": 1,
+        "November 20th, 2023 - December 11th, 2023": 1,
+        "December 12th, 2023 - January 1st, 2024 (HAPPY NEW YEARS!!!!)": 1,
+        "January 2nd, 2024 - February 5th, 2024": 1,
+        "February 5th, 2024 - March 11th, 2024": 1,
+        "March 12th, 2024 - July 3rd, 2024": 1,
+        "Ryan Expenses": 1,
+        "Jordyn Expenses": 1
+      },
+      "total_actual": 73982.71,
+      "total_allowed": 58975.98,
+      "shared_count": "895",
+      "personal_count": "235",
+      "shared_total": 58975.979999999996,
+      "personal_total": 12423.81
+    },
+    "rent": {
+      "total_months": 46,
+      "average_rent": 562.1495652173912,
+      "total_rent": 25858.879999999997,
+      "ryan_total_rent": 11119.33
+    }
+  },
+  "balance_analysis": {
+    "wrong_method": {
+      "ryan_paid": 57985.56,
+      "jordyn_paid": 15076.199999999999,
+      "total": 73061.76
+    },
+    "correct_method": {
+      "ryan_paid": 44117.42,
+      "jordyn_paid": 14004.04,
+      "total": 58121.46
+    },
+    "difference": 14940.299999999996,
+    "correct_balance": {
+      "ryan": -19125.192199999998,
+      "jordyn": 19125.192199999998
+    },
+    "settlements": [
+      {
+        "date": "2024-04-28 00:00:00",
+        "payer": "Jordyn",
+        "amount": 128.0,
+        "description": " Flowers / Paid by Zelle ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2023-11-19 00:00:00",
+        "payer": "Jordyn",
+        "amount": 381.54,
+        "description": " Ryan only purchases: $70 pillow,  office mat $189.99 ($260) Jordyn only $75 ",
+        "allowed": 46.0
+      },
+      {
+        "date": "2024-01-27 00:00:00",
+        "payer": "Ryan",
+        "amount": 40.95,
+        "description": " Reading PIllow (Free for Jordyn from Ryan as a present, heart emoji), touch-toe stopper (11.53) Order# 113-3380358-9555412 ",
+        "allowed": 11.53
+      },
+      {
+        "date": "2024-01-29 00:00:00",
+        "payer": "Ryan",
+        "amount": 42.02,
+        "description": " Zip Ties, Wood Squatting Toilet (Ryan 100%) ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-02-02 00:00:00",
+        "payer": "Ryan",
+        "amount": 64.66,
+        "description": " Ryan Purchases ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-01-04 00:00:00",
+        "payer": "Ryan",
+        "amount": 343.94,
+        "description": " Patio Chairs, Kitchen Towels, Heated Blanket, Super Rest Down Comforter (343.94 - 240.59) Kohl's cash?? Ryan response: Partially, but I worked for this Kohl's' cash. We will need to discuss further, as that Kohl's cash I earned with hours of time invested. ",
+        "allowed": 50.0
+      },
+      {
+        "date": "2024-01-04 00:00:00",
+        "payer": "Ryan",
+        "amount": 149.95,
+        "description": " SoundAsleep Air Mattress --- what happened to the one returned??? Ryan response: this is the original, the return was $0.00. Note the date of purchase is 01/04/2024. Order #111-2504086-5973049 ",
+        "allowed": 149.95
+      },
+      {
+        "date": "2024-01-15 00:00:00",
+        "payer": "Ryan",
+        "amount": 85.58,
+        "description": " CoQ10 200 x2 (Jordyn & Ryan) ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-03-05 00:00:00",
+        "payer": "Jordyn",
+        "amount": 41.0,
+        "description": " Ryan pays for this (will itemize to right) ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-04-16 00:00:00",
+        "payer": "Jordyn",
+        "amount": 114.34,
+        "description": " Hand Grip Set, Grip Strength Trainer, etc (Ryan 100%) - ADD TO FINAL ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-04-16 00:00:00",
+        "payer": "Jordyn",
+        "amount": 10.77,
+        "description": " Vitamin K (Ryan 100%) - ADD TO FINAL ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2023-09-24 00:00:00",
+        "payer": "Ryan",
+        "amount": 11.2,
+        "description": " 100% Jordyn (2x to calculate appropriately) ",
+        "allowed": 22.4
+      },
+      {
+        "date": "2023-11-20 00:00:00",
+        "payer": "Ryan",
+        "amount": 51.19,
+        "description": " Jordyn's Pillow ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2023-12-21 00:00:00",
+        "payer": "Ryan",
+        "amount": 2.69,
+        "description": " Jordyn Game ",
+        "allowed": 2.69
+      },
+      {
+        "date": "2023-12-21 00:00:00",
+        "payer": "Ryan",
+        "amount": 4.3,
+        "description": " Jordyn Game ",
+        "allowed": 4.3
+      },
+      {
+        "date": "2023-12-25 00:00:00",
+        "payer": "Ryan",
+        "amount": 6.5,
+        "description": " Jordyn Christmas Present ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2023-12-18 00:00:00",
+        "payer": "Ryan",
+        "amount": 100.0,
+        "description": " A R I Z O N A Concert (Paid to ensure he would help find Jordyn and get her home safely) ",
+        "allowed": 100.0
+      },
+      {
+        "date": "2024-01-14 00:00:00",
+        "payer": "Ryan",
+        "amount": 12.93,
+        "description": " Paramount+ with SHOWTIME (How did this get passed my Subscriptions lists?) Did Jordyn order, do we want to keep? ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-02-04 00:00:00",
+        "payer": "Ryan",
+        "amount": 35.71,
+        "description": " Cord Cover Raceway Kit. If this is returned pay Jordyn ",
+        "allowed": 35.71
+      },
+      {
+        "date": "2024-02-02 00:00:00",
+        "payer": "Ryan",
+        "amount": 16.27,
+        "description": " Free for Jordyn ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-06-02 00:00:00",
+        "payer": "Ryan",
+        "amount": 8.11,
+        "description": " Fun Celebration Night For Jordyn Completing 1 Year and Summer Vacation (Free!) ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-06-02 00:00:00",
+        "payer": "Ryan",
+        "amount": 94.57,
+        "description": " Fun Celebration Night For Jordyn Completing 1 Year and Summer Vacation (Free!) ",
+        "allowed": 0.0
+      },
+      {
+        "date": "2024-04-08 00:00:00",
+        "payer": "Ryan",
+        "amount": 25.57,
+        "description": " Chomps (Jordyn - I'll pay 50%) ",
+        "allowed": 25.57
+      },
+      {
+        "date": "2024-04-22 00:00:00",
+        "payer": "Ryan",
+        "amount": 100.0,
+        "description": " Upgrade for Jordyn Character (Free, No Charge) ",
+        "allowed": 0.0
+      }
+    ],
+    "final": {
+      "expense_balance": {
+        "ryan": -18757.7486,
+        "jordyn": 19612.268599999996
+      },
+      "rent_balance": {
+        "ryan": 11119.33,
+        "jordyn": -11119.33
+      },
+      "final_balance": {
+        "ryan": -7638.418599999999,
+        "jordyn": 8492.938599999996
+      }
+    }
+  },
+  "recommendations": [
+    "CRITICAL: Your code is including $14,940.30 of personal expenses in balance calculations. Fix the _reconcile() function to only count expenses where AllowedAmount > 0.",
+    "Found 24 potential settlement transactions. Ensure these are properly marked with AllowedAmount = 0 and not counted as shared expenses.",
+    "WARNING: Final balances don't sum to zero (sum = $854.52). This indicates a calculation error that needs to be fixed."
+  ]
+}

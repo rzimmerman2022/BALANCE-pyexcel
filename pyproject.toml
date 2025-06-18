@@ -78,6 +78,10 @@ packages = [{include = "balance_pipeline", from = "src"}, {include = "baseline_a
 # ^3.11 means >=3.11.0, <4.0.0 (any 3.x version from 3.11 onwards)
 # <3.14 adds upper bound to ensure compatibility isn't assumed for future versions
 python = "^3.11,<3.14"
+# Configuration management
+pydantic = "^2.7"
+# Separate package for BaseSettings (pydantic v2)
+pydantic-settings = "^2.2"
 
 # ----------------------------------------------------------------------------
 # DATA PROCESSING DEPENDENCIES

@@ -1,0 +1,30 @@
+Balance Analyzer – Sprint 1: Config Boot-strap
+==============================================
+
+Summary
+-------
+Introduce a clean, self-contained configuration loader for **baseline_analyzer**
+while leaving the legacy `config.py` untouched.
+
+Key Files
+---------
+* **src/baseline_analyzer/_settings.py**
+  • Defines `Settings` (opening_balance_col, baseline_date_format, merchant_lookup_path)  
+  • Implements `load_config()` that reads YAML defaults from
+    `config/balance_analyzer.yaml` and overlays any `BA_*` environment variables  
+  • Uses `pydantic-settings` with `env_prefix="BA_"`, `frozen=True`
+
+* **src/baseline_analyzer/__init__.py**
+  • Re-exports `load_config` and `Settings` from the new `_settings` module
+
+Tests
+-----
+* All existing tests under `tests/balance_analyzer/` now pass (`pytest -q`).
+
+Rationale
+---------
+The legacy `config.py` is bloated and contained merge conflicts.
+A minimal loader module isolates config concerns and completes
+Sprint 1 without collateral impact on the wider BALANCE code-base.
+
+Co-Authored-By: Cline AI <dev@cline.ai>

@@ -1,0 +1,7 @@
+# Baseline-Analyzer default configuration
+# Values can be overridden at runtime via environment variables
+# prefixed with `BA_` (e.g. BA_OPENING_BALANCE_COL)
+
+opening_balance_col: "Opening Balance"
+baseline_date_format: "%Y-%m-%d"
+merchant_lookup_path: "config/merchant_lookup.csv"
