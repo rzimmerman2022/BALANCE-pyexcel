@@ -22,5 +22,6 @@ __description__ = "Single-run ledger baseline finder for Balance"
 
 # Public re-exports (BA Sprint 1)
 from ._settings import load_config, Settings  # noqa: F401
+from .opening_balance import inject_opening_balance  # noqa: F401
 
-__all__ = ["load_config", "Settings"]
+__all__ = ["load_config", "Settings", "inject_opening_balance"]
