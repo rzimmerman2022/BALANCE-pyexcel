@@ -1,34 +1,36 @@
 ################################################################################
 #                                                                              #
-#                    BALANCE-PYEXCEL-PIPELINE PROJECT CONFIG                   #
+#                       BALANCE-PYEXCEL-PIPELINE PROJECT CONFIG                #
 #                                                                              #
-#                           pyproject.toml                                     #
+#                               pyproject.toml                                 #
 #                                                                              #
 #  Project: balance-pyexcel-pipeline                                           #
 #  Description: Python ETL pipeline for BALANCE-pyexcel shared finance tracker #
 #  Author: Ryan Zimmerman <rzimmerman2022@gmail.com>                           #
 #  Created: 2024-01-01 (estimated)                                             #
-#  Last Modified: 2025-06-08                                                   #
-#  Python Version: 3.11+ (compatible up to 3.13)                              #
+#  Last Modified: 2025-06-18                                                   #
+#  Python Version: 3.11+ (compatible up to 3.13)                               #
 #  Build System: Poetry                                                        #
 #                                                                              #
 #  Changelog:                                                                  #
-#    2025-06-08: Added reportlab for PDF report generation                    #
+#    2025-06-18: Added python-dateutil for robust date/time parsing            #
+#                - Enhances timezone handling and date string conversion       #
+#    2025-06-08: Added reportlab for PDF report generation                     #
 #                - New dependency for creating formatted PDF documents         #
-#                - Supports financial reports and merchant summaries          #
-#    2025-06-03: Added balance-analyze command-line entry point               #
+#                - Supports financial reports and merchant summaries           #
+#    2025-06-03: Added balance-analyze command-line entry point                #
 #                - New analyzer module for data analysis operations            #
 #                - Updated documentation for all CLI tools                     #
-#    2025-01-06: Refactored to best practices with verbose documentation      #
+#    2025-01-06: Refactored to best practices with verbose documentation       #
 #                - Organized dependencies by functional groups                 #
 #                - Added comprehensive tool configurations                     #
-#                - Removed conflicting setuptools configuration               #
-#                - Added type checking and linting configurations             #
+#                - Removed conflicting setuptools configuration                #
+#                - Added type checking and linting configurations              #
 #                                                                              #
 ################################################################################
 
 # ============================================================================ #
-#                          POETRY PROJECT METADATA                             #
+#                               POETRY PROJECT METADATA                        #
 # ============================================================================ #
 # This section defines the core metadata for your Python package. Poetry uses  #
 # this information when building distributions and publishing to PyPI.         #
@@ -42,7 +44,7 @@ name = "balance-pyexcel-pipeline"
 # - MAJOR: Incompatible API changes
 # - MINOR: Backwards-compatible functionality additions
 # - PATCH: Backwards-compatible bug fixes
-version = "0.3.0"
+version = "0.3.1" # Incremented patch version for the new dependency
 
 # A brief, one-line description of what your package does
 description = "Python ETL pipeline for the BALANCE-pyexcel shared finance tracker, including a standalone baseline analyzer."
@@ -61,15 +63,15 @@ readme = "README.md"
 packages = [{include = "balance_pipeline", from = "src"}, {include = "baseline_analyzer", from = "src"}]
 
 # ============================================================================ #
-#                         RUNTIME DEPENDENCIES                                 #
+#                               RUNTIME DEPENDENCIES                           #
 # ============================================================================ #
 # These are the packages required for your application to run in production.   #
 # Poetry will install these when someone runs 'pip install balance-pyexcel'.   #
 #                                                                              #
 # Version specifiers:                                                          #
 #   ^X.Y.Z - Compatible releases (accepts X.Y.Z up to, but not including X+1)  #
-#   ~X.Y.Z - Compatible patch-level (accepts X.Y.Z up to, but not X.Y+1)      #
-#   >=X.Y.Z,<A.B.C - Specific range                                          #
+#   ~X.Y.Z - Compatible patch-level (accepts X.Y.Z up to, but not X.Y+1)     #
+#   >=X.Y.Z,<A.B.C - Specific range                                             #
 #   * - Any version (not recommended)                                          #
 # ============================================================================ #
 
@@ -161,6 +163,11 @@ python-dotenv = "^1.1.0"
 PyYAML = "^6.0.1"
 structlog = "^24.1.0" # For structured logging
 
+# python-dateutil: Powerful extensions to the standard datetime module
+# Used for: Advanced date parsing, timezone handling, and complex recurrences
+# Benefit: Provides more robust date handling than built-in libraries
+python-dateutil = "^2.9.0"
+
 # ----------------------------------------------------------------------------
 # OPTIONAL DEPENDENCIES
 # These are not installed by default but can be included with extras
@@ -172,10 +179,10 @@ structlog = "^24.1.0" # For structured logging
 fastparquet = {version = "^2024.5", optional = true}
 
 # ============================================================================ #
-#                            OPTIONAL EXTRAS                                   #
+#                               OPTIONAL EXTRAS                                #
 # ============================================================================ #
 # Extras allow users to install additional dependencies for specific features. #
-# Install with: pip install balance-pyexcel-pipeline[parquet-alt]             #
+# Install with: pip install balance-pyexcel-pipeline[parquet-alt]              #
 # ============================================================================ #
 
 [tool.poetry.extras]
@@ -186,11 +193,11 @@ parquet-alt = ["fastparquet"]
 arrow = ["pyarrow"]
 
 # ============================================================================ #
-#                         DEVELOPMENT DEPENDENCIES                             #
+#                           DEVELOPMENT DEPENDENCIES                           #
 # ============================================================================ #
 # These packages are only needed during development, not in production.        #
-# They're installed when you run 'poetry install' but not when end-users      #
-# install your package via pip.                                               #
+# They're installed when you run 'poetry install' but not when end-users       #
+# install your package via pip.                                                #
 # ============================================================================ #
 
 [tool.poetry.group.dev.dependencies]
@@ -278,7 +285,7 @@ mkdocstrings-python = "^1.9"
 snakeviz = "^2.2.2"
 
 # ============================================================================ #
-#                          COMMAND LINE SCRIPTS                                #
+#                              COMMAND LINE SCRIPTS                            #
 # ============================================================================ #
 # These define the console commands that get installed with your package.      #
 # After installation, users can run these commands from their terminal.        #
@@ -306,9 +313,9 @@ balance-analyze = "balance_pipeline.analyzer:main"
 baseline-analyze = "baseline_analyzer.cli:main"
 
 # ============================================================================ #
-#                            BUILD SYSTEM                                      #
+#                                 BUILD SYSTEM                                 #
 # ============================================================================ #
-# Tells pip and other tools how to build your package.                        #
+# Tells pip and other tools how to build your package.                         #
 # Poetry-core is a lightweight version of Poetry for building.                 #
 # ============================================================================ #
 
@@ -320,10 +327,10 @@ requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 
 # ============================================================================ #
-#                         TOOL CONFIGURATIONS                                  #
+#                              TOOL CONFIGURATIONS                             #
 # ============================================================================ #
-# Configuration for development tools to ensure consistency across the team.    #
-# These settings are read by the respective tools when they run.              #
+# Configuration for development tools to ensure consistency across the team.   #
+# These settings are read by the respective tools when they run.               #
 # ============================================================================ #
 
 # ----------------------------------------------------------------------------
@@ -432,35 +439,35 @@ pythonpath = ["src"]
 
 # Test discovery configuration
 # Tells pytest where to find tests and what naming patterns to look for
-testpaths = ["tests"]                    # Directory containing test files
+testpaths = ["tests"]               # Directory containing test files
 python_files = ["test_*.py", "*_test.py"] # Test file naming patterns
-python_classes = ["Test*"]                # Test class naming pattern (PascalCase)
-python_functions = ["test_*"]             # Test function naming pattern
+python_classes = ["Test*"]            # Test class naming pattern (PascalCase)
+python_functions = ["test_*"]         # Test function naming pattern
 
 # Command line options always passed to pytest
 # These improve the testing experience and provide useful output
 addopts = [
     # Strict mode options
-    "--strict-markers",                   # Fail on unknown test markers
-    "--strict-config",                    # Fail on config parsing errors
+    "--strict-markers",               # Fail on unknown test markers
+    "--strict-config",                # Fail on config parsing errors
     
     # Output formatting
-    "--tb=short",                         # Shorter, more readable tracebacks
-    "--verbose",                          # More detailed test output
+    "--tb=short",                     # Shorter, more readable tracebacks
+    "--verbose",                      # More detailed test output
     
     # Coverage options
-    "--cov=balance_pipeline",             # Measure coverage for our package
+    "--cov=balance_pipeline",         # Measure coverage for our package
     "--cov-report=term-missing:skip-covered",  # Show missing lines, hide 100% files
-    "--cov-report=html:htmlcov",          # Generate HTML report in htmlcov/
-    "--cov-report=xml:coverage.xml",      # Generate XML for CI tools
-    "--cov-fail-under=80",                # Fail if coverage drops below 80%
+    "--cov-report=html:htmlcov",      # Generate HTML report in htmlcov/
+    "--cov-report=xml:coverage.xml",  # Generate XML for CI tools
+    "--cov-fail-under=80",            # Fail if coverage drops below 80%
     
     # Performance and debugging
-    "--durations=10",                     # Show 10 slowest tests
-    "-ra",                                # Show all test summary info
+    "--durations=10",                 # Show 10 slowest tests
+    "-ra",                            # Show all test summary info
     
     # Warnings
-    "-W ignore::DeprecationWarning",      # Ignore deprecation warnings from dependencies
+    "-W ignore::DeprecationWarning",  # Ignore deprecation warnings from dependencies
 ]
 
 # Test markers definition
@@ -476,11 +483,11 @@ markers = [
 ]
 
 # Console output settings
-console_output_style = "progress"         # Show progress bar during test runs
+console_output_style = "progress"       # Show progress bar during test runs
 
 # Logging configuration for tests
-log_cli = true                           # Enable live logging to console
-log_cli_level = "INFO"                   # Default log level for console
+log_cli = true                          # Enable live logging to console
+log_cli_level = "INFO"                  # Default log level for console
 log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
@@ -556,11 +563,11 @@ directory = "htmlcov"
 show_contexts = true
 
 # ============================================================================ #
-#                              END OF FILE                                     #
+#                                 END OF FILE                                  #
 # ============================================================================ #
 # For more information about pyproject.toml configuration:                     #
-# - Poetry: https://python-poetry.org/docs/pyproject/                         #
-# - PEP 517: https://www.python.org/dev/peps/pep-0517/                       #
-# - PEP 518: https://www.python.org/dev/peps/pep-0518/                       #
-# - PEP 621: https://www.python.org/dev/peps/pep-0621/                       #
+# - Poetry: https://python-poetry.org/docs/pyproject/                          #
+# - PEP 517: https://www.python.org/dev/peps/pep-0517/                         #
+# - PEP 518: https://www.python.org/dev/peps/pep-0518/                         #
+# - PEP 621: https://www.python.org/dev/peps/pep-0621/                         #
 # ============================================================================ #
