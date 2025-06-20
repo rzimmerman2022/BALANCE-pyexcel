@@ -141,10 +141,46 @@ def build_baseline(
         if not expense_df.empty
         else pd.DataFrame()
     )
-    led = _clean_labels(ledger_df, source_file="transaction_ledger")
+    led = (
+        _clean_labels(ledger_df, source_file="transaction_ledger")
+        if not ledger_df.empty
+        else pd.DataFrame()
+    )
 
     # ── Process ledger rows → two person-rows each ──────────────
     rows: list[dict[str, object]] = []
+
+    # ── ①  Expense-History rows → two person-rows each ───────────────
+    for _, row in exp.iterrows():
+        payer = row["person"]          # Ryan or Jordyn
+        allowed_self = float(row["allowed"])
+        allowed_other = 0.0
+
+        for person, allowed in (
+            ("Ryan", allowed_self if payer == "Ryan" else allowed_other),
+            ("Jordyn", allowed_self if payer == "Jordyn" else allowed_other),
+        ):
+            total_allowed = allowed_self          # other party = 0
+            fair_half = total_allowed / 2
+            net_eff = round(fair_half - allowed, 2)
+
+            rows.append(
+                {
+                    "source_file": row["source_file"],
+                    "row_id": row["row_id"],
+                    "person": person,
+                    "date": row["date"],
+                    "merchant": row.get("merchant"),
+                    "actual_amount": row["allowed"],   # already final
+                    "allowed_amount": allowed,
+                    "net_effect": net_eff,
+                    "notes": "",
+                    "pattern_flags": [],
+                    "calculation_notes": "EH|Allowed amount provided in source",
+                }
+            )
+
+    # ── Process ledger rows → two person-rows each ──────────────
     for _, row in led.iterrows():
         flags, rule = _detect_patterns(str(row.get("description", "")), str(row["person"]))
         allowed_ryan, allowed_jordyn, note = _apply_split_rules(

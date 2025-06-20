@@ -30,3 +30,19 @@ def test_ledger_math(desc: str, expected: tuple[float, float]) -> None:
     assert (r_allow, j_allow) == expected
     # The two audit rows must balance to ≈0.
     assert abs(audit["net_effect"].sum()) < 0.02
+
+
+# -------- Expense-History explode test ----------------------------
+def test_expense_history_explode():
+    exp = pd.DataFrame({
+        "Name": ["Ryan"],
+        "Date": ["2025-06-18"],
+        "Allowed Amount": [30],
+    })
+    summary, audit = build_baseline(exp, pd.DataFrame())
+    assert len(audit) == 2  # two person-rows
+    # Ryan paid → Ryan allowed 30, Jordyn 0
+    r_allow = audit.loc[audit.person == "Ryan", "allowed_amount"].iloc[0]
+    j_allow = audit.loc[audit.person == "Jordyn", "allowed_amount"].iloc[0]
+    assert (r_allow, j_allow) == (30, 0)
+    assert abs(audit["net_effect"].sum()) < 0.02
