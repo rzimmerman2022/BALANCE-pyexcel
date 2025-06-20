@@ -57,6 +57,34 @@ def _detect_patterns(desc: str, payer: str) -> Tuple[List[str], Tuple[str, str |
     # Default rule
     return [], ("standard", None)
 
+# ── Split-rule helper ────────────────────────────────────
+def _apply_split_rules(
+    actual: float,
+    rule: Tuple[str, str | None],
+    payer: str,
+) -> Tuple[float, float, str]:
+    """
+    Return (allowed_ryan, allowed_jordyn, note).
+    rule formats:
+        ("standard", None)
+        ("double_charge", None)
+        ("full_to", "Ryan"|"Jordyn")
+    """
+    kind, target = rule
+
+    if kind == "standard":
+        return actual / 2, actual / 2, "SR\tStandard 50/50 split"
+
+    if kind == "double_charge":
+        note = "DC\tDouble charge documented; split stays 50/50"
+        return actual / 2, actual / 2, note
+
+    # full_to rule
+    who = (target or payer).title()
+    if who == "Ryan":
+        return actual, 0.0, "FT\tFull reimbursement to Ryan"
+    return 0.0, actual, "FT\tFull reimbursement to Jordyn"
+
 
 def _clean_labels(df: pd.DataFrame, *, source_file: str) -> pd.DataFrame:
     """Rename columns, drop header-noise rows, map person aliases."""
@@ -97,19 +125,60 @@ def build_baseline(
     expense_df: pd.DataFrame, ledger_df: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    TEMP stub: clean & concatenate expense / ledger frames.
+    Phase-3B: compute ledger split rules + net_effect.
+    Expense rows are passed through untouched (handled in 3-C).
 
-    Returns:
-        summary_df – per-person row counts
-        audit_df   – concatenated & cleaned detail rows
+    Returns
+    -------
+    summary_df : pd.DataFrame
+        Per-person net owed totals (column: ``net_owed``).
+    audit_df   : pd.DataFrame
+        Detail rows in canonical order from ``_CFG.audit_columns``.
     """
-    exp = _clean_labels(expense_df, source_file="expense_history")
+    # Clean & label
+    exp = (
+        _clean_labels(expense_df, source_file="expense_history")
+        if not expense_df.empty
+        else pd.DataFrame()
+    )
     led = _clean_labels(ledger_df, source_file="transaction_ledger")
 
-    audit = pd.concat([exp, led], ignore_index=True)
-    summary = (
-        audit.groupby("person", as_index=False)
-        .size()
-        .rename(columns={"size": "row_count"})
+    # ── Process ledger rows → two person-rows each ──────────────
+    rows: list[dict[str, object]] = []
+    for _, row in led.iterrows():
+        flags, rule = _detect_patterns(str(row.get("description", "")), str(row["person"]))
+        allowed_ryan, allowed_jordyn, note = _apply_split_rules(
+            float(row["actual"]), rule, str(row["person"])
+        )
+
+        total_allowed = allowed_ryan + allowed_jordyn
+        fair_half = total_allowed / 2
+
+        for person, allowed in (("Ryan", allowed_ryan), ("Jordyn", allowed_jordyn)):
+            net_eff = round(fair_half - allowed, 2)
+            rows.append(
+                {
+                    "source_file": row["source_file"],
+                    "row_id": row["row_id"],
+                    "person": person,
+                    "date": row["date"],
+                    "merchant": row.get("merchant"),
+                    "actual_amount": row["actual"],
+                    "allowed_amount": allowed,
+                    "net_effect": net_eff,
+                    "notes": "",
+                    "pattern_flags": flags,
+                    "calculation_notes": note,
+                }
+            )
+
+    audit_df = pd.DataFrame(rows, columns=_CFG.audit_columns)
+
+    # ── Summary ────────────────────────────────────────────────
+    summary_df = (
+        audit_df.groupby("person", as_index=False)["net_effect"]
+        .sum()
+        .rename(columns={"net_effect": "net_owed"})
     )
-    return summary, audit
+    assert abs(summary_df["net_owed"].sum()) < _CFG.rounding_tolerance
+    return summary_df, audit_df
