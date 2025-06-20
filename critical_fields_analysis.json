@@ -1,0 +1,67 @@
+{
+  "amount_patterns": {},
+  "description_patterns": {
+    "percentage_assignment": 5,
+    "multiplier": 9,
+    "fully_assigned": 11,
+    "shared_indicator": 5,
+    "category_mention": 20,
+    "gift_indicator": 15,
+    "reimbursement": 23
+  },
+  "calculation_rules": {},
+  "edge_cases": [
+    {
+      "type": "Increased Amount",
+      "merchant": "Oklahoma Toll",
+      "actual": 11.2,
+      "allowed": 22.4,
+      "description": " 100% Jordyn (2x to calculate appropriately) "
+    },
+    {
+      "type": "Increased Amount",
+      "merchant": "Oklahoma Tolls",
+      "actual": 11.2,
+      "allowed": 22.4,
+      "description": " Jordyn Tolls "
+    },
+    {
+      "type": "Increased Amount",
+      "merchant": "Amazon",
+      "actual": 320.0,
+      "allowed": 322.0,
+      "description": " Pans, Charger, Kindle, etc. "
+    },
+    {
+      "type": "Large Reduction",
+      "merchant": "Walgreens",
+      "actual": 13.1,
+      "allowed": 0.0,
+      "description": NaN
+    },
+    {
+      "type": "Large Reduction",
+      "merchant": "Walgreens",
+      "actual": 38.88,
+      "allowed": 0.0,
+      "description": " Milk Thistle, Deodorant "
+    },
+    {
+      "type": "Large Reduction",
+      "merchant": "Walmart",
+      "actual": 56.64,
+      "allowed": 0.0,
+      "description": NaN
+    }
+  ],
+  "statistics": {
+    "adjustment_patterns": {
+      "No Adjustment": 849,
+      "Fully Disallowed": 228,
+      "Partially Allowed": 44,
+      "Increased Amount": 7
+    },
+    "total_analyzed": 1128
+  },
+  "data_quality": {}
+}

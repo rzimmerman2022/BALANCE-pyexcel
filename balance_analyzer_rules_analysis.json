@@ -1,0 +1,123 @@
+{
+  "data_structure": {
+    "ledger_columns": [
+      "Name",
+      "Date of Purchase",
+      "Account",
+      "Merchant",
+      " Actual Amount ",
+      " Allowed Amount ",
+      " Description ",
+      "Unnamed: 7",
+      "Unnamed: 8",
+      "Unnamed: 9",
+      "Unnamed: 10",
+      "Unnamed: 11",
+      "Unnamed: 12",
+      "Unnamed: 13",
+      "Unnamed: 14",
+      "Unnamed: 15",
+      "Unnamed: 16",
+      "Unnamed: 17",
+      "July 4th, 2024 - October 1st, 2024",
+      "Unnamed: 1",
+      "Unnamed: 2",
+      "Unnamed: 3",
+      "Unnamed: 4",
+      "Unnamed: 5",
+      "Unnamed: 6"
+    ],
+    "rent_columns": [
+      "Month",
+      " Tax Base Rent ",
+      " Tax Garage ",
+      " Tax Trash ",
+      " Tax Courtesy ",
+      " Conservice ",
+      " Gross Total ",
+      " Ryan's Rent (43%) ",
+      "Jordyn's Rent (57%)"
+    ]
+  },
+  "person_rules": {
+    "primary_column": "Name",
+    "ryan_values": [
+      "Ryan",
+      "Ryan Expenses"
+    ],
+    "jordyn_values": [
+      "Jordyn",
+      "Jordyn ",
+      "Jordyn Expenses"
+    ]
+  },
+  "amount_rules": {},
+  "special_cases": {},
+  "shared_patterns": {
+    "shared_merchants": [
+      "AMF",
+      "Amazon",
+      "Bashas",
+      "Blizzard",
+      "Blue Wasabi",
+      "CB & CB",
+      "Chon Thai",
+      "Cooper's Hawk",
+      "Culinary Concepts",
+      "DoorDash",
+      "Fry's",
+      "Frys",
+      "Gus's Fried Chicken",
+      "Harkin's",
+      "In n Out",
+      "Kabuki",
+      "Kodo Sushi",
+      "Kohl's",
+      "La Ristra",
+      "Ling & Louie's",
+      "Lings",
+      "Pokitrition",
+      "Ryu Sushi",
+      "Sneaky Bird",
+      "Snooze",
+      "Sprouts",
+      "Target",
+      "Taste of China",
+      "The Hub",
+      "Thirsty Lion",
+      "Uber",
+      "Via 313",
+      "Walmart",
+      "Whole Foods",
+      "Whole Foods Market",
+      "Yama Sushi"
+    ]
+  },
+  "transfer_patterns": {
+    "examples": [
+      {
+        "keyword": "transfer",
+        "merchant": "MONEY TRANSFER AUTHORIZED ON 06/24 APPLE CASH SENT MO 1INFINITELOOP CA S304176797747875 CARD 0968",
+        "amount": "Unknown",
+        "description": "",
+        "column": "Merchant"
+      },
+      {
+        "keyword": "transfer",
+        "merchant": "MONEY TRANSFER AUTHORIZED ON 06/25 APPLE CASH SENT MO 1INFINITELOOP CA S304178123094455 CARD 0968",
+        "amount": "Unknown",
+        "description": "",
+        "column": "Merchant"
+      }
+    ]
+  },
+  "rent_analysis": {
+    "ryan_column": " Ryan's Rent (43%) ",
+    "jordyn_column": "Jordyn's Rent (57%)",
+    "split": {
+      "Ryan": 0.43,
+      "Jordyn": 0.57
+    }
+  },
+  "recommendations": {}
+}

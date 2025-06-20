@@ -8,3 +8,42 @@ merchant_lookup_path: "config/merchant_lookup.csv"
 amount_col: "Amount"
 date_col: "Date"
 baseline_floor_date: "2000-01-01"
+
+# ─── Sprint-5 additions ───────────────────────────────────────────────
+column_map:
+  person: Name
+  date: Date
+  actual: Actual Amount
+  allowed: Allowed Amount
+  description: Description
+
+person_aliases:
+  Ryan: ["Ryan", "Ryan Expenses"]
+  Jordyn: ["Jordyn", "Jordyn ", "Jordyn Expenses"]
+
+header_noise_regex: "^[A-Z][a-z]+ \\d{1,2}(th)?,"
+
+patterns:
+  gift_or_present: "gift|present"
+  multiplier_2x: "2x"
+  free_for_person: "free for"
+  full_allocation_100_percent: "100% Jordyn|100% Ryan"
+
+rent_share:
+  Ryan: 0.43
+  Jordyn: 0.57
+
+rounding_tolerance: 0.02
+
+audit_columns:
+  - source_file
+  - row_id
+  - person
+  - date
+  - merchant
+  - actual_amount
+  - allowed_amount
+  - net_effect
+  - notes
+  - pattern_flags
+  - calculation_notes
