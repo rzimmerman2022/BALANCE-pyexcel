@@ -9,7 +9,7 @@ This module is intentionally self-contained:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional
 import os
 
 import yaml
@@ -56,6 +56,14 @@ class Settings(BaseSettings):
     amount_col: str
     date_col: str
     baseline_floor_date: str
+    # ─── Sprint-5 additions ────────────────────────────────────────────
+    column_map: Dict[str, str] = {}  # noqa: RUF012
+    person_aliases: Dict[str, List[str]] = {}
+    header_noise_regex: str = ""
+    patterns: Dict[str, str] = {}
+    rent_share: Dict[str, float] = {}
+    rounding_tolerance: float = 0.0
+    audit_columns: List[str] = []
 
     # Pydantic-settings configuration: env overrides + immutability
     model_config = SettingsConfigDict(env_prefix="BA_", frozen=True)
@@ -91,3 +99,8 @@ def load_config(path: str | Path | None = None) -> Settings:
 
     merged = {**yaml_data, **env_overrides}  # env wins
     return Settings(**merged)
+
+
+def get_settings(path: str | Path | None = None) -> Settings:
+    """Convenience wrapper for Sprint-5 public API."""
+    return load_config(path)
