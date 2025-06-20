@@ -162,6 +162,7 @@ python-dotenv = "^1.1.0"
 # Why YAML: More readable than JSON for configuration files
 PyYAML = "^6.0.1"
 structlog = "^24.1.0" # For structured logging
+rich = "^13.7.0"
 
 # python-dateutil: Powerful extensions to the standard datetime module
 # Used for: Advanced date parsing, timezone handling, and complex recurrences
@@ -311,6 +312,7 @@ balance-analyze = "balance_pipeline.analyzer:main"
 # Baseline analyzer CLI tool
 # Usage: baseline-analyze
 baseline-analyze = "baseline_analyzer.cli:main"
+balance-baseline = "baseline_analyzer.cli:main"
 
 # ============================================================================ #
 #                                 BUILD SYSTEM                                 #
