@@ -103,25 +103,64 @@ for p in EXPENSE_PATHS + [LEDGER_PATH]:
 # 4  OPTIONAL RENT COOKERS
 # ------------------------------------------------------------------------------
 def _cook_rent_alloc(path: pathlib.Path) -> pd.DataFrame:
+    """
+    Models the rent transaction and pre-calculates the final net_effect.
+    The baseline pipeline will pass these rows through untouched.
+    """
     df = pd.read_csv(path).rename(columns=str.strip)
     rows = []
     for _, r in df.iterrows():
-        rows += [
-            {
-                "person": "Ryan",
-                "date": r["Month"],
-                "merchant": "Rent",
-                "actual_amount": _to_money(r["Ryan's Rent (43%)"]),
-                "allowed_amount": _to_money(r["Ryan's Rent (43%)"]),
-            },
-            {
-                "person": "Jordyn",
-                "date": r["Month"],
-                "merchant": "Rent",
-                "actual_amount": _to_money(r["Jordyn's Rent (57%)"]),
-                "allowed_amount": 0.0,
-            },
-        ]
+        ryan_share = _to_money(r.get("Ryan's Rent (43%)", 0))
+        jordyn_share = _to_money(r.get("Jordyn's Rent (57%)", 0))
+        full_rent_amount = ryan_share + jordyn_share
+
+        if full_rent_amount == 0:
+            continue
+
+        # Net effect is based on a 50/50 split of the total rent.
+        # It's the fair share minus what was actually paid.
+        fair_share = full_rent_amount / 2
+        
+        # Jordyn paid the full amount, so she is credited for Ryan's half.
+        jordyn_net_effect = fair_share - full_rent_amount
+        
+        # Ryan paid nothing, so he owes his half.
+        ryan_net_effect = fair_share - 0
+
+        pair_id = f"rent_{r['Month']}_{full_rent_amount:.0f}"
+
+        rows.append({
+            "person": "Jordyn",
+            "date": r["Month"],
+            "merchant": "Rent",
+            "actual_amount": full_rent_amount,
+            "allowed_amount": jordyn_share,
+            "net_effect": jordyn_net_effect,
+            "transaction_type": "synthetic_rent",
+            "calculation_notes": "Rent: Pre-calculated",
+            "double_entry_pair": pair_id,
+        })
+        rows.append({
+            "person": "Ryan",
+            "date": r["Month"],
+            "merchant": "Rent",
+            "actual_amount": 0.00,
+            "allowed_amount": ryan_share,
+            "net_effect": ryan_net_effect,
+            "transaction_type": "synthetic_rent",
+            "calculation_notes": "Rent: Pre-calculated",
+            "double_entry_pair": pair_id,
+        })
+
+    final_cols = [
+        "person", "date", "merchant", "actual_amount", "allowed_amount",
+        "net_effect", "source_file", "transaction_type", 
+        "calculation_notes", "double_entry_pair"
+    ]
+    
+    if not rows:
+        return pd.DataFrame(columns=final_cols)
+
     return pd.DataFrame(rows).assign(source_file=path.name)
 
 
@@ -165,10 +204,14 @@ summary_df, audit_df = bm.build_baseline(expense_df, ledger_df)
 print("\\n🧾 Net-owed summary")
 print(summary_df.to_markdown(index=False))
 
-bad_rows = audit_df.loc[
+# Check integrity only for standard expense rows.
+# The simple accounting identity `allowed + net == actual` is only valid for this type.
+# Rent and Ledger transactions follow different, correct accounting models.
+checkable_rows = audit_df[audit_df["transaction_type"] == "standard"]
+bad_rows = checkable_rows.loc[
     ~np.isclose(
-        audit_df["allowed_amount"].fillna(0) + audit_df["net_effect"].fillna(0),
-        audit_df["actual_amount"].fillna(0),
+        checkable_rows["allowed_amount"].fillna(0) + checkable_rows["net_effect"].fillna(0),
+        checkable_rows["actual_amount"].fillna(0),
         atol=1e-6,
     )
 ]

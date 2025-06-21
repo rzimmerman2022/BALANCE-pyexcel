@@ -183,14 +183,6 @@ def build_baseline(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Phase-3B: compute ledger split rules + net_effect.
-    Expense rows are passed through untouched (handled in 3-C).
-
-    Returns
-    -------
-    summary_df : pd.DataFrame
-        Per-person net owed totals (column: ``net_owed``).
-    audit_df   : pd.DataFrame
-        Detail rows in canonical order from ``_CFG.audit_columns``.
     """
     # Clean & label
     exp = (
@@ -204,105 +196,74 @@ def build_baseline(
         else pd.DataFrame()
     )
 
-    # ── Process ledger rows → two person-rows each ──────────────
     rows: list[dict[str, object]] = []
 
-    # ── ①  Expense-History rows → two person-rows each ───────────────
-    for _, row in exp.iterrows():
-        payer = row["person"]          # Ryan or Jordyn
-        merchant = str(row.get("merchant", "")).lower()
-        total_amount = float(row["allowed"])
-        
-        # Special handling for rent expenses using configured rent_share
-        if merchant == "rent":
-            ryan_allowed = round(total_amount * _CFG.rent_share.get("Ryan", 0.43), 2)
-            jordyn_allowed = round(total_amount * _CFG.rent_share.get("Jordyn", 0.57), 2)
-            
-            for person, allowed in (("Ryan", ryan_allowed), ("Jordyn", jordyn_allowed)):
-                # For rent, net_effect should make allowed + net_effect = actual_amount
-                # Since both people share the same actual_amount (total rent), we need:
-                # net_effect = actual_amount - allowed_amount
-                net_eff = round(total_amount - allowed, 2)
+    # --- ① Process Expense & Synthetic Rent Rows ---
+    if 'transaction_type' in exp.columns:
+        rent_rows = exp[exp["transaction_type"] == "synthetic_rent"].copy()
+        standard_exp_rows = exp[exp["transaction_type"] != "synthetic_rent"].copy()
+        if not rent_rows.empty:
+            rows.extend(rent_rows.to_dict("records"))
+    else:
+        standard_exp_rows = exp.copy()
 
-                rows.append(
-                    {
-                        "source_file": row["source_file"],
-                        "row_id": row["row_id"],
-                        "person": person,
-                        "date": row["date"],
-                        "merchant": row.get("merchant"),
-                        "actual_amount": round(total_amount, 2),
-                        "allowed_amount": round(float(allowed), 2),
-                        "net_effect": net_eff,
-                        "notes": "",
-                        "pattern_flags": ["rent_share"],
-                        "calculation_notes": f"RS|Rent split {_CFG.rent_share.get('Ryan', 0.43)*100:.0f}%/{_CFG.rent_share.get('Jordyn', 0.57)*100:.0f}%",
-                    }
-                )
-        else:
-            # Standard expense handling (non-rent)
-            allowed_self = total_amount
-            allowed_other = 0.0
-
-            for person, allowed in (
-                ("Ryan", allowed_self if payer == "Ryan" else allowed_other),
-                ("Jordyn", allowed_self if payer == "Jordyn" else allowed_other),
-            ):
-                total_allowed = allowed_self          # other party = 0
-                fair_half = total_allowed / 2
-                net_eff = round(fair_half - allowed, 2)
-
-                rows.append(
-                    {
-                        "source_file": row["source_file"],
-                        "row_id": row["row_id"],
-                        "person": person,
-                        "date": row["date"],
-                        "merchant": row.get("merchant"),
-                        "actual_amount": round(total_amount, 2),
-                        "allowed_amount": round(float(allowed), 2),
-                        "net_effect": net_eff,
-                        "notes": "",
-                        "pattern_flags": [],
-                        "calculation_notes": "EH|Allowed amount provided in source",
-                    }
-                )
-
-    # ── Process ledger rows → two person-rows each ──────────────
-    for _, row in led.iterrows():
-        # Combine description and merchant so pattern detection still fires when one is missing
-        desc_combined = f"{row.get('description', '')} {row.get('merchant', '')}"
-        flags, rule = _detect_patterns(str(desc_combined), str(row["person"]))
-        # Robust actual value extraction (supports legacy 'actual' or new 'actual_amount')
-        actual_val = float(row.get("actual", row.get("actual_amount", 0.0)))
-        allowed_ryan, allowed_jordyn, note = _apply_split_rules(
-            actual_val, rule, str(row["person"])
-        )
-
-        total_allowed = allowed_ryan + allowed_jordyn
-        fair_half = total_allowed / 2
-
-        for person, allowed in (("Ryan", allowed_ryan), ("Jordyn", allowed_jordyn)):
-            net_eff = round(fair_half - allowed, 2)
+    for _, row in standard_exp_rows.iterrows():
+        payer = row["person"]
+        total_to_split = float(row["allowed"])
+        allowed_self = total_to_split
+        allowed_other = 0.0
+        for person_in_loop, allowed_for_loop in (
+            ("Ryan", allowed_self if payer == "Ryan" else allowed_other),
+            ("Jordyn", allowed_self if payer == "Jordyn" else allowed_other),
+        ):
+            fair_half = total_to_split / 2
+            net_effect = round(fair_half - allowed_for_loop, 2)
+            actual_for_person = row["actual"] if person_in_loop == payer else 0.0
             rows.append(
                 {
-                    "source_file": row["source_file"],
-                    "row_id": row["row_id"],
-                    "person": person,
-                    "date": row["date"],
-                    "merchant": row.get("merchant"),
-                    "actual_amount": round(actual_val, 2),
-                    "allowed_amount": round(float(allowed), 2),
-                    "net_effect": net_eff,
-                    "notes": "",
-                    "pattern_flags": flags,
-                    "calculation_notes": note,
+                    "source_file": row["source_file"], "row_id": row["row_id"],
+                    "person": person_in_loop, "date": row["date"], "merchant": row.get("merchant"),
+                    "actual_amount": round(actual_for_person, 2),
+                    "allowed_amount": round(allowed_for_loop, 2),
+                    "net_effect": net_effect, "notes": row.get("notes", ""),
+                    "pattern_flags": row.get("pattern_flags", []),
+                    "calculation_notes": "EH|Standard 50/50 Split",
+                    "transaction_type": "standard",
                 }
             )
 
+    # --- ② Process Transaction Ledger Rows ---
+    for _, row in led.iterrows():
+        payer = row["person"]
+        desc_combined = f"{row.get('description', '')} {row.get('merchant', '')}"
+        flags, rule = _detect_patterns(str(desc_combined), payer)
+        actual_val = float(row.get("actual", row.get("actual_amount", 0.0)))
+        allowed_ryan, allowed_jordyn, note = _apply_split_rules(actual_val, rule, payer)
+        fair_share = actual_val / 2
+        if payer == "Ryan":
+            ryan_net_effect = fair_share - actual_val
+            jordyn_net_effect = fair_share - 0
+        else:
+            ryan_net_effect = fair_share - 0
+            jordyn_net_effect = fair_share - actual_val
+        rows.append({
+            "source_file": row["source_file"], "row_id": row["row_id"], "person": "Ryan",
+            "date": row["date"], "merchant": row.get("merchant"),
+            "actual_amount": round(actual_val, 2) if payer == "Ryan" else 0.0,
+            "allowed_amount": round(allowed_ryan, 2), "net_effect": round(ryan_net_effect, 2),
+            "notes": "", "pattern_flags": flags, "calculation_notes": note, "transaction_type": "ledger",
+        })
+        rows.append({
+            "source_file": row["source_file"], "row_id": row["row_id"], "person": "Jordyn",
+            "date": row["date"], "merchant": row.get("merchant"),
+            "actual_amount": round(actual_val, 2) if payer == "Jordyn" else 0.0,
+            "allowed_amount": round(allowed_jordyn, 2), "net_effect": round(jordyn_net_effect, 2),
+            "notes": "", "pattern_flags": flags, "calculation_notes": note, "transaction_type": "ledger",
+        })
+
     audit_df = pd.DataFrame(rows, columns=_CFG.audit_columns)
 
-    # ── Summary ────────────────────────────────────────────────
+    # --- ③ Final Summary ---
     summary_df = (
         audit_df.groupby("person", as_index=False)["net_effect"]
         .sum()
@@ -312,7 +273,7 @@ def build_baseline(
     if abs(imbalance) > _CFG.rounding_tolerance:
         print(
             f"⚠️  Net imbalance {imbalance:,.2f} exceeds tolerance "
-            f"({ _CFG.rounding_tolerance }). Continuing for diagnostics."
+            f"({_CFG.rounding_tolerance}). Continuing for diagnostics."
         )
 
     return summary_df, audit_df

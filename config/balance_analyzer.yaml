@@ -51,3 +51,4 @@ audit_columns:
   - notes
   - pattern_flags
   - calculation_notes
+  - transaction_type
