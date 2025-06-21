@@ -1,8 +1,0 @@
-﻿feat: reconciliation overhaul - imbalance resolved, mismatches 1790 to 294
-
-- Added regex patterns (Zelle transfers, cashback, gift) to config/balance_analyzer.yaml
-- baseline_math: new detection + split rules; description+merchant combo
-- audit_run: improved banner-skip logic
-- Result: grand totals zero; inconsistent rows 294
-
-NEXT: implement rent-share rule
