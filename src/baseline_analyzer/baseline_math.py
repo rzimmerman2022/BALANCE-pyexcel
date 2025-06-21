@@ -50,6 +50,19 @@ def _detect_patterns(desc: str, payer: str) -> Tuple[List[str], Tuple[str, str |
         other = "Jordyn" if payer.lower() == "ryan" else "Ryan"
         return flags, ("full_to", other)
 
+    # Zelle transfers, cashback, and simple “gift” descriptors
+    for key in ("xfer_to_ryan", "xfer_to_jordyn", "cashback", "gift"):
+        if key in _PATTERNS and _PATTERNS[key].search(desc_l):
+            flags.append(key)
+            if key.startswith("xfer_to_"):
+                target_person = "Ryan" if key.endswith("ryan") else "Jordyn"
+                return flags, ("transfer", target_person)
+            if key == "cashback":
+                return flags, ("zero_out", None)
+            if key == "gift":
+                other = "Jordyn" if payer.lower() == "ryan" else "Ryan"
+                return flags, ("full_to", other)
+
     # 100 % allocation
     if m := re.search(r"100%\s+(Jordyn|Ryan)", desc_l, flags=re.I):
         return ["full_allocation_100_percent"], ("full_to", m.group(1).title())
@@ -78,6 +91,16 @@ def _apply_split_rules(
     if kind == "double_charge":
         note = "DC\tDouble charge documented; split stays 50/50"
         return actual / 2, actual / 2, note
+
+    if kind == "transfer":
+        # Money moves person-to-person; net zero overall
+        if (target or "").title() == "Ryan":
+            return -actual, actual, "TR\tZelle transfer to Ryan"
+        else:
+            return actual, -actual, "TR\tZelle transfer to Jordyn"
+
+    if kind == "zero_out":
+        return 0.0, 0.0, "CB\tCash-back; no net effect"
 
     # full_to rule
     who = (target or payer).title()
@@ -216,7 +239,9 @@ def build_baseline(
 
     # ── Process ledger rows → two person-rows each ──────────────
     for _, row in led.iterrows():
-        flags, rule = _detect_patterns(str(row.get("description", "")), str(row["person"]))
+        # Combine description and merchant so pattern detection still fires when one is missing
+        desc_combined = f"{row.get('description', '')} {row.get('merchant', '')}"
+        flags, rule = _detect_patterns(str(desc_combined), str(row["person"]))
         # Robust actual value extraction (supports legacy 'actual' or new 'actual_amount')
         actual_val = float(row.get("actual", row.get("actual_amount", 0.0)))
         allowed_ryan, allowed_jordyn, note = _apply_split_rules(

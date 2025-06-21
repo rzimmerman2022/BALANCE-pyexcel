@@ -28,6 +28,10 @@ patterns:
   multiplier_2x: "2x"
   free_for_person: "free for"
   full_allocation_100_percent: "100% Jordyn|100% Ryan"
+  xfer_to_ryan: "(?i)\\bzelle\\b.*\\bto\\b.*ryan"
+  xfer_to_jordyn: "(?i)\\bzelle\\b.*\\bto\\b.*jordyn"
+  cashback: "(?i)\\b(cash ?back|apple pay cash back)\\b"
+  gift: "(?i)^gift$"
 
 rent_share:
   Ryan: 0.43

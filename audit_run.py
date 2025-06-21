@@ -54,10 +54,10 @@ def _smart_read(path: pathlib.Path) -> pd.DataFrame:
     hdr_rows = raw.index[
         raw.iloc[:, 0]
         .astype(str)
-        .str.match(r"(Name|Month|Ryan)", na=False)
+        .str.match(r"(Name|Month|Ryan|.*[Ee]xpenses)", na=False)
     ]
     df = (
-        pd.read_csv(path, skiprows=int(hdr_rows[0]))
+        pd.read_csv(path, skiprows=int(hdr_rows[-1]))
         if len(hdr_rows)
         else pd.read_csv(path)
     )
