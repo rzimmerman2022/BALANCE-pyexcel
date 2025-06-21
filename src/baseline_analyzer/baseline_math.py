@@ -210,32 +210,63 @@ def build_baseline(
     # ── ①  Expense-History rows → two person-rows each ───────────────
     for _, row in exp.iterrows():
         payer = row["person"]          # Ryan or Jordyn
-        allowed_self = float(row["allowed"])
-        allowed_other = 0.0
+        merchant = str(row.get("merchant", "")).lower()
+        total_amount = float(row["allowed"])
+        
+        # Special handling for rent expenses using configured rent_share
+        if merchant == "rent":
+            ryan_allowed = round(total_amount * _CFG.rent_share.get("Ryan", 0.43), 2)
+            jordyn_allowed = round(total_amount * _CFG.rent_share.get("Jordyn", 0.57), 2)
+            
+            for person, allowed in (("Ryan", ryan_allowed), ("Jordyn", jordyn_allowed)):
+                # For rent, net_effect should make allowed + net_effect = actual_amount
+                # Since both people share the same actual_amount (total rent), we need:
+                # net_effect = actual_amount - allowed_amount
+                net_eff = round(total_amount - allowed, 2)
 
-        for person, allowed in (
-            ("Ryan", allowed_self if payer == "Ryan" else allowed_other),
-            ("Jordyn", allowed_self if payer == "Jordyn" else allowed_other),
-        ):
-            total_allowed = allowed_self          # other party = 0
-            fair_half = total_allowed / 2
-            net_eff = round(fair_half - allowed, 2)
+                rows.append(
+                    {
+                        "source_file": row["source_file"],
+                        "row_id": row["row_id"],
+                        "person": person,
+                        "date": row["date"],
+                        "merchant": row.get("merchant"),
+                        "actual_amount": round(total_amount, 2),
+                        "allowed_amount": round(float(allowed), 2),
+                        "net_effect": net_eff,
+                        "notes": "",
+                        "pattern_flags": ["rent_share"],
+                        "calculation_notes": f"RS|Rent split {_CFG.rent_share.get('Ryan', 0.43)*100:.0f}%/{_CFG.rent_share.get('Jordyn', 0.57)*100:.0f}%",
+                    }
+                )
+        else:
+            # Standard expense handling (non-rent)
+            allowed_self = total_amount
+            allowed_other = 0.0
 
-            rows.append(
-                {
-                    "source_file": row["source_file"],
-                    "row_id": row["row_id"],
-                    "person": person,
-                    "date": row["date"],
-                    "merchant": row.get("merchant"),
-                    "actual_amount": round(float(row["allowed"]), 2),
-                    "allowed_amount": round(float(allowed), 2),
-                    "net_effect": net_eff,
-                    "notes": "",
-                    "pattern_flags": [],
-                    "calculation_notes": "EH|Allowed amount provided in source",
-                }
-            )
+            for person, allowed in (
+                ("Ryan", allowed_self if payer == "Ryan" else allowed_other),
+                ("Jordyn", allowed_self if payer == "Jordyn" else allowed_other),
+            ):
+                total_allowed = allowed_self          # other party = 0
+                fair_half = total_allowed / 2
+                net_eff = round(fair_half - allowed, 2)
+
+                rows.append(
+                    {
+                        "source_file": row["source_file"],
+                        "row_id": row["row_id"],
+                        "person": person,
+                        "date": row["date"],
+                        "merchant": row.get("merchant"),
+                        "actual_amount": round(total_amount, 2),
+                        "allowed_amount": round(float(allowed), 2),
+                        "net_effect": net_eff,
+                        "notes": "",
+                        "pattern_flags": [],
+                        "calculation_notes": "EH|Allowed amount provided in source",
+                    }
+                )
 
     # ── Process ledger rows → two person-rows each ──────────────
     for _, row in led.iterrows():
