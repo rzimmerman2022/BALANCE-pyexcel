@@ -102,18 +102,18 @@ def build_baseline(expense_df: pd.DataFrame, ledger_df: pd.DataFrame, rent_alloc
         jordyn_share = r.get("jordyn's rent (57%)", 0)
         full_rent = ryan_share + jordyn_share
         
-        # Assume Jordyn pays rent
-        rows.append({
-            "person": "Jordyn", "date": r["month"], "merchant": "Rent",
-            "actual_amount": full_rent, "allowed_amount": jordyn_share,
-            "net_effect": round(jordyn_share - full_rent, 2),
-            "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split", "transaction_type": "rent"
-        })
+        # CORRECTED: Assume Ryan pays rent
         rows.append({
             "person": "Ryan", "date": r["month"], "merchant": "Rent",
-            "actual_amount": 0.0, "allowed_amount": ryan_share,
-            "net_effect": round(ryan_share - 0.0, 2),
-            "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split", "transaction_type": "rent"
+            "actual_amount": full_rent, "allowed_amount": ryan_share,
+            "net_effect": round(ryan_share - full_rent, 2),
+            "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split (Ryan Pays)", "transaction_type": "rent"
+        })
+        rows.append({
+            "person": "Jordyn", "date": r["month"], "merchant": "Rent",
+            "actual_amount": 0.0, "allowed_amount": jordyn_share,
+            "net_effect": round(jordyn_share - 0.0, 2),
+            "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split (Ryan Pays)", "transaction_type": "rent"
         })
 
     audit_df = pd.DataFrame(rows)
