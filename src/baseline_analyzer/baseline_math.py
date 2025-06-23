@@ -58,7 +58,21 @@ def _clean_data(df: pd.DataFrame, file_type: str) -> pd.DataFrame:
     df["source_file"] = file_type
     return df
 
-def build_baseline(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def build_baseline(df: pd.DataFrame, output_dir: str = "audit_reports") -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Build baseline analysis with audit trail.
+    
+    Args:
+        df: Input DataFrame with CTS schema
+        output_dir: Directory to save audit files (default: "audit_reports")
+    
+    Returns:
+        tuple: (summary_df, audit_df)
+    """
+    import pathlib
+    
+    # Ensure output directory exists
+    pathlib.Path(output_dir).mkdir(exist_ok=True)
     
     rows = []
 
@@ -80,15 +94,20 @@ def build_baseline(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             net_effect_ryan = round(allowed_ryan - (actual_paid if payer == "Ryan" else 0.0), 2)
             net_effect_jordyn = round(allowed_jordyn - (actual_paid if payer == "Jordyn" else 0.0), 2)
 
+        # Preserve full original description for context
+        full_description = f"{row.get('description', '')} | {row.get('merchant', '')}".strip(' |')
+        
         rows.append({
-            "person": "Ryan", "date": row["date"], "merchant": row.get("merchant", desc),
+            "person": "Ryan", "date": row["date"], "merchant": row.get("merchant", ""),
+            "full_description": full_description,
             "actual_amount": actual_paid if payer == "Ryan" else 0.0,
             "allowed_amount": allowed_ryan, "net_effect": net_effect_ryan,
             "pattern_flags": flags, "calculation_notes": note, "transaction_type": "standard",
             "source_file": row["source_file"]
         })
         rows.append({
-            "person": "Jordyn", "date": row["date"], "merchant": row.get("merchant", desc),
+            "person": "Jordyn", "date": row["date"], "merchant": row.get("merchant", ""),
+            "full_description": full_description,
             "actual_amount": actual_paid if payer == "Jordyn" else 0.0,
             "allowed_amount": allowed_jordyn, "net_effect": net_effect_jordyn,
             "pattern_flags": flags, "calculation_notes": note, "transaction_type": "standard",
@@ -104,44 +123,90 @@ def build_baseline(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             full_rent = r.get("actual_amount", 0)
         
             # CORRECTED: Assume Ryan pays rent
+            rent_description = f"{r.get('description', '')} | Rent Allocation".strip(' |')
+            
             rows.append({
                 "person": "Ryan", "date": r["date"], "merchant": "Rent",
+                "full_description": rent_description,
                 "actual_amount": full_rent, "allowed_amount": ryan_share,
                 "net_effect": round(ryan_share - full_rent, 2),
                 "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split (Ryan Pays)", "transaction_type": "rent",
-                "source_file": "rent_allocation"
+                "source_file": "Rent_Allocation"
             })
             rows.append({
                 "person": "Jordyn", "date": r["date"], "merchant": "Rent",
+                "full_description": rent_description,
                 "actual_amount": 0.0, "allowed_amount": jordyn_share,
                 "net_effect": round(jordyn_share - 0.0, 2),
                 "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split (Ryan Pays)", "transaction_type": "rent",
-                "source_file": "rent_allocation"
+                "source_file": "Rent_Allocation"
             })
         elif r['source_file'] == 'Rent_History':
             # For Rent_History, the actual_amount is the full rent paid by Ryan
             # and allowed_amount is his share.
+            rent_hist_description = f"{r.get('description', '')} | {r.get('merchant', '')} | Rent History".strip(' |')
+            
             rows.append({
                 "person": "Ryan", "date": r["date"], "merchant": r['merchant'],
+                "full_description": rent_hist_description,
                 "actual_amount": r['actual_amount'], "allowed_amount": r['allowed_amount'],
                 "net_effect": round(r['allowed_amount'] - r['actual_amount'], 2),
                 "pattern_flags": ["rent"], "calculation_notes": "Rent | History", "transaction_type": "rent",
-                "source_file": "rent_history"
+                "source_file": "Rent_History"
             })
             rows.append({
                 "person": "Jordyn", "date": r["date"], "merchant": r['merchant'],
+                "full_description": rent_hist_description,
                 "actual_amount": 0, "allowed_amount": r['actual_amount'] - r['allowed_amount'],
                 "net_effect": round(r['actual_amount'] - r['allowed_amount'], 2),
                 "pattern_flags": ["rent"], "calculation_notes": "Rent | History", "transaction_type": "rent",
-                "source_file": "rent_history"
+                "source_file": "Rent_History"
             })
 
     audit_df = pd.DataFrame(rows)
+    
+    # Add running balance calculation
+    # Sort by date to ensure chronological order
+    audit_df = audit_df.sort_values(['date', 'source_file', 'person']).reset_index(drop=True)
+    
+    # Add transaction sequence number
+    audit_df['transaction_id'] = range(1, len(audit_df) + 1)
+    
+    # Calculate running balances for each person
+    ryan_balance = 0.0
+    jordyn_balance = 0.0
+    running_balances_ryan = []
+    running_balances_jordyn = []
+    
+    for _, row in audit_df.iterrows():
+        if row['person'] == 'Ryan':
+            ryan_balance += row['net_effect']
+        elif row['person'] == 'Jordyn':
+            jordyn_balance += row['net_effect']
+        
+        running_balances_ryan.append(round(ryan_balance, 2))
+        running_balances_jordyn.append(round(jordyn_balance, 2))
+    
+    audit_df['running_balance_ryan'] = running_balances_ryan
+    audit_df['running_balance_jordyn'] = running_balances_jordyn
     
     # Final summary
     summary_df = audit_df.groupby("person")["net_effect"].sum().reset_index().rename(columns={"net_effect": "net_owed"})
     imbalance = summary_df["net_owed"].sum()
     if abs(imbalance) > _CFG.rounding_tolerance:
         print(f"⚠️ Net imbalance {imbalance:,.2f} exceeds tolerance ({_CFG.rounding_tolerance}).")
+    
+    # Auto-save audit files to output directory
+    import datetime
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    audit_file = f"{output_dir}/complete_audit_trail_{timestamp}.csv"
+    summary_file = f"{output_dir}/balance_summary_{timestamp}.csv"
+    
+    audit_df.to_csv(audit_file, index=False)
+    summary_df.to_csv(summary_file, index=False)
+    
+    print(f"✅ Saved audit trail: {audit_file}")
+    print(f"✅ Saved summary: {summary_file}")
         
     return summary_df, audit_df
