@@ -87,13 +87,13 @@ def _smart_read(path: pathlib.Path) -> pd.DataFrame:
 # ------------------------------------------------------------------------------
 # 3  DISCOVER CSVs & PRINT HEADER PREVIEW
 # ------------------------------------------------------------------------------
-EXPENSE_PATHS = sorted(
-    p for p in DATA_DIR.iterdir() if RE_EXPENSE.match(p.name) or RE_RENT.match(p.name)
-)
-LEDGER_PATH = next(p for p in DATA_DIR.iterdir() if RE_LEDGER.match(p.name))
+EXPENSE_PATHS = sorted(DATA_DIR.glob("Expense_History_*.csv"))
+LEDGER_PATHS = sorted(DATA_DIR.glob("Transaction_Ledger_*.csv"))
+RENT_ALLOC_PATHS = sorted(DATA_DIR.glob("Rent_Allocation_*.csv"))
 
 print("── Column discovery ─────────────────────────────────────────────")
-for p in EXPENSE_PATHS + [LEDGER_PATH]:
+all_paths = EXPENSE_PATHS + LEDGER_PATHS + RENT_ALLOC_PATHS
+for p in all_paths:
     cols = ", ".join(pd.read_csv(p, nrows=0).columns)
     print(f"{p.stem:<22} → {p.name}")
     print(textwrap.fill(cols, width=100, subsequent_indent="    "))
@@ -102,19 +102,18 @@ for p in EXPENSE_PATHS + [LEDGER_PATH]:
 # ------------------------------------------------------------------------------
 # 4  BUILD DATA FRAMES
 # ------------------------------------------------------------------------------
-rent_alloc_path = next(p for p in DATA_DIR.iterdir() if p.name.startswith("Rent_Allocation"))
-expense_df = pd.concat([_smart_read(p) for p in EXPENSE_PATHS if not p.name.startswith("Rent_")], ignore_index=True)
-ledger_df = _smart_read(LEDGER_PATH)
-rent_alloc_df = pd.read_csv(rent_alloc_path)
-
-# ------------------------------------------------------------------------------
-# 6  RUN BASELINE PIPELINE (ensure latest code)
-# ------------------------------------------------------------------------------
+from src.balance_pipeline.data_loader import load_all_data
 from baseline_analyzer import baseline_math as bm
+import importlib
 
-importlib.reload(bm)  # pick up any local edits without restarting Python
+# Reload modules to pick up changes
+importlib.reload(bm)
+from src.balance_pipeline import data_loader
+importlib.reload(data_loader)
 
-summary_df, audit_df = bm.build_baseline(expense_df, ledger_df, rent_alloc_df)
+df = load_all_data(DATA_DIR)
+
+summary_df, audit_df = bm.build_baseline(df)
 
 # ------------------------------------------------------------------------------
 # 7  INTEGRITY CHECK  (allowed + net == actual)

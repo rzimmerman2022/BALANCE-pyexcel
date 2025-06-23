@@ -1,0 +1,31 @@
+{
+  "Expense_History_20250527.csv": {
+    "December 12th, 2023 - January 1st, 2024 (HAPPY NEW YEARS!!!!)": 1,
+    "February 5th, 2024 - March 11th, 2024": 1,
+    "January 2nd, 2024 - February 5th, 2024": 1,
+    "Jordyn ": 1,
+    "Jordyn Expenses": 1,
+    "March 12th, 2024 - July 3rd, 2024": 1,
+    "November 20th, 2023 - December 11th, 2023": 1,
+    "November 9th, 2023 - November 19th, 2023 (11/6 late charge included)": 1,
+    "October 20th, 2023 - November 8th, 2023": 1,
+    "Ryan Expenses": 1,
+    "September 25th, 2023 - October 19th, 2023": 1,
+    "September 9th, 2023 - September 24th, 2023": 1,
+    "Unknown": 1,
+    "total_rows": 1130,
+    "zero_value_rows": 13
+  },
+  "Rent_Allocation_20250527.csv": {
+    "missing_headers": true,
+    "total_rows": 46
+  },
+  "Rent_History_20250527.csv": {
+    "missing_headers": true,
+    "total_rows": 8
+  },
+  "Transaction_Ledger_20250527.csv": {
+    "missing_headers": true,
+    "total_rows": 397
+  }
+}

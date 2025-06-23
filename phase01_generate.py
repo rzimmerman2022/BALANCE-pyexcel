@@ -31,19 +31,19 @@ COLUMN_MAP = {
 }
 
 def _smart_read(path: pathlib.Path) -> pd.DataFrame:
-    """Load a CSV, skip banner rows, harmonise headers, add source_file col."""
-    raw = pd.read_csv(path, header=None)
-    hdr_rows = raw.index[
-        raw.iloc[:, 0]
-        .astype(str)
-        .str.match(r"(Name|Month|Ryan|.*[Ee]xpenses)", na=False)
-    ]
-    df = (
-        pd.read_csv(path, skiprows=int(hdr_rows[-1]))
-        if len(hdr_rows)
-        else pd.read_csv(path)
-    )
+    """Reads a CSV, using the first detected banner as the header."""
+    raw = pd.read_csv(path, header=None, low_memory=False)
+    hdr_rows = raw.index[raw.iloc[:,0].astype(str).str.match(r"(Name|Month|Ryan|.*[Ee]xpenses)",na=False)]
+    
+    if not len(hdr_rows):
+        # no header, return as is and let downstream handle it
+        df = pd.read_csv(path)
+    else:
+        # read with the first header found
+        df = pd.read_csv(path, header=hdr_rows[0])
+
     df = df.rename(columns=lambda c: c.strip()).rename(columns=COLUMN_MAP)
+    
     if "person" not in df.columns and "name" in df.columns:
         df = df.rename(columns={"name": "person"})
     return df.assign(source_file=path.name)
@@ -52,18 +52,13 @@ def _smart_read(path: pathlib.Path) -> pd.DataFrame:
 # Phase 0  – build detailed audit trail
 # ──────────────────────────────────────────────────────────────────────────
 def build_detailed_audit():
-    expense_paths = sorted(
-        p for p in DATA_DIR.iterdir() if RE_EXPENSE.match(p.name) or RE_RENT.match(p.name)
-    )
-    ledger_path  = next(p for p in DATA_DIR.iterdir() if RE_LEDGER.match(p.name))
-    rent_path    = next(p for p in DATA_DIR.iterdir() if p.name.startswith("Rent_Allocation"))
+    expense_paths = sorted(DATA_DIR.glob("Expense_History_*.csv"))
+    ledger_paths = sorted(DATA_DIR.glob("Transaction_Ledger_*.csv"))
+    rent_paths = sorted(DATA_DIR.glob("Rent_Allocation_*.csv"))
 
-    expense_df = pd.concat(
-        [_smart_read(p) for p in expense_paths if not p.name.startswith("Rent_")],
-        ignore_index=True,
-    )
-    ledger_df   = _smart_read(ledger_path)
-    rent_df     = pd.read_csv(rent_path)
+    expense_df = pd.concat([_smart_read(p) for p in expense_paths], ignore_index=True)
+    ledger_df = pd.concat([_smart_read(p) for p in ledger_paths], ignore_index=True)
+    rent_df = pd.concat([pd.read_csv(p) for p in rent_paths], ignore_index=True)
 
     importlib.reload(bm)   # hot-reload in case code changed
     summary_df, audit_df = bm.build_baseline(expense_df, ledger_df, rent_df)

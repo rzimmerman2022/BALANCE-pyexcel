@@ -1,0 +1,19 @@
+{
+  "Expense_History_20250527.csv": {
+    "total_rows": 1130,
+    "zero_value_rows": 13,
+    "non_zero_rows": 1117
+  },
+  "Transaction_Ledger_20250527.csv": {
+    "status": "needs_custom_parser",
+    "total_rows": 399
+  },
+  "Rent_Allocation_20250527.csv": {
+    "total_rows": 46,
+    "status": "parsed_ok"
+  },
+  "Rent_History_20250527.csv": {
+    "total_rows": 8,
+    "status": "parsed_ok"
+  }
+}

@@ -58,15 +58,12 @@ def _clean_data(df: pd.DataFrame, file_type: str) -> pd.DataFrame:
     df["source_file"] = file_type
     return df
 
-def build_baseline(expense_df: pd.DataFrame, ledger_df: pd.DataFrame, rent_alloc_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    exp = _clean_data(expense_df, "expense_history")
-    led = _clean_data(ledger_df, "transaction_ledger")
-    rent = _clean_data(rent_alloc_df, "rent_allocation")
+def build_baseline(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     
     rows = []
 
     # Process standard expenses and ledger items
-    for _, row in pd.concat([exp, led]).iterrows():
+    for _, row in df.iterrows():
         payer = row["person"]
         actual_paid = float(row.get("actual_amount", 0.0))
         desc = f"{row.get('description', '')} {row.get('merchant', '')}"
@@ -87,34 +84,57 @@ def build_baseline(expense_df: pd.DataFrame, ledger_df: pd.DataFrame, rent_alloc
             "person": "Ryan", "date": row["date"], "merchant": row.get("merchant", desc),
             "actual_amount": actual_paid if payer == "Ryan" else 0.0,
             "allowed_amount": allowed_ryan, "net_effect": net_effect_ryan,
-            "pattern_flags": flags, "calculation_notes": note, "transaction_type": "standard"
+            "pattern_flags": flags, "calculation_notes": note, "transaction_type": "standard",
+            "source_file": row["source_file"]
         })
         rows.append({
             "person": "Jordyn", "date": row["date"], "merchant": row.get("merchant", desc),
             "actual_amount": actual_paid if payer == "Jordyn" else 0.0,
             "allowed_amount": allowed_jordyn, "net_effect": net_effect_jordyn,
-            "pattern_flags": flags, "calculation_notes": note, "transaction_type": "standard"
+            "pattern_flags": flags, "calculation_notes": note, "transaction_type": "standard",
+            "source_file": row["source_file"]
         })
 
     # Process rent allocations
-    for _, r in rent.iterrows():
-        ryan_share = r.get("ryan's rent (43%)", 0)
-        jordyn_share = r.get("jordyn's rent (57%)", 0)
-        full_rent = ryan_share + jordyn_share
+    rent_df = df[df['source_file'].isin(['Rent_Allocation', 'Rent_History'])].copy()
+    for _, r in rent_df.iterrows():
+        if r['source_file'] == 'Rent_Allocation':
+            ryan_share = r.get("allowed_amount", 0)
+            jordyn_share = r.get("actual_amount", 0) - ryan_share
+            full_rent = r.get("actual_amount", 0)
         
-        # CORRECTED: Assume Ryan pays rent
-        rows.append({
-            "person": "Ryan", "date": r["month"], "merchant": "Rent",
-            "actual_amount": full_rent, "allowed_amount": ryan_share,
-            "net_effect": round(ryan_share - full_rent, 2),
-            "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split (Ryan Pays)", "transaction_type": "rent"
-        })
-        rows.append({
-            "person": "Jordyn", "date": r["month"], "merchant": "Rent",
-            "actual_amount": 0.0, "allowed_amount": jordyn_share,
-            "net_effect": round(jordyn_share - 0.0, 2),
-            "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split (Ryan Pays)", "transaction_type": "rent"
-        })
+            # CORRECTED: Assume Ryan pays rent
+            rows.append({
+                "person": "Ryan", "date": r["date"], "merchant": "Rent",
+                "actual_amount": full_rent, "allowed_amount": ryan_share,
+                "net_effect": round(ryan_share - full_rent, 2),
+                "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split (Ryan Pays)", "transaction_type": "rent",
+                "source_file": "rent_allocation"
+            })
+            rows.append({
+                "person": "Jordyn", "date": r["date"], "merchant": "Rent",
+                "actual_amount": 0.0, "allowed_amount": jordyn_share,
+                "net_effect": round(jordyn_share - 0.0, 2),
+                "pattern_flags": ["rent"], "calculation_notes": "Rent | 43/57 Split (Ryan Pays)", "transaction_type": "rent",
+                "source_file": "rent_allocation"
+            })
+        elif r['source_file'] == 'Rent_History':
+            # For Rent_History, the actual_amount is the full rent paid by Ryan
+            # and allowed_amount is his share.
+            rows.append({
+                "person": "Ryan", "date": r["date"], "merchant": r['merchant'],
+                "actual_amount": r['actual_amount'], "allowed_amount": r['allowed_amount'],
+                "net_effect": round(r['allowed_amount'] - r['actual_amount'], 2),
+                "pattern_flags": ["rent"], "calculation_notes": "Rent | History", "transaction_type": "rent",
+                "source_file": "rent_history"
+            })
+            rows.append({
+                "person": "Jordyn", "date": r["date"], "merchant": r['merchant'],
+                "actual_amount": 0, "allowed_amount": r['actual_amount'] - r['allowed_amount'],
+                "net_effect": round(r['actual_amount'] - r['allowed_amount'], 2),
+                "pattern_flags": ["rent"], "calculation_notes": "Rent | History", "transaction_type": "rent",
+                "source_file": "rent_history"
+            })
 
     audit_df = pd.DataFrame(rows)
     

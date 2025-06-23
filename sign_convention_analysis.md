@@ -28,18 +28,18 @@ summary_df = audit_df.groupby("person")["net_effect"].sum().reset_index().rename
 *Negative* net_owed → cumulative amount the person should receive.
 
 ### 10-transaction running-balance sample
-|   idx | date                | merchant                                | person   |   net_effect |   running_balance |
-|------:|:--------------------|:----------------------------------------|:---------|-------------:|------------------:|
-|     1 | 2024-07-04 00:00:00 | FRYS-FOOD-DRG #051 CHANDLER AZ          | Ryan     |            0 |                 0 |
-|     2 | 2024-07-04 00:00:00 | FRYS-FOOD-DRG #051 CHANDLER AZ          | Jordyn   |            0 |                 0 |
-|     3 | 2024-07-06 00:00:00 | TOTAL WINE AND MORE PHOENIX AZ          | Ryan     |            0 |                 0 |
-|     4 | 2024-07-06 00:00:00 | TOTAL WINE AND MORE PHOENIX AZ          | Jordyn   |            0 |                 0 |
-|     5 | 2024-07-06 00:00:00 | AMAZON.COM*R71IE4QJ2 SEATTLE WA         | Ryan     |            0 |                 0 |
-|     6 | 2024-07-06 00:00:00 | AMAZON.COM*R71IE4QJ2 SEATTLE WA         | Jordyn   |            0 |                 0 |
-|     7 | 2024-07-07 00:00:00 | IN-N-OUT PRESCOTT PRESCOTT AZ           | Ryan     |            0 |                 0 |
-|     8 | 2024-07-07 00:00:00 | IN-N-OUT PRESCOTT PRESCOTT AZ           | Jordyn   |            0 |                 0 |
-|     9 | 2024-07-08 00:00:00 | AMTRAK MOBIL1900710219973 WASHINGTON DC | Ryan     |            0 |                 0 |
-|    10 | 2024-07-08 00:00:00 | AMTRAK MOBIL1900710219973 WASHINGTON DC | Jordyn   |            0 |                 0 |
+|   idx | date                | merchant     | person   |   net_effect |   running_balance |
+|------:|:--------------------|:-------------|:---------|-------------:|------------------:|
+|     1 | 2023-09-09 00:00:00 | Kimmyz Tatum | Ryan     |            0 |                 0 |
+|     2 | 2023-09-09 00:00:00 | Kimmyz Tatum | Jordyn   |            0 |                 0 |
+|     3 | 2023-09-09 00:00:00 | Tocaya       | Ryan     |            0 |                 0 |
+|     4 | 2023-09-09 00:00:00 | Tocaya       | Jordyn   |            0 |                 0 |
+|     5 | 2023-09-09 00:00:00 | Walmart      | Ryan     |            0 |                 0 |
+|     6 | 2023-09-09 00:00:00 | Walmart      | Jordyn   |            0 |                 0 |
+|     7 | 2023-09-09 00:00:00 | Bro          | Ryan     |            0 |                 0 |
+|     8 | 2023-09-09 00:00:00 | Bro          | Jordyn   |            0 |                 0 |
+|     9 | 2023-09-09 00:00:00 | Kodo Sushi   | Ryan     |            0 |                 0 |
+|    10 | 2023-09-09 00:00:00 | Kodo Sushi   | Jordyn   |            0 |                 0 |
 
 ## 1.3 Current sign conventions
 • Positive net_effect means **the person owes** their partner  
