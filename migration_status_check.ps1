@@ -64,7 +64,10 @@ try {
 
 Write-Host "`n=== MIGRATION COMPLETE - READY FOR NEXT STEPS ===" -ForegroundColor Green
 Write-Host "Next actions needed:" -ForegroundColor Yellow
-Write-Host "1. Resolve rent payment logic assumptions" -ForegroundColor White
+Write-Host "1. CRITICAL: Resolve rent payment logic assumptions (STILL UNRESOLVED!)" -ForegroundColor Red
+Write-Host "   - Who actually pays rent to landlord?" -ForegroundColor White
+Write-Host "   - What do the percentage columns mean?" -ForegroundColor White
+Write-Host "   - How do Zelle payments relate to rent?" -ForegroundColor White
 Write-Host "2. Create single CSV processors" -ForegroundColor White  
 Write-Host "3. Build reconciliation pipeline" -ForegroundColor White
 Write-Host "4. Generate audit trails" -ForegroundColor White
