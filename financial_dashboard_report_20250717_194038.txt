@@ -1,0 +1,11 @@
+BALANCE PROJECT - FINANCIAL DASHBOARD REPORT
+==================================================
+Generated: 2025-07-17 19:40:38
+
+CURRENT BALANCE STATUS:
+  Jordyn: $10,810.60 (is owed money)
+  Ryan: $30,864.05 (owes money)
+
+Total Transactions: 1,217
+Date Range: 2024-01-01 to 2025-06-01
+Total Money Moved: $126,796.99
