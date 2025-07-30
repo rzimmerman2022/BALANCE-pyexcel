@@ -1,0 +1,82 @@
+BALANCE PROJECT - FINANCIAL ISSUES ANALYSIS REPORT
+============================================================
+Generated: 2025-07-17 23:11:40
+Source File: integrated_audit_trail_with_zelle_20250702_103908.csv
+Total Transactions Analyzed: 1217
+
+ISSUE SUMMARY:
+------------------------------
+DUPLICATES: 284 issues found
+ANOMALIES: 266 issues found
+DISPUTES: 64 issues found
+RECURRING_ISSUES: 60 issues found
+BALANCE_DISCREPANCIES: 0 issues found
+SUSPICIOUS_PATTERNS: 446 issues found
+DATA_QUALITY: 1737 issues found
+
+TOTAL ISSUES IDENTIFIED: 2857
+
+
+DUPLICATES DETAILS:
+----------------------------------------
+  exact_duplicates: 30
+  near_duplicates: 254
+  exact_details: 30 items
+    Sample: {'Transaction_Number': 124, 'Date': Timestamp('2024-02-05 00:00:00'), 'Person': 'Ryan', 'Amount_Paid...
+  near_details: 10 items
+    Sample: {'type': 'Near Duplicate', 'transaction_1': 50, 'transaction_2': 51, 'person': 'Jordyn', 'date': Tim...
+
+ANOMALIES DETAILS:
+----------------------------------------
+  statistical_outliers: 156
+  round_amounts_over_100: 110
+  unusual_decimals: 0
+  outlier_details: 10 items
+    Sample: {'Transaction_Number': 2, 'Date': Timestamp('2024-01-01 00:00:00'), 'Person': 'Ryan', 'Amount_Paid':...
+
+DISPUTES DETAILS:
+----------------------------------------
+  description_indicators: 42
+  negative_amounts: 4
+  zero_paid_nonzero_share: 18
+  description_details: 10 items
+    Sample: {'transaction_number': 1, 'date': Timestamp('2024-01-01 00:00:00'), 'person': 'Jordyn', 'amount': 0....
+  negative_details: 4 items
+    Sample: {'Transaction_Number': 835, 'Date': Timestamp('2024-07-23 00:00:00'), 'Person': 'Jordyn', 'Amount_Pa...
+  zero_share_details: 18 items
+    Sample: {'Transaction_Number': 1, 'Date': Timestamp('2024-01-01 00:00:00'), 'Person': 'Jordyn', 'Amount_Paid...
+
+RECURRING_ISSUES DETAILS:
+----------------------------------------
+  frequent_descriptions: 10
+  frequent_amounts: 16
+  monthly_patterns: 34
+  description_details: 10 items
+    Sample: (' Groceries ', 12)...
+  amount_details: 10 items
+    Sample: (220.0, 25)...
+  monthly_details: 10 items
+    Sample: {'Month_Year': Period('2024-01', 'M'), 'Person': 'Jordyn', 'Transaction_Type': 'Split Expense (Equal...
+
+BALANCE_DISCREPANCIES DETAILS:
+----------------------------------------
+  calculation_errors: 0
+  large_jumps: 0
+
+SUSPICIOUS_PATTERNS DETAILS:
+----------------------------------------
+  weekend_transactions: 446
+  unusual_share_relationships: 0
+  personal_marked_shared: 0
+  weekend_details: 10 items
+    Sample: {'Transaction_Number': 16, 'Date': Timestamp('2024-01-06 00:00:00'), 'Person': 'Jordyn', 'Amount_Pai...
+
+DATA_QUALITY DETAILS:
+----------------------------------------
+  missing_descriptions: 520
+  missing_amounts: 0
+  missing_transaction_types: 0
+  missing_sources: 0
+  future_dates: 0
+  very_old_dates: 0
+  total_records: 1217

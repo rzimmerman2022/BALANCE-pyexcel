@@ -1,175 +1,165 @@
-# BALANCE-pyexcel Unified Pipeline Architecture (v2)
+# BALANCE-pyexcel - High-Level Architecture
 
-This document outlines the architecture of the refactored data processing pipeline (v2)
-for the BALANCE-pyexcel project. The primary goal of this redesign is to create a
-single, unified, and maintainable pipeline that consolidates previous processing
-logic, enhances flexibility, and provides a clear structure for future development.
+# ---
+## Overview
 
-## 1. Core Principles
+This document outlines the architecture of the `BALANCE-pyexcel` project, an Excel-based personal finance tracker for couples, powered by a Python backend running within Excel. It leverages a configuration-driven approach using YAML to handle multiple, diverse CSV input formats from various financial institutions.
 
-The v2 architecture is built upon the following principles:
+# ---
+## System Components & Flow Diagram
 
-- **Unified Processing:** All data flows through a single, consistent processing engine.
-- **Modularity:** Clear separation of concerns between data processing, configuration, and output generation.
-- **Configurability:** Centralized and flexible configuration management.
-- **Extensibility:** Designed to be easily extended with new data sources, transformations, or output formats.
-- **Backward Compatibility:** Existing interfaces (legacy CLI, Excel `etl_main`) are maintained by routing them through the new pipeline.
-- **Testability:** Components are designed to be independently testable.
+```mermaid
+flowchart TD
+    subgraph User_Input
+        direction LR
+        UI_DropCSV[User Drops CSVs into Folders] --> FS_CSVs
+        UI_Excel[User Opens/Interacts with Excel] --> WBK[BALANCE-pyexcel.xlsm]
+        UI_Excel --> PY_Trigger[User Triggers Python Refresh in Excel]
+    end
 
-## 2. System Components
+    subgraph External_FileSystem
+        direction TB
+        FS_CSVs["CSV Input Folder (e.g., C:/.../CSVs/)"]
+        subgraph Owner_Subfolders [Owner Subfolders]
+           FS_CSVs_J["Jordyn/*.csv"]
+           FS_CSVs_R["Ryan/*.csv"]
+        end
+        FS_CSVs --> FS_CSVs_J & FS_CSVs_R
+    end
 
-The unified pipeline consists of the following key Python modules within the `src/balance_pipeline/` directory:
+    subgraph Git_Repository [Project Root: BALANCE-pyexcel]
+        direction TB
 
-### 2.1. `pipeline_v2.py`: The Unified Pipeline Engine
+        subgraph Configuration
+            CONF_YAML["rules/schema_registry.yml"]
+            CONF_MERCHANT_CSV["rules/merchant_lookup.csv"]
+            CONF_PY["src/balance_pipeline/config.py \n (+ .env optional)"]
+            WBK_ConfigSheet[Excel: Config Sheet \n (Input Path, User Names)]
+        end
 
-- **`UnifiedPipeline` Class:** This is the heart of the new architecture.
-    - **Responsibilities:**
-        - Orchestrates the entire data processing workflow.
-        - Wraps the core data ingestion and transformation logic previously found in `csv_consolidator.py`.
-        - Accepts a `schema_mode` (`"strict"` or `"flexible"`) to control output columns.
-        - Takes a list of input file paths.
-        - Utilizes `config_v2.py` for paths to schema registry and merchant lookup files.
-        - Applies business rules and data validation consistently.
-        - Returns a standardized pandas DataFrame ready for output.
-    - **Key Method:** `process_files(...)`
+        subgraph Python_Pipeline [src/balance_pipeline/]
+            PY_CLI["cli.py \n (etl_main orchestrator, \n File Scanner, Deduplication)"]
+            PY_CONSOLIDATOR["csv_consolidator.py \n (Schema Matching, Transformations, \n Merchant Cleaning, TxnID Gen)"]
+            PY_SYNC["sync.py \n (Excel Queue_Review Sync)"]
+            PY_UTILS["utils.py \n (Shared Text Cleaning, etc.)"]
+            PY_NORM_HELPERS["normalize.py \n (Original Merchant Cleaner, \n TxnID Hashing components - referenced)"]
+            PY_CALC["calculate.py \n (Future: Balance Logic)"]
+            PY_CLASS["classify.py \n (Future: Rule-based Tagging)"]
 
-### 2.2. `csv_consolidator.py`: Core Data Transformation (Leveraged)
+            CONF_YAML --> PY_CONSOLIDATOR
+            CONF_MERCHANT_CSV --> PY_CONSOLIDATOR
+            CONF_PY --> PY_CLI & PY_CONSOLIDATOR & PY_UTILS 
+            FS_CSVs_J & FS_CSVs_R -.-> PY_CLI # CLI scans these paths
 
-- This module remains crucial as it contains the detailed logic for:
-    - Reading individual CSV files.
-    - Matching CSVs to schemas defined in `schema_registry.yml`.
-    - Applying schema-specific transformations (column mapping, date parsing, amount signing, derived columns).
-    - Generating `TxnID`.
-    - Initial merchant name cleaning.
-    - Handling `schema_mode` ("strict" vs. "flexible") to determine final columns.
-- The `UnifiedPipeline` class calls the `process_csv_files` function from this module. The `schema_mode` is passed from `UnifiedPipeline` by temporarily setting a global variable in `balance_pipeline.config` which `csv_consolidator.py` reads.
+            PY_UTILS --> PY_CONSOLIDATOR & PY_NORM_HELPERS
+            PY_NORM_HELPERS --> PY_CONSOLIDATOR # Consolidator uses clean_merchant
 
-### 2.3. `outputs.py`: Output Adapters
+            PY_CLI -- CSV File Paths --> PY_CONSOLIDATOR
+            PY_CONSOLIDATOR -- Consolidated DataFrame --> PY_CLI
+            PY_CLI -- DataFrame for Sync --> PY_SYNC
+            PY_SYNC -- Synced DataFrame --> PY_CLI
+            PY_CLI -- Final DataFrame for Output --> WBK_PythonCell # and Parquet writing
+        end
 
-- Provides a structured way to output the processed DataFrame to various formats.
-- **`BaseOutputAdapter` (Abstract Class):** Defines the interface for all output adapters (`__init__`, `write`).
-- **Concrete Adapters:**
-    - **`PowerBIOutput`:** Saves the DataFrame to Parquet format, suitable for Power BI.
-    - **`ExcelOutput`:** Saves the DataFrame to an Excel (`.xlsx`) file. Can be extended to support templates.
-- **Usage:** Instantiated by the main CLI (`main.py`) based on user choice. They receive the processed DataFrame from `UnifiedPipeline`.
+        subgraph Excel_Interface [workbook/BALANCE-pyexcel.xlsm]
+           WBK_PythonCell["Excel: Python Cell \n (=PY(etl_main(...)))"]
+           WBK_Transactions["Excel: Transactions Sheet"]
+           WBK_Queue["Excel: Queue_Review Sheet"]
+           WBK_Dashboard["Excel: Dashboard Sheet"]
+           WBK_RulesM["Excel: Rules_Merchants Table"]
+           WBK_RulesS["Excel: Rules_Shared Table"]
 
-### 2.4. `config_v2.py`: Centralized Configuration
+           WBK_ConfigSheet -- Input Path --> WBK_PythonCell
+           PY_Trigger --> WBK_PythonCell
+           WBK_PythonCell -- calls --> PY_CLI # Or a wrapper in __init__ that calls CLI's etl_main
+           PY_CLI -- returns --> WBK_PythonCell
+           WBK_PythonCell -- writes data --> WBK_Transactions # Or data read via formulas
+           WBK_Transactions -- FILTER --> WBK_Queue
+           WBK_Queue -- Manual Input --> PY_SYNC # Sync logic reads from Excel
+           WBK_Transactions -- data source --> WBK_Dashboard # For charts/calcs
+           WBK_RulesM & WBK_RulesS # Used for reference/manual input, maybe read by Python later
+        end
 
-- **`PipelineConfig` Dataclass:**
-    - Centralizes all pipeline configurations (e.g., file paths for rules, default output directories, schema mode, log level).
-    - Supports initialization from defaults, environment variables, or direct instantiation.
-    - Includes validation for configuration values.
-    - Provides an `explain()` method to display the current configuration.
-- **`pipeline_config_v2` (Global Instance):** A globally accessible instance of `PipelineConfig`, initialized with defaults/env vars, providing a single source of truth for configuration across the new pipeline modules.
+        subgraph Testing
+            TESTS["tests/ \n (pytest files)"]
+            SAMPLE_DATA["sample_data_multi/ \n (Anonymized CSVs)"]
+            SAMPLE_DATA --> TESTS
+            PY_Pipeline --> TESTS # Tests import code from src
+        end
+    end
 
-### 2.5. `main.py`: Primary CLI Entry Point
+    User_Input --> Git_Repository # User interacts via Excel file in repo
+---
+1. Layers
+Layer	Technology	Responsibility
+UI/Input	Excel Sheets, File System Folders	Data Input (CSVs via folders), Settings Config (Excel), Manual Transaction Classification (Excel Queue_Review)
+View	Excel Sheets (Dashboard, Transactions, Queue_Review)	Displaying Balances, Charts, Processed Transactions, Items needing Review
+Orchestration	Python Cell (=PY(...) in Excel), cli.py (etl_main)	Triggering Python ETL process (etl_main), Coordinating calls to CSV consolidator and sync modules.
+ETL	Python package (src/balance_pipeline/), YAML Config	Schema-driven CSV processing (via csv_consolidator.py: reading YAML, finding/reading CSVs, dynamic mapping, date/amount/derived/static column transformations, merchant cleaning, TxnID generation, master schema conformance), Deduplication (in cli.py), Shared Utilities (utils.py).
+Configuration	Excel Sheet (Config), rules/schema_registry.yml, rules/merchant_lookup.csv, .env	Storing runtime paths (CSV Inbox), user names (Excel); Storing CSV parsing rules (YAML); Merchant cleaning rules (CSV); Optional environment overrides (.env via config.py)
+Storage	File System (balance_final.parquet, CSVs), Excel Sheet (Transactions)	Primary data store (Parquet); Original raw data source (CSVs); View/Interaction layer (Excel).
+Testing	pytest framework, tests/ folder (including fixtures/), sample_data_multi/	Unit testing Python ETL functions using anonymized sample data representing multiple schemas.
 
-- Provides the new, recommended command-line interface: `balance-pipe`.
-- Built using the `click` library for a user-friendly experience.
-- **Responsibilities:**
-    - Parses command-line arguments.
-    - Initializes `PipelineConfig` based on CLI options, overriding defaults where specified.
-    - Sets up logging.
-    - Instantiates `UnifiedPipeline`.
-    - Invokes `pipeline.process_files(...)` with appropriate parameters.
-    - Instantiates the chosen output adapter (`PowerBIOutput` or `ExcelOutput`).
-    - Calls the adapter's `write()` method to save the results.
-    - Includes an `--explain-config` flag to show the effective configuration.
+Export to Sheets
+---
+2. Data Flow (ETL Round-Trip v0.1)
+User places new bank/credit card CSV files into their respective sub-folders (e.g., /CSVs/Jordyn/, /CSVs/Ryan/) located outside the Git repository.
+User opens BALANCE-pyexcel.xlsm in Excel.
+User ensures the full path to the parent CSV folder (e.g., C:\...\CSVs) is correctly entered in the Config sheet (CsvInboxPath).
+User triggers the main Python ETL cell (e.g., via Data > Refresh All, or cell execution), or runs the CLI command (`poetry run balance refresh ...`).
+The Excel Python cell (if used) calls `etl_main` (likely from `src/balance_pipeline/__init__.py` which in turn might call the CLI's `etl_main` or a similar function). The CLI directly calls `etl_main` in `cli.py`.
+`etl_main` (in `cli.py`) orchestrates the process:
+  a. Scans the `inbox_path` for CSV files, respecting `exclude_patterns` and `only_patterns`, creating a list of file paths.
+  b. Calls `csv_consolidator.process_csv_files`, passing the list of CSV paths, and paths to `schema_registry.yml` and `merchant_lookup.csv`.
+  c. `csv_consolidator.process_csv_files`:
+     i. Loads schema registry and merchant lookup rules.
+     ii. For each CSV file in the list:
+        1. Reads the raw CSV into a DataFrame.
+        2. Infers `Owner` from the CSV's parent directory name.
+        3. Gets `DataSourceDate` from the CSV's file modification time.
+        4. Calls `find_matching_schema` (using CSV headers and filename) to get the appropriate schema from the registry.
+        5. If a schema is matched, calls `apply_schema_transformations` with the DataFrame and schema rules.
+        6. `apply_schema_transformations`:
+           - Applies `column_map` to rename/select columns.
+           - Collects unmapped columns into an `Extras` JSON field.
+           - Parses date columns (e.g., `Date`, `PostDate`) using `date_format` from the schema.
+           - Standardizes `Amount` (numeric conversion, applies `amount_regex`, `sign_rule` including simple and complex types like `flip_if_column_value_matches`).
+           - Generates derived columns (e.g., `Account`, `AccountLast4`, `AccountType`) based on `derived_columns` rules in the schema.
+           - Populates `DataSourceName` from the schema ID.
+           - Adds static columns defined in `extra_static_cols`.
+        7. Populates `Owner` and `DataSourceDate` into the processed DataFrame.
+        8. Performs final merchant cleaning on the appropriate description column (populating the master `Merchant` column) using loaded merchant lookup rules and `balance_pipeline.normalize.clean_merchant` as a fallback.
+        9. Generates `TxnID` using a hash of key transaction attributes.
+        10. Sets default values for `Currency`, `SharedFlag`, `SplitPercent`, etc.
+        11. Ensures all master schema columns exist and coerces them to their defined data types (including robust boolean parsing via `coerce_bool`).
+        12. Orders columns according to the master schema.
+        13. Appends the processed DataFrame for this file to a list.
+     iii. After processing all CSVs, concatenates all resulting DataFrames.
+     iv. Sorts the combined DataFrame.
+     v. Returns the consolidated DataFrame to `etl_main`.
+  d. `etl_main` (in `cli.py`):
+     i. Receives the consolidated DataFrame from `process_csv_files`.
+     ii. Performs deduplication based on `TxnID` and the `prefer_source` argument, keeping the record from the preferred data source if duplicates exist.
+     iii. Returns this final DataFrame.
+The main script (`cli.py` `main()` function) then:
+  a. Loads existing canonical data from `balance_final.parquet` (if any).
+  b. Merges these existing classifications (SharedFlag, SplitPercent) into the newly processed data based on `TxnID`.
+  c. Reads `Queue_Review` sheet from the Excel workbook (if not `--no-sync`).
+  d. Calls `sync.sync_review_decisions` to update `SharedFlag` and `SplitPercent` in the DataFrame based on `Queue_Review` input.
+  e. Writes the final, updated DataFrame to `balance_final.parquet`.
+  f. Writes the data to the 'Transactions' sheet and a template to the 'Queue_Review' sheet in the Excel workbook (unless `--dry-run`).
+Excel (if not run headlessly): The Python cell receives the DataFrame from `etl_main`. Data is updated on the 'Transactions' sheet. The 'Queue_Review' sheet dynamically updates via its `FILTER` formula.
+---
+3. Key Design Decisions
+Excel as Frontend: Leverage user familiarity with Excel for UI, configuration, data viewing, and manual classification.
+Python for ETL & Logic: Use Python (Pandas) for reliable, flexible data manipulation, cleaning, rule application, and calculations.
+YAML Schema Registry & CSV Merchant Rules: Centralize rules for parsing diverse CSV formats (`rules/schema_registry.yml`) and for cleaning merchant names (`rules/merchant_lookup.csv`). Makes the system highly maintainable and extensible. Configuration-over-code.
+Modular Python Backend: `csv_consolidator.py` handles comprehensive CSV processing. `cli.py` orchestrates the overall flow including deduplication and Excel interaction. `sync.py` handles Excel data synchronization.
+Owner Tagging via Folders: Use a simple convention (subfolders named after owners within the main CSV inbox) to automatically assign ownership.
+Deterministic Transaction ID (TxnID): Generate a unique and reproducible ID for each transaction. Essential for tracking, updates, and preventing duplicates.
+Comprehensive Master Schema: A well-defined target schema ensures data consistency.
+Unit Testing: `pytest` framework with fixtures and parametrized tests for core logic.
+CLI for Headless Operation: `cli.py` enables running the full ETL pipeline, including Parquet and Excel updates, from the command line, suitable for automation or users not directly interacting with Python in Excel.
+Dependency Management (Poetry): Ensure reproducible Python environments.
 
-### 2.6. Legacy Compatibility Layers
-
-- **`cli.py` (Legacy CLI):**
-    - Modified to use `UnifiedPipeline` internally for its full ETL mode.
-    - Maintains its existing command-line arguments and behavior for backward compatibility.
-    - Includes a deprecation warning, guiding users to the new `balance-pipe` CLI.
-    - The `--raw-dir` functionality remains as a separate, simpler path within this legacy CLI.
-- **`__init__.py` (Package Entry for Excel):**
-    - The `etl_main(csv_inbox)` function (called by Excel) is modified to use `UnifiedPipeline` internally.
-    - It scans for CSVs in the `csv_inbox` and passes them to the `UnifiedPipeline`.
-    - Defaults to `schema_mode="flexible"` for compatibility with existing Excel usage.
-    - Includes a log warning about its legacy status.
-
-## 3. Data Flow
-
-1.  **Invocation:**
-    - User calls `balance-pipe process ...` (new CLI).
-    - Or, user calls the legacy `balance-pyexcel ...` CLI.
-    - Or, Excel calls `etl_main()` from `balance_pipeline/__init__.py`.
-2.  **Configuration:**
-    - `main.py` (new CLI) or legacy interfaces establish the `PipelineConfig`.
-    - Logging is set up based on this configuration.
-3.  **Pipeline Initialization:**
-    - `UnifiedPipeline` is instantiated with the desired `schema_mode`.
-4.  **File Processing (`UnifiedPipeline.process_files`):**
-    - The `UnifiedPipeline` receives a list of input file paths.
-    - It temporarily sets the global `balance_pipeline.config.SCHEMA_MODE` based on its own `schema_mode`.
-    - It calls `csv_consolidator.process_csv_files()`, providing the file list and paths to the schema registry and merchant lookup files (obtained from `config_v2.pipeline_config_v2`).
-    - `csv_consolidator.process_csv_files()` then:
-        - Iterates through each CSV file.
-        - Matches it to a schema from `schema_registry.yml`.
-        - Applies all transformations (mapping, derived columns, date parsing, amount signing, TxnID, etc.) based on the matched schema and the active `schema_mode`.
-        - Consolidates data from all processed files into a single DataFrame.
-    - `UnifiedPipeline` receives this processed DataFrame.
-    - The original global `balance_pipeline.config.SCHEMA_MODE` is restored.
-5.  **Output Generation (via `main.py` or legacy interfaces):**
-    - The processed DataFrame is passed to an appropriate output adapter (`PowerBIOutput` or `ExcelOutput`).
-    - The adapter formats and writes the data to the specified file (e.g., Parquet, Excel).
-    - Legacy interfaces (`cli.py`, `__init__.py`) handle their specific output requirements (e.g., writing to Excel sheets, Parquet files).
-
-## 4. Configuration Options
-
-Configuration is primarily managed by `src/balance_pipeline/config_v2.py:PipelineConfig`. Key configurable aspects include:
-
-- **`project_root`**: Root directory of the project.
-- **`rules_dir`**: Directory for all rule files.
-- **`schema_registry_path`**: Path to `schema_registry.yml`.
-- **`merchant_lookup_path`**: Path to `merchant_lookup.csv`.
-- **`default_output_dir`**: Default location for output files generated by the new `balance-pipe` CLI.
-- **`schema_mode`**: `"strict"` (all 25 master columns) or `"flexible"` (core columns + only relevant optional columns).
-- **`log_level`**: Logging verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL).
-
-These can be set via:
-- Defaults in `config_v2.py`.
-- Environment variables (e.g., `BALANCE_SCHEMA_MODE`, `BALANCE_SCHEMA_REGISTRY_PATH`).
-- Command-line arguments in the new `balance-pipe` CLI.
-
-The `balance-pipe process --explain-config` command can be used to see the active configuration values.
-
-## 5. Extending the System
-
-### 5.1. Adding a New Data Source (CSV Schema)
-
-1.  Analyze the new CSV format.
-2.  Create a new YAML schema definition file in the `rules/` directory (or a subdirectory).
-3.  Define `filename_patterns` or `header_patterns` to uniquely identify the CSV.
-4.  Specify `column_map` to map source columns to canonical master schema columns.
-5.  Define `date_format`, `sign_rule`, `amount_regex` (if needed).
-6.  Add `derived_columns` or `extra_static_cols` as required.
-7.  Register the new schema YAML file path in `rules/schema_registry.yml`.
-8.  Test thoroughly using `tests/test_unified_pipeline.py` and the `scripts/validate_migration.py` script with sample files.
-
-### 5.2. Adding a New Output Format
-
-1.  Create a new class in `src/balance_pipeline/outputs.py` that inherits from `BaseOutputAdapter`.
-2.  Implement the `__init__(self, output_path)` method.
-3.  Implement the `write(self, df: pd.DataFrame, **kwargs: Any)` method to handle the specifics of the new format.
-4.  Update `src/balance_pipeline/main.py` to include the new format as an option for the `--output-type` argument and instantiate your new adapter.
-5.  Add tests for the new adapter in `tests/test_unified_pipeline.py`.
-
-### 5.3. Modifying Business Logic
-
-- Most business logic related to data transformation is within `csv_consolidator.py` or defined declaratively in the schema YAML files.
-- For changes to core processing steps (e.g., TxnID generation, fundamental schema matching), modify `csv_consolidator.py`.
-- For changes to how the overall pipeline is orchestrated, modify `pipeline_v2.py`.
-- Ensure any changes are covered by tests.
-
-## 6. Best Practices
-
-- **Schema Definitions:** Keep schema YAML files clear, concise, and well-documented. Use specific patterns for matching.
-- **Configuration:** Prefer environment variables or CLI arguments for overriding default configurations in deployment or specific runs.
-- **Logging:** Utilize the structured logging provided. Check logs for detailed information during processing, especially for warnings or errors.
-- **Testing:** Add new test cases to `tests/test_unified_pipeline.py` for any new functionality or significant changes. Use the `scripts/validate_migration.py` script to ensure consistency when refactoring core components.
-- **Sample Data:** Maintain a comprehensive set of sample CSV files in `sample_data/` or `sample_data_multi/` that cover all supported schemas and edge cases. This is crucial for testing and validation.
-- **Idempotency:** The pipeline aims to be idempotent; running it multiple times with the same input data and configuration should produce the same output (excluding timestamped filenames).
-
-This unified architecture provides a more robust, maintainable, and understandable foundation for the BALANCE-pyexcel project, facilitating easier debugging, consistent data handling, and future enhancements.
+**END REVISED CONTENT FOR `architecture.md`**

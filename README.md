@@ -1,124 +1,99 @@
-```
-###############################################################################
-# BALANCE-pyexcel – README
-#
-# Description : End‑to‑end guide for installing, configuring, and contributing
-#               to BALANCE‑pyexcel – an Excel‑fronted ETL pipeline that turns
-#               messy CSV/PDF bank data into a normalised Parquet ledger.
-# Key Concepts: - UnifiedPipeline architecture (v2)
-#               - Poetry‑based dependency management & strict CI gates
-#               - Environment‑variable driven configuration
-#               - Debug runner & dev‑experience helpers
-# Public API  : *Documentation file – no executable API*
-# -----------------------------------------------------------------------------
-# Change Log
-# 2025‑06‑08  OpenAI o3       docs       Added ASCII header, env‑var section,
-#                                        re‑organised content & ToC.
-###############################################################################
-```
-
-# BALANCE‑pyexcel
+# BALANCE-pyexcel
 
 [![Python CI](https://github.com/your-github-org-or-username/BALANCE-pyexcel/actions/workflows/ci.yml/badge.svg)](https://github.com/your-github-org-or-username/BALANCE-pyexcel/actions/workflows/ci.yml)
 
-**An Excel‑based shared‑expense tracker powered by Python, with schema‑driven CSV ingestion and a unified ETL pipeline.**
+**A professional Excel-based shared-expense tracker powered by Python, with schema-driven CSV ingestion and a unified ETL pipeline.**
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Unified Pipeline Architecture (v2)](#unified-pipeline-architecture-v2)
-3. [Features](#features)
-4. [Environment Variables](#environment-variables)
-5. [Quick Start](#quick-start)
-6. [Running the Pipeline](#running-the-pipeline)
-7. [Development & Debugging Tools](#development--debugging-tools)
-8. [Standalone Executable](#standalone-executable)
-9. [Advanced Analysis with DuckDB](#advanced-analysis-with-duckdb)
-10. [Usage Workflow](#usage-workflow)
-11. [Project Structure](#project-structure)
-12. [Migration Guide (pre‑v2 → v2)](#migration-guide-pre-v2--v2)
-13. [Troubleshooting](#troubleshooting)
-14. [Contributing](#contributing)
-15. [License & Version](#license--version)
+2. [Project Structure](#project-structure)
+3. [Quick Start](#quick-start)
+4. [Running the Pipeline](#running-the-pipeline)
+5. [Scripts Organization](#scripts-organization)
+6. [Configuration](#configuration)
+7. [Development](#development)
+8. [Contributing](#contributing)
 
 ---
 
 ## Overview
 
-BALANCE‑pyexcel lets any two parties manage shared finances in a familiar Excel environment. Python (running *inside* Excel or headless via CLI) ingests diverse bank/card CSV formats, normalises them, and produces a clean transaction ledger for classification and balance calculation.
+BALANCE-pyexcel lets parties manage shared finances in a familiar Excel environment. Python processes diverse bank/card CSV formats, normalizes them, and produces clean transaction ledgers for classification and balance calculation.
 
-> **v2 Notice** – From **v2.0.0** onward, all data processing flows through the **UnifiedPipeline**. Legacy CLI calls are now thin wrappers around the new engine.
-
----
-
-## Unified Pipeline Architecture (v2)
-
-| Module           | Path                                  | Purpose                                                     |
-| ---------------- | ------------------------------------- | ----------------------------------------------------------- |
-| **Engine**       | `src/balance_pipeline/pipeline_v2.py` | `UnifiedPipeline` orchestrates ingest → transform → output. |
-| **Config**       | `src/balance_pipeline/config_v2.py`   | `PipelineConfig` dataclass + env‑var overrides.             |
-| **Outputs**      | `src/balance_pipeline/outputs.py`     | Parquet / Excel / future adapters.                          |
-| **CLI (new)**    | `src/balance_pipeline/main.py`        | `balance-pipe process …` command.                           |
-| **CLI (legacy)** | `src/balance_pipeline/cli.py`         | `balance refresh` → forwards into v2.                       |
-
-Strict vs flexible schema modes, deduplication, and owner‑tagging all live here. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a full diagram.
+**Key Features:**
+- Schema-driven CSV ingestion via `rules/schema_registry.yml`
+- Automatic owner tagging (folder-name → `Owner` column)
+- Data normalization & sign correction
+- Stable `TxnID` generation (SHA-256)
+- Excel review queue based on `FILTER`
+- Comprehensive analysis and reporting tools
 
 ---
 
-## Features
+## Project Structure
 
-* **Schema‑Driven CSV Ingestion** via `rules/schema_registry.yml`.
-* **Automatic Owner Tagging** (folder‑name → `Owner` column).
-* **Data Normalisation & Sign Correction**.
-* **Stable `TxnID` Generation** (SHA‑256).
-* **Excel Review Queue** based on `FILTER`.
-* **Planned** automatic shared/personal classification & balance engine.
-
----
-
-## Environment Variables
-
-These vars are *optional* but recommended for flexibility:
-
-| Var                        | Default     | Purpose                                               |
-| -------------------------- | ----------- | ----------------------------------------------------- |
-| `BALANCE_CSV_INBOX`        | `csv_inbox` | Root folder containing owner sub‑dirs & CSVs.         |
-| `BALANCE_OUTPUT_DIR`       | `output`    | Where Parquet/Excel outputs are written.              |
-| `BALANCE_SCHEMA_MODE`      | `flexible`  | `strict` enforces all 25 canonical columns.           |
-| `BALANCE_LOG_LEVEL`        | `INFO`      | Set `DEBUG` for verbose tracing.                      |
-| `BALANCE_ENABLE_PROFILING` | `false`     | `true` wraps ETL in `cProfile`; used with `snakeviz`. |
-| `BALANCE_MAX_ROWS`         | `0`         | Non‑zero limits rows (handy for smoke‑tests).         |
-
-Create a `.env` or set them in Codespaces → *Environment variables* panel.
-
----
-
-## Quick Start
-
-```bash
-# 1 Clone & enter
-$ git clone <repo_url>
-$ cd BALANCE-pyexcel
-
-# 2 Install deps (Codex container has Poetry pre‑installed)
-$ poetry install --no-root --with dev
-
-# 3 Create external CSV inbox
-$ mkdir -p csv_inbox/Ryan csv_inbox/Jordyn
-
-# 4 Run pipeline once
-$ poetry run balance-pipe process "csv_inbox/**.csv" --output-type powerbi
+```text
+BALANCE-pyexcel/
+├── 📁 config/                  # Configuration files (YAML, JSON)
+├── 📁 data/                    # Data files and archives
+│   ├── 📁 _archive/           # Historical and corrected data files
+│   └── 📁 _samples/           # Sample data for testing
+├── 📁 docs/                    # Documentation files
+│   ├── ARCHITECTURE.md        # System architecture documentation
+│   ├── CHANGELOG.md           # Version history
+│   ├── quick_start.md         # Getting started guide
+│   └── …
+├── 📁 reports/                 # Generated reports and summaries
+├── 📁 rules/                   # Schema registry & merchant lookup
+├── 📁 scripts/                 # Utility and analysis scripts
+│   ├── 📁 analysis/           # Data analysis scripts
+│   ├── 📁 corrections/        # Data correction utilities
+│   ├── 📁 investigations/     # Issue investigation tools
+│   └── 📁 utilities/          # General utility scripts
+├── 📁 src/                     # Main source code
+│   ├── 📁 balance_pipeline/   # Core pipeline implementation
+│   │   ├── pipeline_v2.py     # UnifiedPipeline orchestrator
+│   │   ├── main.py            # CLI entry point (balance-pipe)
+│   │   └── …
+│   ├── 📁 baseline_analyzer/  # Balance analysis tools
+│   └── 📁 utils/              # Shared utilities
+├── 📁 tests/                   # Test suite
+├── 📁 tools/                   # Development and debugging tools
+├── 📁 workbook/                # Excel templates and outputs
+│   └── template/              # Excel template files
+├── pyproject.toml             # Python project configuration
+└── README.md                  # This file
 ```
 
-On success you’ll see `output/unified_pipeline/<timestamp>.parquet`.
+---
+
+## Quick Start
+
+```bash
+# 1. Clone and enter
+git clone <repo_url>
+cd BALANCE-pyexcel
+
+# 2. Install dependencies
+poetry install --no-root --with dev
+
+# 3. Create external CSV inbox
+mkdir -p csv_inbox/Ryan csv_inbox/Jordyn
+
+# 4. Run pipeline
+poetry run balance-pipe process "csv_inbox/**.csv" --output-type powerbi
+```
+
+On success you'll see `output/unified_pipeline/<timestamp>.parquet`.
 
 ---
 
 ## Running the Pipeline
 
-### New CLI
+### Main CLI Command
 
 ```bash
 poetry run balance-pipe process "csv_inbox/**.csv" \
@@ -127,99 +102,98 @@ poetry run balance-pipe process "csv_inbox/**.csv" \
     --output-path output/latest.xlsx
 ```
 
-### Legacy CLI (deprecated)
+### PowerShell Scripts
 
-`poetry run balance refresh csv_inbox workbook/BALANCE-pyexcel.xlsm`
-
----
-
-## Development & Debugging Tools
-
-* **CI gates**: `ruff check`, `ruff format`, `mypy --strict`, `pytest -q`, `snakeviz --version`.
-* **Debug runner**: `tools/debug_runner.py` lets you step through stubbed data. Provide `core_calculations.py` and `data_loader_temp.py` in `src/balance_pipeline/`.
+- `Run-Analysis.ps1` - Main analysis runner
+- `Run-ComprehensiveAnalyzer.ps1` - Full comprehensive analysis
+- `Clean-Repository.ps1` - Repository cleanup utilities
 
 ---
 
-## Standalone Executable
+## Scripts Organization
+
+### 📁 scripts/analysis/
+Data analysis and investigation scripts:
+- `deep_analysis.py` - Comprehensive transaction analysis
+- `transaction_count_analysis.py` - Transaction volume analysis
+- `rent_logic_check.py` - Rent payment logic validation
+
+### 📁 scripts/corrections/
+Data correction and repair utilities:
+- `rent_allocation_corrector.py` - Fix rent allocation issues
+- `final_balance_correction.py` - Balance reconciliation
+- `integrate_rent_corrections.py` - Apply rent corrections
+
+### 📁 scripts/investigations/
+Issue investigation and debugging tools:
+- `critical_issue_investigator.py` - Critical issue detection
+- `financial_issue_detector.py` - Financial anomaly detection
+- `investigate_imbalance.py` - Balance discrepancy investigation
+
+### 📁 scripts/utilities/
+General utility and processing scripts:
+- `comprehensive_audit_trail.py` - Complete audit trail generation
+- `zelle_integration.py` - Zelle payment processing
+- `powerbi_data_refresh.py` - Power BI data refresh utilities
+
+---
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `BALANCE_CSV_INBOX` | `csv_inbox` | Root folder for CSVs |
+| `BALANCE_OUTPUT_DIR` | `output` | Output directory |
+| `BALANCE_SCHEMA_MODE` | `flexible` | Schema validation mode |
+| `BALANCE_LOG_LEVEL` | `INFO` | Logging verbosity |
+
+### Configuration Files
+
+- `config/balance_analyzer.yaml` - Balance analyzer settings
+- `rules/schema_registry.yml` - CSV schema definitions
+- `rules/merchant_lookup.csv` - Merchant mapping rules
+
+---
+
+## Development
+
+### Running Tests
 
 ```bash
-pyinstaller --onefile --name balance-pipe \
-  src/balance_pipeline/main.py --add-data "rules;rules"
+poetry run pytest -v
 ```
 
-Grab `dist/balance-pipe.exe` and run like any CLI example.
+### Code Quality
 
----
-
-## Advanced Analysis with DuckDB
-
-```sql
--- simple query
-SELECT COUNT(*)
-FROM read_parquet('output/unified_pipeline/latest.parquet');
+```bash
+poetry run ruff check . && poetry run ruff format .
+poetry run mypy src/ --strict
 ```
 
-Full ODBC instructions are in the old README’s DuckDB section.
+### Debug Tools
 
----
-
-## Usage Workflow
-
-1. Drop new CSVs into the correct owner folder.
-2. Run `balance-pipe …` or refresh in Excel.
-3. Classify shared vs personal on **Queue\_Review**.
-4. (Planned) sync → calculate balances.
-
----
-
-## Project Structure
-
-<details><summary>Expand tree</summary>
-
-```text
-BALANCE-pyexcel/
-├── rules/ …                # schema registry & merchant lookup
-├── src/balance_pipeline/   # UnifiedPipeline + helpers
-│   ├── pipeline_v2.py
-│   ├── main.py (balance‑pipe)
-│   └── …
-├── tools/debug_runner.py
-├── workbook/BALANCE-pyexcel.xlsm
-└── tests/ …
-```
-
-</details>
-
----
-
-## Migration Guide (pre‑v2 → v2)
-
-Switch your scripts from `balance refresh` → `balance-pipe`. Excel `etl_main()` already forwards to v2.
-
----
-
-## Troubleshooting
-
-* **Schema not found** → check `rules/schema_registry.yml` patterns.
-* **Excel PY error** → confirm `CsvInboxPath` in workbook.
-* **snakeviz check fails** → ensure `python3-tk` & PATH fix (see setup script in AGENTS.MD).
+- `tools/debug_runner.py` - Development debugging utilities
+- `tools/diagnose_analyzer.py` - Analyzer diagnostics
 
 ---
 
 ## Contributing
 
-Run all CI gates before PR:
+1. Run all CI gates before PR:
+   ```bash
+   poetry run ruff check . && poetry run ruff format .
+   poetry run mypy src/ --strict  
+   poetry run pytest -q
+   ```
 
-```bash
-poetry run ruff check . && poetry run ruff format .
-poetry run mypy src/ --strict
-poetry run pytest -q
-```
-
-Follow Conventional Commits.
+2. Follow Conventional Commits format
+3. Update documentation for new features
+4. Add tests for new functionality
 
 ---
 
-## License & Version
+## License & Version
 
-Personal use only · Current version **0.1.x – Schema‑Aware Ingestion Setup**
+Personal use only · Current version **0.1.x – Schema-Aware Ingestion Setup**
