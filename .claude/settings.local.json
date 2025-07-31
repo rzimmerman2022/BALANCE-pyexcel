@@ -6,7 +6,11 @@
       "Bash(mv:*)",
       "Bash(ls:*)",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(poetry run balance-pipe:*)",
+      "Bash(poetry install:*)",
+      "Bash(python:*)"
     ],
     "deny": []
   }
