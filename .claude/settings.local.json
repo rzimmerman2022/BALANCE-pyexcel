@@ -5,7 +5,8 @@
       "Bash(move financial_issue_detector.py financial_dashboard_report_*.txt critical_issue_investigator.py investigate_imbalance.py scriptsinvestigations)",
       "Bash(mv:*)",
       "Bash(ls:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
