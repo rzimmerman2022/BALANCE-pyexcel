@@ -3,8 +3,51 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 import yaml
+import os
+import sys
 from pathlib import Path
 from typing import Dict, Any
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+def get_resource_path(relative_path: str | Path) -> Path:
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    if hasattr(sys, "_MEIPASS"):
+        base_path = Path(getattr(sys, "_MEIPASS"))
+    else:
+        # Not frozen, running in normal Python environment
+        base_path = Path(__file__).parent.parent.parent  # Go up to project root
+    return base_path / relative_path
+
+# Project paths
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+CSV_INBOX_DEFAULT = Path(os.getenv("CSV_INBOX", PROJECT_ROOT / "csv_inbox")).expanduser()
+SCHEMA_REGISTRY_PATH = Path(os.getenv("SCHEMA_REGISTRY", get_resource_path("rules/schema_registry.yml")))
+MERCHANT_LOOKUP_PATH = Path(os.getenv("MERCHANT_LOOKUP", get_resource_path("rules/merchant_lookup.csv")))
+
+# Default output formats and paths
+DEFAULT_OUTPUT_FORMAT = "parquet"
+SUPPORTED_OUTPUT_FORMATS = ["excel", "parquet", "csv", "powerbi"]
+
+# Schema configuration
+SCHEMA_MODE = os.getenv("SCHEMA_MODE", "strict").lower()
+if SCHEMA_MODE not in ["strict", "flexible"]:
+    SCHEMA_MODE = "strict"
+
+# Core Required Columns - must match CORE_FOUNDATION_COLUMNS from foundation.py
+CORE_REQUIRED_COLUMNS = [
+    "TxnID",               # Unique transaction identifier
+    "Owner",               # Owner of the transaction (Ryan/Jordyn)
+    "Date",                # Transaction date
+    "Amount",              # Transaction amount
+    "Merchant",            # Cleaned merchant name
+    "Description",         # Cleaned, human-readable transaction description
+    "Category",            # Transaction category
+    "Account",             # Account identifier
+    "sharing_status",      # Sharing status ('individual', 'shared', 'split')
+]
 
 # Design constants
 TABLEAU_COLORBLIND_10 = [
