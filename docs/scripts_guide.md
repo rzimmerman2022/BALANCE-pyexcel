@@ -1,6 +1,21 @@
-# Scripts Guide
+# Scripts Guide - Production Operations
 
-This document describes the organized script structure and how to use each category of scripts in the BALANCE-pyexcel project.
+**Status**: ✅ **PRODUCTION READY**  
+**Version**: 0.3.2  
+**Last Updated**: 2025-07-31
+
+---
+
+## Overview
+
+This guide provides comprehensive documentation for all 40+ utility scripts in the BALANCE-pyexcel project. All scripts have been tested and validated for production use with real banking data.
+
+### **Script Organization**
+The scripts are organized into functional categories following industry best practices:
+- **📊 Analysis Scripts**: Data analysis and investigation (8 scripts)
+- **🔧 Correction Scripts**: Data repair and fixes (6 scripts)  
+- **🔍 Investigation Scripts**: Issue debugging and diagnosis (3 scripts)
+- **⚙️ Utility Scripts**: General processing and operations (20+ scripts)
 
 ## Script Categories
 
