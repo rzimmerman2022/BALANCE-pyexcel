@@ -1,176 +1,455 @@
-# BALANCE-pyexcel - System Architecture
+# BALANCE-pyexcel: Gold Standard System Architecture
 
 **Status**: ✅ **GOLD STANDARD PRODUCTION READY**  
 **Version**: 0.3.2  
-**Last Updated**: 2025-07-31
+**Last Updated**: 2025-08-04
 
 ---
 
-## Executive Overview
+## 🏆 **Executive Architecture Overview**
 
-BALANCE-pyexcel is a **gold standard financial analysis system** that transforms raw banking data into comprehensive financial insights. Built with **industry best practices**, it provides automated transaction processing, balance reconciliation, and advanced analytics for shared expense management.
+BALANCE-pyexcel implements a **gold standard financial analysis architecture** designed with industry best practices, comprehensive error handling, and crystal-clear interfaces optimized for both human developers and AI coding assistance.
 
-### **Core Value Proposition**
-- **Professional-Grade Processing**: Enterprise-level data pipeline with comprehensive validation
-- **Multi-Bank Support**: Unified processing of diverse financial institution formats  
-- **Automated Analysis**: Who-owes-who calculations with complete audit trails
-- **Production Ready**: Comprehensive CI/CD, testing, and documentation
+### **🎯 Core Design Principles**
+- **Single Entry Point**: One master script (`pipeline.ps1`) handles all operations
+- **Clean Separation**: Distinct layers for UI, orchestration, processing, and storage
+- **Schema-Driven Processing**: Configurable CSV parsing for multiple bank formats
+- **Comprehensive Audit Trails**: Every operation logged and traceable
+- **AI-Optimized**: Clear patterns and documentation for AI assistant integration
 
-# ---
-## System Components & Flow Diagram
+---
 
+## 🚀 **Single Master Entry Point Architecture**
+
+### **Command Flow**
+```
+User Command → pipeline.ps1 → Python CLI → Core Engine → Output
+     ↓              ↓             ↓            ↓          ↓
+ Interface    Orchestration   Business     Processing   Results
+```
+
+### **Master Pipeline Script (`pipeline.ps1`)**
+```powershell
+# Single interface for all operations
+.\pipeline.ps1 process    # Main CSV processing
+.\pipeline.ps1 analyze    # Comprehensive analysis  
+.\pipeline.ps1 baseline   # Balance calculations
+.\pipeline.ps1 status     # Health monitoring
+.\pipeline.ps1 clean      # Repository maintenance
+.\pipeline.ps1 help       # Documentation
+```
+
+**Key Benefits:**
+- **No confusion** - single entry point for all operations
+- **Consistent interface** - same parameter patterns across commands
+- **Error handling** - centralized error reporting and recovery
+- **Status monitoring** - built-in health checks and diagnostics
+
+---
+
+## 🏗️ **System Architecture Layers**
+
+### **Layer 1: User Interface & Orchestration**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ MASTER ENTRY POINT: pipeline.ps1                           │
+├─────────────────────────────────────────────────────────────┤
+│ • Single command interface                                  │
+│ • Parameter validation and routing                          │
+│ • Error handling and user feedback                          │
+│ • Status monitoring and health checks                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **Layer 2: Python CLI Commands**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ PYTHON CLI LAYER                                            │
+├─────────────────────────────────────────────────────────────┤
+│ • balance-pipe: Main CSV processing                         │
+│ • balance-analyze: Comprehensive analysis                   │
+│ • balance-baseline: Balance calculations                    │
+│ • balance-merchant: Merchant operations                     │
+│ • balance-legacy-cli: Legacy compatibility                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **Layer 3: Core Processing Engine**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ CORE ENGINE: src/balance_pipeline/                          │
+├─────────────────────────────────────────────────────────────┤
+│ • UnifiedPipeline: Main orchestrator                        │
+│ • CSV Consolidator: Schema-driven processing                │
+│ • Schema Registry: Format definitions                       │
+│ • Merchant Normalization: Name standardization              │
+│ • Transaction Processing: Deduplication & validation        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **Layer 4: Configuration & Rules**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ CONFIGURATION LAYER                                         │
+├─────────────────────────────────────────────────────────────┤
+│ • Schema Registry: rules/schema_registry.yml                │
+│ • Merchant Lookup: rules/merchant_lookup.csv               │
+│ • Analysis Config: config/balance_analyzer.yaml             │
+│ • Python Config: pyproject.toml                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **Layer 5: Data Storage & Output**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ DATA & OUTPUT LAYER                                         │
+├─────────────────────────────────────────────────────────────┤
+│ • Input: csv_inbox/ (organized by owner)                   │
+│ • Processing: Temporary DataFrames in memory                │
+│ • Output: Multiple formats (Excel, Parquet, CSV, Power BI)  │
+│ • Logs: Comprehensive operation logging                     │
+│ • Archives: Historical data in data/_archive/               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🔄 **Detailed Data Flow Architecture**
+
+### **1. Input Phase: CSV Ingestion**
 ```mermaid
-flowchart TD
-    subgraph User_Input
-        direction LR
-        UI_DropCSV[User Drops CSVs into Folders] --> FS_CSVs
-        UI_Excel[User Opens/Interacts with Excel] --> WBK[BALANCE-pyexcel.xlsm]
-        UI_Excel --> PY_Trigger[User Triggers Python Refresh in Excel]
-    end
+graph TD
+    A[CSV Files in csv_inbox/] --> B{pipeline.ps1 process}
+    B --> C[File Discovery & Validation]
+    C --> D[Owner Detection from Path]
+    D --> E[Schema Matching]
+    E --> F[CSV Loading & Parsing]
+```
 
-    subgraph External_FileSystem
-        direction TB
-        FS_CSVs["CSV Input Folder (e.g., C:/.../CSVs/)"]
-        subgraph Owner_Subfolders [Owner Subfolders]
-           FS_CSVs_J["Jordyn/*.csv"]
-           FS_CSVs_R["Ryan/*.csv"]
-        end
-        FS_CSVs --> FS_CSVs_J & FS_CSVs_R
-    end
+**Implementation Details:**
+- **File Discovery**: Scans `csv_inbox/Ryan/` and `csv_inbox/Jordyn/` recursively
+- **Owner Tagging**: Automatically assigns owner based on directory structure
+- **Schema Matching**: Uses filename patterns and headers to identify bank format
+- **Error Handling**: Graceful handling of malformed or unrecognized files
 
-    subgraph Git_Repository [Project Root: BALANCE-pyexcel]
-        direction TB
+### **2. Processing Phase: Data Transformation**
+```mermaid
+graph TD
+    A[Raw CSV Data] --> B[Schema Application]
+    B --> C[Column Mapping]
+    C --> D[Data Type Conversion]
+    D --> E[Date Standardization]
+    E --> F[Amount Normalization]
+    F --> G[Merchant Cleaning]
+    G --> H[Transaction ID Generation]
+    H --> I[Duplicate Detection]
+```
 
-        subgraph Configuration
-            CONF_YAML["rules/schema_registry.yml"]
-            CONF_MERCHANT_CSV["rules/merchant_lookup.csv"]
-            CONF_PY["src/balance_pipeline/config.py \n (+ .env optional)"]
-            WBK_ConfigSheet[Excel: Config Sheet \n (Input Path, User Names)]
-        end
+**Schema Registry System:**
+```yaml
+# Example schema definition
+chase_checking:
+  pattern: ".*Chase.*Checking.*\\.csv"
+  date_format: "%m/%d/%Y"
+  column_map:
+    Date: "date"
+    Description: "description"
+    Amount: "amount"
+  sign_rule: "credit_positive"
+  derived_columns:
+    Account: "Chase Checking"
+    AccountType: "checking"
+```
 
-        subgraph Python_Pipeline [src/balance_pipeline/]
-            PY_CLI["cli.py \n (etl_main orchestrator, \n File Scanner, Deduplication)"]
-            PY_CONSOLIDATOR["csv_consolidator.py \n (Schema Matching, Transformations, \n Merchant Cleaning, TxnID Gen)"]
-            PY_SYNC["sync.py \n (Excel Queue_Review Sync)"]
-            PY_UTILS["utils.py \n (Shared Text Cleaning, etc.)"]
-            PY_NORM_HELPERS["normalize.py \n (Original Merchant Cleaner, \n TxnID Hashing components - referenced)"]
-            PY_CALC["calculate.py \n (Future: Balance Logic)"]
-            PY_CLASS["classify.py \n (Future: Rule-based Tagging)"]
+### **3. Analysis Phase: Financial Calculations**
+```mermaid
+graph TD
+    A[Normalized Transactions] --> B[Balance Calculations]
+    B --> C[Shared Expense Analysis]
+    C --> D[Settlement Tracking]
+    D --> E[Audit Trail Generation]
+    E --> F[Report Preparation]
+```
 
-            CONF_YAML --> PY_CONSOLIDATOR
-            CONF_MERCHANT_CSV --> PY_CONSOLIDATOR
-            CONF_PY --> PY_CLI & PY_CONSOLIDATOR & PY_UTILS 
-            FS_CSVs_J & FS_CSVs_R -.-> PY_CLI # CLI scans these paths
+### **4. Output Phase: Multi-Format Export**
+```mermaid
+graph TD
+    A[Processed Data] --> B{Output Format}
+    B -->|Excel| C[XLSX Workbooks]
+    B -->|Power BI| D[Optimized Parquet]
+    B -->|Analysis| E[CSV Reports]
+    B -->|Archival| F[Parquet Storage]
+```
 
-            PY_UTILS --> PY_CONSOLIDATOR & PY_NORM_HELPERS
-            PY_NORM_HELPERS --> PY_CONSOLIDATOR # Consolidator uses clean_merchant
-
-            PY_CLI -- CSV File Paths --> PY_CONSOLIDATOR
-            PY_CONSOLIDATOR -- Consolidated DataFrame --> PY_CLI
-            PY_CLI -- DataFrame for Sync --> PY_SYNC
-            PY_SYNC -- Synced DataFrame --> PY_CLI
-            PY_CLI -- Final DataFrame for Output --> WBK_PythonCell # and Parquet writing
-        end
-
-        subgraph Excel_Interface [workbook/BALANCE-pyexcel.xlsm]
-           WBK_PythonCell["Excel: Python Cell \n (=PY(etl_main(...)))"]
-           WBK_Transactions["Excel: Transactions Sheet"]
-           WBK_Queue["Excel: Queue_Review Sheet"]
-           WBK_Dashboard["Excel: Dashboard Sheet"]
-           WBK_RulesM["Excel: Rules_Merchants Table"]
-           WBK_RulesS["Excel: Rules_Shared Table"]
-
-           WBK_ConfigSheet -- Input Path --> WBK_PythonCell
-           PY_Trigger --> WBK_PythonCell
-           WBK_PythonCell -- calls --> PY_CLI # Or a wrapper in __init__ that calls CLI's etl_main
-           PY_CLI -- returns --> WBK_PythonCell
-           WBK_PythonCell -- writes data --> WBK_Transactions # Or data read via formulas
-           WBK_Transactions -- FILTER --> WBK_Queue
-           WBK_Queue -- Manual Input --> PY_SYNC # Sync logic reads from Excel
-           WBK_Transactions -- data source --> WBK_Dashboard # For charts/calcs
-           WBK_RulesM & WBK_RulesS # Used for reference/manual input, maybe read by Python later
-        end
-
-        subgraph Testing
-            TESTS["tests/ \n (pytest files)"]
-            SAMPLE_DATA["sample_data_multi/ \n (Anonymized CSVs)"]
-            SAMPLE_DATA --> TESTS
-            PY_Pipeline --> TESTS # Tests import code from src
-        end
-    end
-
-    User_Input --> Git_Repository # User interacts via Excel file in repo
 ---
-1. Layers
-Layer	Technology	Responsibility
-UI/Input	Excel Sheets, File System Folders	Data Input (CSVs via folders), Settings Config (Excel), Manual Transaction Classification (Excel Queue_Review)
-View	Excel Sheets (Dashboard, Transactions, Queue_Review)	Displaying Balances, Charts, Processed Transactions, Items needing Review
-Orchestration	Python Cell (=PY(...) in Excel), cli.py (etl_main)	Triggering Python ETL process (etl_main), Coordinating calls to CSV consolidator and sync modules.
-ETL	Python package (src/balance_pipeline/), YAML Config	Schema-driven CSV processing (via csv_consolidator.py: reading YAML, finding/reading CSVs, dynamic mapping, date/amount/derived/static column transformations, merchant cleaning, TxnID generation, master schema conformance), Deduplication (in cli.py), Shared Utilities (utils.py).
-Configuration	Excel Sheet (Config), rules/schema_registry.yml, rules/merchant_lookup.csv, .env	Storing runtime paths (CSV Inbox), user names (Excel); Storing CSV parsing rules (YAML); Merchant cleaning rules (CSV); Optional environment overrides (.env via config.py)
-Storage	File System (balance_final.parquet, CSVs), Excel Sheet (Transactions)	Primary data store (Parquet); Original raw data source (CSVs); View/Interaction layer (Excel).
-Testing	pytest framework, tests/ folder (including fixtures/), sample_data_multi/	Unit testing Python ETL functions using anonymized sample data representing multiple schemas.
 
-Export to Sheets
----
-2. Data Flow (ETL Round-Trip v0.1)
-User places new bank/credit card CSV files into their respective sub-folders (e.g., /CSVs/Jordyn/, /CSVs/Ryan/) located outside the Git repository.
-User opens BALANCE-pyexcel.xlsm in Excel.
-User ensures the full path to the parent CSV folder (e.g., C:\...\CSVs) is correctly entered in the Config sheet (CsvInboxPath).
-User triggers the main Python ETL cell (e.g., via Data > Refresh All, or cell execution), or runs the CLI command (`poetry run balance refresh ...`).
-The Excel Python cell (if used) calls `etl_main` (likely from `src/balance_pipeline/__init__.py` which in turn might call the CLI's `etl_main` or a similar function). The CLI directly calls `etl_main` in `cli.py`.
-`etl_main` (in `cli.py`) orchestrates the process:
-  a. Scans the `inbox_path` for CSV files, respecting `exclude_patterns` and `only_patterns`, creating a list of file paths.
-  b. Calls `csv_consolidator.process_csv_files`, passing the list of CSV paths, and paths to `schema_registry.yml` and `merchant_lookup.csv`.
-  c. `csv_consolidator.process_csv_files`:
-     i. Loads schema registry and merchant lookup rules.
-     ii. For each CSV file in the list:
-        1. Reads the raw CSV into a DataFrame.
-        2. Infers `Owner` from the CSV's parent directory name.
-        3. Gets `DataSourceDate` from the CSV's file modification time.
-        4. Calls `find_matching_schema` (using CSV headers and filename) to get the appropriate schema from the registry.
-        5. If a schema is matched, calls `apply_schema_transformations` with the DataFrame and schema rules.
-        6. `apply_schema_transformations`:
-           - Applies `column_map` to rename/select columns.
-           - Collects unmapped columns into an `Extras` JSON field.
-           - Parses date columns (e.g., `Date`, `PostDate`) using `date_format` from the schema.
-           - Standardizes `Amount` (numeric conversion, applies `amount_regex`, `sign_rule` including simple and complex types like `flip_if_column_value_matches`).
-           - Generates derived columns (e.g., `Account`, `AccountLast4`, `AccountType`) based on `derived_columns` rules in the schema.
-           - Populates `DataSourceName` from the schema ID.
-           - Adds static columns defined in `extra_static_cols`.
-        7. Populates `Owner` and `DataSourceDate` into the processed DataFrame.
-        8. Performs final merchant cleaning on the appropriate description column (populating the master `Merchant` column) using loaded merchant lookup rules and `balance_pipeline.normalize.clean_merchant` as a fallback.
-        9. Generates `TxnID` using a hash of key transaction attributes.
-        10. Sets default values for `Currency`, `SharedFlag`, `SplitPercent`, etc.
-        11. Ensures all master schema columns exist and coerces them to their defined data types (including robust boolean parsing via `coerce_bool`).
-        12. Orders columns according to the master schema.
-        13. Appends the processed DataFrame for this file to a list.
-     iii. After processing all CSVs, concatenates all resulting DataFrames.
-     iv. Sorts the combined DataFrame.
-     v. Returns the consolidated DataFrame to `etl_main`.
-  d. `etl_main` (in `cli.py`):
-     i. Receives the consolidated DataFrame from `process_csv_files`.
-     ii. Performs deduplication based on `TxnID` and the `prefer_source` argument, keeping the record from the preferred data source if duplicates exist.
-     iii. Returns this final DataFrame.
-The main script (`cli.py` `main()` function) then:
-  a. Loads existing canonical data from `balance_final.parquet` (if any).
-  b. Merges these existing classifications (SharedFlag, SplitPercent) into the newly processed data based on `TxnID`.
-  c. Reads `Queue_Review` sheet from the Excel workbook (if not `--no-sync`).
-  d. Calls `sync.sync_review_decisions` to update `SharedFlag` and `SplitPercent` in the DataFrame based on `Queue_Review` input.
-  e. Writes the final, updated DataFrame to `balance_final.parquet`.
-  f. Writes the data to the 'Transactions' sheet and a template to the 'Queue_Review' sheet in the Excel workbook (unless `--dry-run`).
-Excel (if not run headlessly): The Python cell receives the DataFrame from `etl_main`. Data is updated on the 'Transactions' sheet. The 'Queue_Review' sheet dynamically updates via its `FILTER` formula.
----
-3. Key Design Decisions
-Excel as Frontend: Leverage user familiarity with Excel for UI, configuration, data viewing, and manual classification.
-Python for ETL & Logic: Use Python (Pandas) for reliable, flexible data manipulation, cleaning, rule application, and calculations.
-YAML Schema Registry & CSV Merchant Rules: Centralize rules for parsing diverse CSV formats (`rules/schema_registry.yml`) and for cleaning merchant names (`rules/merchant_lookup.csv`). Makes the system highly maintainable and extensible. Configuration-over-code.
-Modular Python Backend: `csv_consolidator.py` handles comprehensive CSV processing. `cli.py` orchestrates the overall flow including deduplication and Excel interaction. `sync.py` handles Excel data synchronization.
-Owner Tagging via Folders: Use a simple convention (subfolders named after owners within the main CSV inbox) to automatically assign ownership.
-Deterministic Transaction ID (TxnID): Generate a unique and reproducible ID for each transaction. Essential for tracking, updates, and preventing duplicates.
-Comprehensive Master Schema: A well-defined target schema ensures data consistency.
-Unit Testing: `pytest` framework with fixtures and parametrized tests for core logic.
-CLI for Headless Operation: `cli.py` enables running the full ETL pipeline, including Parquet and Excel updates, from the command line, suitable for automation or users not directly interacting with Python in Excel.
-Dependency Management (Poetry): Ensure reproducible Python environments.
+## 🎯 **Core Component Architecture**
 
-**END REVISED CONTENT FOR `architecture.md`**
+### **UnifiedPipeline Class (`src/balance_pipeline/pipeline_v2.py`)**
+```python
+class UnifiedPipeline:
+    """Main orchestrator for CSV processing workflow."""
+    
+    def __init__(self, schema_mode: str = "flexible", debug_mode: bool = False):
+        # Initialize with configuration
+        
+    def process_files(self, file_paths: Sequence[PathLike]) -> pd.DataFrame:
+        # Main processing workflow
+        # 1. Validate inputs
+        # 2. Process each file through schema system
+        # 3. Consolidate results
+        # 4. Apply deduplication
+        # 5. Return processed DataFrame
+```
+
+**Key Methods:**
+- `process_files()`: Main entry point for CSV processing
+- `_validate_inputs()`: Input validation and sanitization
+- `_process_single_file()`: Individual file processing
+- `_consolidate_results()`: Multi-file result combination
+
+### **CSV Consolidator (`src/balance_pipeline/csv_consolidator.py`)**
+```python
+def process_csv_files(
+    file_paths: List[Path],
+    schema_registry_path: Path,
+    merchant_lookup_path: Path
+) -> pd.DataFrame:
+    """Process multiple CSV files through schema-driven transformation."""
+```
+
+**Processing Steps:**
+1. **Schema Loading**: Load bank format definitions
+2. **File Processing**: Apply appropriate schema to each CSV
+3. **Data Transformation**: Normalize dates, amounts, merchants
+4. **Quality Assurance**: Validate data integrity
+5. **Consolidation**: Combine all processed data
+
+### **Schema Registry System (`src/balance_pipeline/schema_registry.py`)**
+```python
+class SchemaRegistry:
+    """Manages bank CSV format definitions and matching."""
+    
+    def find_matching_schema(self, headers: List[str], filename: str) -> Dict:
+        # Match CSV format based on headers and filename
+        
+    def apply_schema_transformations(self, df: pd.DataFrame, schema: Dict) -> pd.DataFrame:
+        # Apply schema-defined transformations
+```
+
+---
+
+## 📊 **Configuration Architecture**
+
+### **Schema Registry (`rules/schema_registry.yml`)**
+Defines how to process different bank CSV formats:
+
+```yaml
+schemas:
+  chase_checking:
+    pattern: ".*Chase.*Checking.*\\.csv"
+    date_format: "%m/%d/%Y"
+    column_map:
+      Date: "date"
+      Description: "description"
+      Amount: "amount"
+    sign_rule: "credit_positive"
+    
+  discover_card:
+    pattern: ".*Discover.*\\.csv"
+    date_format: "%m/%d/%Y"
+    column_map:
+      "Trans. Date": "date"
+      Description: "description"
+      Amount: "amount"
+    sign_rule: "debit_negative"
+```
+
+### **Merchant Lookup (`rules/merchant_lookup.csv`)**
+Standardizes merchant names across institutions:
+
+```csv
+raw_merchant,clean_merchant,category
+"AMAZON.COM*123ABC","Amazon","online_shopping"
+"WAL-MART #1234","Walmart","groceries"
+"STARBUCKS #12345","Starbucks","dining"
+```
+
+### **Analysis Configuration (`config/balance_analyzer.yaml`)**
+Controls analysis parameters and settings:
+
+```yaml
+analysis_settings:
+  date_range:
+    start: "2024-01-01"
+    end: "2024-12-31"
+  categories:
+    - groceries
+    - restaurants
+    - utilities
+  shared_expense_rules:
+    default_split: 0.5
+    categories_to_split:
+      - groceries
+      - utilities
+```
+
+---
+
+## 🛠️ **Development Architecture**
+
+### **Project Structure Pattern**
+```
+src/balance_pipeline/           # Core business logic
+├── pipeline_v2.py            # Main orchestrator
+├── csv_consolidator.py       # CSV processing engine
+├── schema_registry.py        # Schema management
+├── config.py                 # Configuration handling
+├── errors.py                 # Custom exception classes
+└── utils.py                  # Shared utilities
+
+scripts/                       # Organized utility scripts
+├── analysis/                 # Data analysis tools
+├── corrections/              # Data correction utilities
+├── investigations/           # Issue debugging tools
+├── powershell/               # PowerShell scripts
+└── utilities/                # General utilities
+
+tests/                        # Comprehensive test suite
+├── test_pipeline_v2.py       # Core pipeline tests
+├── test_schema_registry.py   # Schema system tests
+├── fixtures/                 # Test data
+└── conftest.py              # Test configuration
+```
+
+### **Error Handling Architecture**
+```python
+# Custom exception hierarchy
+class BalancePipelineError(Exception):
+    """Base exception for all pipeline errors."""
+
+class RecoverableFileError(BalancePipelineError):
+    """Error that allows processing to continue."""
+
+class FatalSchemaError(BalancePipelineError):
+    """Critical error requiring immediate termination."""
+```
+
+### **Logging Architecture**
+```python
+# Structured logging configuration
+LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+
+# Multiple log files for different purposes
+logs/
+├── pipeline_run.log          # Main pipeline operations
+├── financial_analysis_audit.log  # Analysis operations
+├── monarch_processing.log    # Bank-specific processing
+└── schema_evidence/          # Schema matching evidence
+```
+
+---
+
+## 🤖 **AI Assistant Integration Architecture**
+
+### **AI-Friendly Design Patterns**
+
+#### **1. Clear Entry Points**
+```python
+# Always direct AI to single entry point
+def main_pipeline_operation():
+    """Use: .\pipeline.ps1 process"""
+    
+# Core processing logic clearly exposed
+from balance_pipeline.pipeline_v2 import UnifiedPipeline
+pipeline = UnifiedPipeline(debug_mode=True)
+result = pipeline.process_files(file_paths)
+```
+
+#### **2. Consistent Configuration Patterns**
+```python
+# Configuration loading follows standard pattern
+from balance_pipeline.config import load_config
+config = load_config()  # Loads from multiple sources
+
+# Schema access follows standard pattern
+from balance_pipeline.schema_registry import SchemaRegistry
+registry = SchemaRegistry()
+schema = registry.find_matching_schema(headers, filename)
+```
+
+#### **3. Predictable Error Handling**
+```python
+# All operations use consistent error handling
+try:
+    result = pipeline.process_files(file_paths)
+except RecoverableFileError as e:
+    logger.warning(f"Recoverable error: {e}")
+    # Continue processing other files
+except BalancePipelineError as e:
+    logger.error(f"Pipeline error: {e}")
+    # Handle according to error type
+```
+
+#### **4. Standard Testing Patterns**
+```python
+# Tests follow consistent patterns
+def test_pipeline_processing():
+    """Test main pipeline functionality."""
+    pipeline = UnifiedPipeline(debug_mode=True)
+    result = pipeline.process_files([test_csv_path])
+    assert len(result) > 0
+    assert 'TxnID' in result.columns
+```
+
+---
+
+## 🔐 **Security Architecture**
+
+### **Data Protection**
+- **Local Processing**: All data remains on local machine
+- **No Network Transmission**: No data sent to external services
+- **Secure File Handling**: Proper permission checks and validation
+- **Input Sanitization**: CSV content validation and sanitization
+
+### **Configuration Security**
+- **No Hardcoded Secrets**: All sensitive data in configuration files
+- **Environment Variable Support**: Secure configuration via environment
+- **Path Validation**: Strict validation of file paths and inputs
+
+---
+
+## 📈 **Performance Architecture**
+
+### **Memory Management**
+- **Streaming Processing**: Large CSV files processed in chunks
+- **Memory Monitoring**: Built-in memory usage tracking
+- **Garbage Collection**: Explicit cleanup of large DataFrames
+
+### **Processing Optimization**
+- **Parallel Processing**: Multi-file processing where possible
+- **Caching**: Schema and configuration caching for performance
+- **Lazy Loading**: Data loaded only when needed
+
+### **Storage Optimization**
+- **Parquet Format**: Efficient columnar storage for large datasets
+- **Compression**: Automatic compression for archived data
+- **Indexing**: Optimized data structures for fast access
+
+---
+
+## 🎯 **Future Architecture Considerations**
+
+### **Scalability Enhancements**
+- **Database Integration**: Optional database backend for large datasets
+- **Distributed Processing**: Support for processing across multiple machines
+- **Cloud Integration**: Optional cloud storage and processing capabilities
+
+### **Advanced Features**
+- **Machine Learning**: Automated categorization and anomaly detection
+- **Real-time Processing**: Live bank feed integration
+- **Advanced Analytics**: Time series analysis and forecasting
+
+---
+
+**🏆 Architecture Status: Gold Standard Achieved - Ready for Production Use**
