@@ -2,7 +2,7 @@
 
 **Last Updated**: 2025-08-04  
 **Status**: ✅ **GOLD STANDARD PRODUCTION READY**  
-**Version**: 0.3.2
+**Version**: 0.3.3
 
 ---
 
@@ -20,6 +20,8 @@
 | **CI/CD** | ✅ **ACTIVE** | GitHub Actions with multi-platform testing |
 | **Dependencies** | ✅ **CURRENT** | Poetry lock file current, all deps resolved |
 | **Tests** | ✅ **PASSING** | Test suite passing on Python 3.10, 3.11 |
+| **Audit Analysis** | ✅ **ENHANCED** | Merchant lookup includes audit categories |
+| **Aggregator Support** | ✅ **NATIVE** | Rocket Money & Monarch Money schemas active |
 
 ---
 
@@ -239,6 +241,13 @@ poetry run mypy src/ --strict     # Type checking
 ---
 
 ## 📈 **Recent Status Changes**
+
+### **2025-08-04 - AUDIT ANALYSIS ENHANCED**
+#### **🔍 Audit Analysis Improvements**
+- ✅ **Enhanced merchant lookup** with audit categories
+- ✅ **Added audit patterns** for cancellations, refunds, disputes
+- ✅ **Documented aggregator support** for Rocket Money & Monarch Money
+- ✅ **Power BI optimization** for audit analysis workflows
 
 ### **2025-08-04 - GOLD STANDARD ACHIEVED**
 #### **🏆 Major Repository Reorganization**

@@ -272,7 +272,13 @@ BALANCE-pyexcel/
 - **PDF Reports**: Professional formatted financial statements
 - **Interactive Dashboards**: HTML-based visualization dashboards
 
-### **5. Production-Grade Operations**
+### **5. Audit Analysis Capabilities**
+- **Transaction Search**: Find cancellations, refunds, disputes automatically
+- **Audit Categories**: Enhanced merchant lookup with audit-specific patterns
+- **Aggregator Support**: Native support for Rocket Money & Monarch Money
+- **Power BI Ready**: Optimized output for interactive audit analysis
+
+### **6. Production-Grade Operations**
 - **Comprehensive Logging**: Detailed operation logs with configurable levels
 - **Error Handling**: Graceful failure handling with detailed error messages
 - **Performance Monitoring**: Processing time and resource usage tracking
@@ -429,6 +435,21 @@ python scripts/investigations/investigate_imbalance.py
 
 ## 📈 **Changelog**
 
+### **Version 0.3.3** - 2025-08-04 - **AUDIT ANALYSIS ENHANCED**
+#### **🔍 Audit Analysis Features**
+- **Enhanced Merchant Lookup**: Added audit categories for transaction analysis
+- **Audit Patterns Added**: 
+  - Subscription cancellations (cancel, terminate)
+  - Refunds (refund, return, reversal, chargeback)
+  - Disputes and adjustments
+- **Aggregator Documentation**: Clarified Rocket Money & Monarch Money support
+- **Power BI Optimization**: Audit-ready data structure for analysis
+
+#### **📚 Documentation Updates**
+- Updated README with audit analysis capabilities
+- Added guidance for using aggregated vs direct bank data
+- Clarified deduplication and data handling best practices
+
 ### **Version 0.3.2** - 2025-08-04 - **GOLD STANDARD ACHIEVED**
 #### **🏆 Major Repository Reorganization**
 - **BREAKING**: Created single master entry point `pipeline.ps1`
@@ -512,6 +533,24 @@ new_bank_format:
 poetry run python scripts/analysis/deep_analysis.py
 poetry run python scripts/investigations/critical_issue_investigator.py
 poetry run python scripts/utilities/comprehensive_audit_trail.py
+```
+
+### **Audit Analysis Workflow**
+```powershell
+# For transaction auditing without "who owes who" complexity
+# 1. Export from Rocket Money or Monarch Money (aggregated data)
+# 2. Place in appropriate folders:
+csv_inbox/Ryan/Aggregated/Ryan - Monarch Money - 2025.csv
+csv_inbox/Ryan/Aggregated/Ryan - Rocket Money - 2025.csv
+
+# 3. Process with enhanced audit categories
+./pipeline.ps1 process
+
+# 4. Open output/cleaned_transactions.parquet in Power BI
+# 5. Filter by audit_category:
+#    - subscription_cancel (cancelled subscriptions)
+#    - refund (refunds, returns, chargebacks)
+#    - dispute (disputed transactions)
 ```
 
 ### **Power BI Integration**

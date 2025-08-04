@@ -1,12 +1,18 @@
-pattern,canonical
-SQ\s*\*?\s*MY COFFEE SHOP.*,My Coffee Shop
-STARBUCKS.*,Starbucks
-walmart.*\b,Walmart
-AMAZON\.COM.*,Amazon Com
-SUPER.*MART,SuperMart
-^COFFEE SHOP$,Generic Coffee Place
-^AMAZON\s*MKTP,Amazon Marketplace
-^AMAZON\s*MKTP,Amazon Marketplace
-^AMAZON\s*MKTP,Amazon Marketplace
-^AMAZON\s*MKTP,Amazon Marketplace
-(?i)walmart.*,Walmart
+pattern,canonical,audit_category
+SQ\s*\*?\s*MY COFFEE SHOP.*,My Coffee Shop,
+STARBUCKS.*,Starbucks,
+walmart.*\b,Walmart,
+AMAZON\.COM.*,Amazon Com,
+SUPER.*MART,SuperMart,
+^COFFEE SHOP$,Generic Coffee Place,
+^AMAZON\s*MKTP,Amazon Marketplace,
+(?i)walmart.*,Walmart,
+(?i).*cancel.*,CANCELLED_SERVICE,subscription_cancel
+(?i).*terminate.*,TERMINATED_SERVICE,subscription_cancel
+(?i).*refund.*,REFUND_TRANSACTION,refund
+(?i).*return.*,RETURN_TRANSACTION,refund
+(?i).*reversal.*,REVERSAL_TRANSACTION,refund
+(?i).*chargeback.*,CHARGEBACK_TRANSACTION,refund
+(?i).*credit.*adjustment.*,CREDIT_ADJUSTMENT,refund
+(?i).*dispute.*,DISPUTE_TRANSACTION,dispute
+(?i).*subscription.*,SUBSCRIPTION_SERVICE,subscription
