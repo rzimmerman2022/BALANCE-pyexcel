@@ -1,0 +1,174 @@
+# Business Rules Configuration for Balance Pipeline
+# This file externalizes key business logic from the codebase
+
+# Settlement Keywords
+# Keywords that identify settlement transactions between Ryan and Jordyn
+settlement_keywords:
+  - venmo
+  - zelle
+  - cash app
+  - paypal
+  - apple pay
+  - google pay
+  - bank transfer
+  - e-transfer
+
+# Payer Split Configuration
+# Percentage allocation for shared expenses
+payer_split:
+  ryan_pct: 0.43
+  jordyn_pct: 0.57
+
+# Merchant Categories
+# Rules for categorizing transactions based on merchant names
+merchant_categories:
+  Groceries:
+    - fry
+    - safeway
+    - walmart
+    - target
+    - costco
+    - trader joe
+    - whole foods
+    - kroger
+    - albertsons
+    - grocery
+    - sprouts
+  
+  Utilities:
+    - electric
+    - gas
+    - water
+    - internet
+    - phone
+    - cox
+    - srp
+    - aps
+    - centurylink
+    - utility
+    - conservice
+    - google fi
+    - t-mobile
+    - verizon
+  
+  Dining Out:
+    - restaurant
+    - cafe
+    - coffee
+    - starbucks
+    - pizza
+    - sushi
+    - mcdonald
+    - chipotle
+    - subway
+    - doordash
+    - grubhub
+    - uber eats
+    - postmates
+    - culinary dropout
+    - bar
+  
+  Transport:
+    - uber
+    - lyft
+    - gas station
+    - shell
+    - chevron
+    - circle k
+    - qt
+    - auto repair
+    - fuel
+    - parking
+    - toll
+    - bird
+    - lime
+    - waymo
+  
+  Entertainment:
+    - movie
+    - theater
+    - netflix
+    - spotify
+    - hulu
+    - disney
+    - concert
+    - event
+    - game
+    - amc
+    - cinemark
+    - ticketmaster
+    - steam
+  
+  Healthcare:
+    - pharmacy
+    - cvs
+    - walgreens
+    - doctor
+    - medical
+    - dental
+    - clinic
+    - hospital
+    - optometrist
+    - vision
+  
+  Shopping:
+    - amazon
+    - best buy
+    - macys
+    - nordstrom
+    - online store
+    - retail
+    - clothing
+    - electronics
+    - home goods
+    - ikea
+  
+  Travel:
+    - airline
+    - hotel
+    - airbnb
+    - expedia
+    - booking.com
+    - southwest
+    - delta
+    - united
+  
+  Services:
+    - haircut
+    - gym
+    - consulting
+    - legal
+    - accounting
+    - cleaning
+  
+  Rent:
+    - rent
+    - property management
+    - landlord
+  
+  Other Expenses: []  # Fallback category
+
+# Outlier Detection
+outlier_thresholds:
+  amount: 5000.0
+  z_score: 3.0
+
+# Data Quality Rules
+data_quality:
+  max_duplicate_days: 3  # Days within which similar transactions are flagged as potential duplicates
+  manual_calculation_triggers:
+    - "2x to calculate"
+    - "manual calc"
+    - "adjusted"
+  
+# Rent Analysis Rules  
+rent_analysis:
+  baseline: 2100.0
+  variance_threshold: 0.10  # 10% variance from baseline
+  budget_variance_threshold_pct: 10.0  # 10% variance from budget
+
+# Risk Assessment Rules
+risk_assessment:
+  liquidity_strain_threshold: 5000.0
+  liquidity_strain_days: 60
+  concentration_risk_threshold: 0.40  # 40% of spending in one category

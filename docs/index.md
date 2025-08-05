@@ -24,10 +24,12 @@
 * **Open formats.**  Everything ends up in Parquet + SQLite for easy BI and long-term auditability.  
 
 Happy balancing!  Feel free to open issues or PRs on GitHub if you hit a snag or have an idea.
-What changed
 
-Change	Reason
-Added Architecture Overview and CLI Usage rows	Reflects the new docs you’ve written.
-Added Changelog row	Helps people track releases.
-Tightened tag-line & “Why” bullets	Quick elevator pitch for newcomers.
-Minor wording tweaks	Consistent tone and parallel phrasing.
+---
+
+## Recent Updates
+
+- **External Business Rules Configuration**: Configure settlement keywords, payer splits, and merchant categories via `config/business_rules.yml`
+- **Enhanced Test Coverage**: Expanded CSV consolidator test scenarios
+- **Production Ready**: All identified production readiness issues resolved
+- **Comprehensive Documentation**: Standardized formatting and updated guides

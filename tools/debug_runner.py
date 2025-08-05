@@ -195,8 +195,7 @@ def run_debug_calculation(
     """
     logger.info("Starting balance calculation...")
     
-    # TODO: Add any preprocessing steps here
-    # For now, using ledger_df directly as master_ledger
+    # Using ledger_df directly as master_ledger
     master_ledger = ledger_df
     
     logger.debug("Master ledger shape: %s", master_ledger.shape)

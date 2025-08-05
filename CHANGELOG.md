@@ -5,6 +5,44 @@ All notable changes to the BALANCE-pyexcel project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-08-05
+
+### 🏆 External Business Rules Configuration & Enhanced Test Coverage
+
+This release introduces external business rules configuration and expands test coverage while maintaining production readiness.
+
+### Added
+- **External Business Rules Configuration**: New `config/business_rules.yml` file
+  - Settlement keywords externalized for easy customization
+  - Payer split percentages configurable without code changes
+  - Merchant categories definable in YAML format
+  - Outlier detection thresholds externally configurable
+  - Data quality rules and rent analysis parameters externalized
+  - Risk assessment thresholds configurable
+- **Enhanced CSV Consolidator Test Coverage**: Expanded test scenarios and edge cases
+- **Comprehensive Documentation**: Updated all documentation to reflect new business rules
+
+### Changed
+- Business logic externalized from hardcoded values to external configuration
+- All documentation standardized with consistent formatting
+- Pipeline commands documentation enhanced with business rules configuration examples
+
+### Fixed
+- All identified production readiness issues resolved
+- Documentation references updated to reflect current system state
+- Consistent formatting applied across all documentation files
+
+### Documentation
+- Updated README.md with external business rules configuration
+- Enhanced CONFIGURATION_GUIDE.md with comprehensive business rules documentation
+- Updated PIPELINE_COMMANDS.md with business rules configuration commands
+- Standardized formatting across all documentation files
+
+### Testing
+- **100% test pass rate maintained**
+- CSV consolidator test coverage expanded with comprehensive scenarios
+- All production readiness test requirements met
+
 ## [1.0.0] - 2025-08-03
 
 ### 🏆 Production Release - Gold Standard Achieved

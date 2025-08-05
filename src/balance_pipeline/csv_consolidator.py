@@ -22,55 +22,50 @@
 
 # --- Standard Python Imports ---
 from __future__ import annotations  # For using type hints before full definition
-import logging
-import json
-import re
+
 import hashlib  # Added hashlib import
-import numpy as np # Added for sharing_status derivation
+import json
+import logging
+import re
+import traceback  # For more detailed error logging if needed
 from collections import Counter  # Added for schema matching smoke test
 from datetime import datetime
 from pathlib import Path
-import traceback # For more detailed error logging if needed
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Set, # Added Set import
-    Tuple,
-    Union,
     cast,
 )
 
+import numpy as np  # Added for sharing_status derivation
+
 # --- Third-party Libraries ---
 import pandas as pd
-from pandas import BooleanDtype  # For explicit nullable boolean type
-from pandas.api.types import is_numeric_dtype
 import yaml  # For loading schema_registry.yml
-
-# --- Local Application Imports ---
-from .config import SCHEMA_REGISTRY_PATH, MERCHANT_LOOKUP_PATH  # Default paths
-from .constants import MASTER_SCHEMA_COLUMNS  # Added import
+from balance_pipeline.foundation import CORE_FOUNDATION_COLUMNS  # Added import
+from balance_pipeline.schema_registry import find_matching_schema as _find_schema
 
 # We will need _hash_txn and clean_merchant from normalize.py
 # For now, let's assume they might be refactored or directly used.
 # If direct use: from .normalize import _txn_id_like_function, clean_merchant
 # For now, I will re-implement _hash_txn logic as per spec and use clean_merchant from normalize
 from balance_pipeline.transaction_cleaner import apply_comprehensive_cleaning
-from balance_pipeline.schema_registry import find_matching_schema as _find_schema
-from .errors import RecoverableFileError
-from balance_pipeline.foundation import CORE_FOUNDATION_COLUMNS # Added import
+from pandas import BooleanDtype  # For explicit nullable boolean type
+from pandas.api.types import is_numeric_dtype
 
 # Add these helper functions near the top of csv_consolidator.py, after imports
-
 # Import the new configuration values
-from . import config # Changed to import config module
+from . import config  # Changed to import config module
+
+# --- Local Application Imports ---
+from .config import MERCHANT_LOOKUP_PATH, SCHEMA_REGISTRY_PATH  # Default paths
+from .constants import MASTER_SCHEMA_COLUMNS  # Added import
+from .errors import RecoverableFileError
 
 # Verify consistency between foundation and config for core columns
 assert CORE_FOUNDATION_COLUMNS == config.CORE_REQUIRED_COLUMNS, \
     "CORE_FOUNDATION_COLUMNS from foundation.py does not match config.CORE_REQUIRED_COLUMNS. Please reconcile."
 
-def get_required_columns_for_mode() -> List[str]:
+def get_required_columns_for_mode() -> list[str]:
     """
     Returns the list of columns that must be present based on the current schema mode.
     
@@ -83,7 +78,7 @@ def get_required_columns_for_mode() -> List[str]:
         return config.CORE_REQUIRED_COLUMNS
 
 
-def identify_relevant_column_groups(df: pd.DataFrame) -> Set[str]:
+def identify_relevant_column_groups(df: pd.DataFrame) -> set[str]:
     """
     Analyzes a DataFrame to determine which optional column groups are relevant
     based on the presence of data in those columns.
@@ -106,7 +101,7 @@ def identify_relevant_column_groups(df: pd.DataFrame) -> Set[str]:
     return relevant_groups
 
 
-def get_columns_to_retain(df: pd.DataFrame) -> List[str]:
+def get_columns_to_retain(df: pd.DataFrame) -> list[str]:
     """
     Determines which columns should be retained in the final output based on:
     1. The current schema mode
@@ -127,8 +122,8 @@ def get_columns_to_retain(df: pd.DataFrame) -> List[str]:
         columns_to_retain.extend(config.OPTIONAL_COLUMN_GROUPS[group_name])
     
     # Remove duplicates while preserving order - Fixed the set.add issue
-    seen: Set[str] = set()
-    unique_columns: List[str] = []
+    seen: set[str] = set()
+    unique_columns: list[str] = []
     for col in columns_to_retain:
         if col not in seen:
             seen.add(col)
@@ -136,7 +131,7 @@ def get_columns_to_retain(df: pd.DataFrame) -> List[str]:
     return unique_columns
 
 
-def remove_empty_columns(df: pd.DataFrame, preserve_columns: Optional[List[str]] = None) -> pd.DataFrame:
+def remove_empty_columns(df: pd.DataFrame, preserve_columns: list[str] | None = None) -> pd.DataFrame:
     """
     Removes columns that are entirely empty (all NA/null/empty string) from a DataFrame.
     
@@ -195,18 +190,18 @@ MANDATORY_MASTER_COLS = [
 class PipelineDebugTracer:
     def __init__(self, filename: str):
         self.filename = filename
-        self.stages: List[Dict[str, Any]] = []
+        self.stages: list[dict[str, Any]] = []
         log.debug(f"[DebugTracer] Initialized for file: {self.filename}")
 
     def capture_stage(self, 
                       stage_name: str, 
                       df: pd.DataFrame, 
                       sample_rows: int = 3, 
-                      focus_columns: Optional[List[str]] = None) -> None:
+                      focus_columns: list[str] | None = None) -> None:
         """Capture the state of data at a specific stage"""
         if df is None:
             log.warning(f"[DebugTracer] DataFrame is None for stage: {stage_name}. Skipping capture.")
-            stage_data: Dict[str, Any] = {
+            stage_data: dict[str, Any] = {
                 'stage_name': stage_name,
                 'status': 'DataFrame was None',
                 'row_count': 0,
@@ -246,7 +241,7 @@ class PipelineDebugTracer:
                     try:
                         sample_list = df[col].head(sample_rows).tolist()
                         # Sanitize for JSON serializability if needed, e.g. NaT
-                        sanitized_sample_list: List[Union[str, None]] = []
+                        sanitized_sample_list: list[str | None] = []
                         for item in sample_list:
                             if pd.isna(item):
                                 sanitized_sample_list.append(None)  # Represent NaN/NaT as None
@@ -347,7 +342,7 @@ def coerce_bool(
 
     def map_value_to_bool(
         x: Any,
-    ) -> Optional[bool]:  # x is str after .astype(str) in caller
+    ) -> bool | None:  # x is str after .astype(str) in caller
         if pd.isna(x):
             return None  # Mypy prefers None for pd.NA in some contexts with bool
         s = str(x).lower().strip()
@@ -434,10 +429,10 @@ def _generate_txn_id(row: pd.Series[Any]) -> str:  # Updated type hint
 
 def apply_schema_transformations(
     df: pd.DataFrame,
-    schema_rules: Dict[str, Any],
-    merchant_lookup_rules: List[Tuple[re.Pattern[str], str]],  # Updated type hint
+    schema_rules: dict[str, Any],
+    merchant_lookup_rules: list[tuple[re.Pattern[str], str]],  # Updated type hint
     filename: str,  # Added filename parameter
-    debug_tracer: Optional[PipelineDebugTracer] = None  # Added debug_tracer parameter
+    debug_tracer: PipelineDebugTracer | None = None  # Added debug_tracer parameter
 ) -> pd.DataFrame:
     """
     Applies all transformations defined by a schema to a DataFrame.
@@ -505,7 +500,7 @@ def apply_schema_transformations(
         # This will be implicitly handled as the column won't be renamed.
 
     # Check for schema_column_map keys that weren't found in the CSV's headers
-    for normalized_schema_key in normalized_schema_column_map.keys():
+    for normalized_schema_key in normalized_schema_column_map:
         if normalized_schema_key not in df_normalized_header_map.values():
             # Find the original raw key from column_map for logging
             original_raw_key_for_log = (
@@ -1101,9 +1096,9 @@ def apply_schema_transformations(
 
 
 def process_csv_files(
-    csv_files: List[Union[str, Path]],
-    schema_registry_override_path: Optional[Path] = None,
-    merchant_lookup_override_path: Optional[Path] = None,
+    csv_files: list[str | Path],
+    schema_registry_override_path: Path | None = None,
+    merchant_lookup_override_path: Path | None = None,
     debug_mode: bool = False  # Added debug_mode parameter
 ) -> pd.DataFrame:
     """
@@ -1134,14 +1129,14 @@ def process_csv_files(
             f"Failed to load merchant lookup rules: {exc}"
         ) from exc
 
-    all_processed_dfs: List[pd.DataFrame] = []
-    schema_ids_found: List[str] = []  # For schema matching smoke test
+    all_processed_dfs: list[pd.DataFrame] = []
+    schema_ids_found: list[str] = []  # For schema matching smoke test
     
     for csv_file_path_obj in [Path(p) for p in csv_files]:
         filename_for_logs = csv_file_path_obj.name
         log.info(f"[PROCESS_FILE_START] File: {filename_for_logs}")
         
-        debug_tracer_instance: Optional[PipelineDebugTracer] = None
+        debug_tracer_instance: PipelineDebugTracer | None = None
         if debug_mode:
             debug_tracer_instance = PipelineDebugTracer(filename_for_logs)
 
@@ -1215,8 +1210,9 @@ def process_csv_files(
 
         # Identify Schema
         # Use raw_df.columns.tolist() for header matching
-        from balance_pipeline.schema_types import MatchResult  # Import for cast
         from typing import cast  # Import for cast
+
+        from balance_pipeline.schema_types import MatchResult  # Import for cast
 
         match_result_union = _find_schema(
             list(raw_df.columns)
@@ -1667,11 +1663,11 @@ def process_csv_files(
 
 def load_and_parse_schema_registry(
     yaml_path: Path,
-) -> Dict[str, Any]:  # Updated type hint
+) -> dict[str, Any]:  # Updated type hint
     """Loads and parses the schema_registry.yml file."""
     log.info(f"Loading schema registry from: {yaml_path}")
     try:
-        with open(yaml_path, "r", encoding="utf-8") as f:
+        with open(yaml_path, encoding="utf-8") as f:
             registry = yaml.safe_load(f)
         if not isinstance(registry, list):  # Expecting a list of schema dicts
             log.error(
@@ -1693,15 +1689,15 @@ def load_and_parse_schema_registry(
         raise
 
 
-def load_merchant_lookup_rules(csv_path: Path) -> List[Tuple[re.Pattern[str], str]]:
+def load_merchant_lookup_rules(csv_path: Path) -> list[tuple[re.Pattern[str], str]]:
     """
     Loads merchant cleaning rules from the merchant_lookup.csv file.
     Similar to _load_merchant_lookup in normalize.py but adapted for this module.
     """
     log.info(f"Loading merchant lookup rules from: {csv_path}")
-    rules: List[Tuple[re.Pattern[str], str]] = []  # Updated type hint
+    rules: list[tuple[re.Pattern[str], str]] = []  # Updated type hint
     try:
-        with open(csv_path, mode="r", encoding="utf-8") as f:
+        with open(csv_path, encoding="utf-8") as f:
             reader = pd.read_csv(f)  # Using pandas to read CSV for simplicity here
             if list(reader.columns) != ["pattern", "canonical"]:
                 err_msg = (

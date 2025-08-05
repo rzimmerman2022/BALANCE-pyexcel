@@ -25,7 +25,7 @@
 🏗️ **Architecture:** ✅ **GOLD STANDARD** - Industry best practices, clean structure  
 🧪 **Testing:** ✅ **100% PASSING** - All test suites validated, production-ready code  
 📈 **Code Quality:** ✅ **PRISTINE** - No debug files, proper logging, external config support  
-🚀 **Last Update:** ✅ **2025-08-03** - Production readiness achieved with comprehensive fixes  
+🚀 **Last Update:** ✅ **2025-08-05** - External business rules configuration & enhanced test coverage  
 
 ---
 
@@ -243,6 +243,7 @@ BALANCE-pyexcel/
 - **`rules/schema_registry.yml`**: Defines how to parse different bank CSV formats
 - **`rules/merchant_lookup.csv`**: Maps merchant names to standardized categories
 - **`config/balance_analyzer.yaml`**: Analysis parameters and settings
+- **`config/business_rules.yml`**: External business rules configuration (NEW)
 - **`pyproject.toml`**: Python dependencies and project metadata
 
 ---
@@ -284,6 +285,7 @@ BALANCE-pyexcel/
 - **Error Handling**: Graceful failure handling with detailed error messages
 - **Performance Monitoring**: Processing time and resource usage tracking
 - **Data Backup**: Automatic backup of processed data
+- **External Configuration**: Business rules externalized in `config/business_rules.yml`
 
 ---
 
@@ -435,6 +437,22 @@ python scripts/investigations/investigate_imbalance.py
 ---
 
 ## 📈 **Changelog**
+
+### **Version 0.3.4** - 2025-08-05 - **EXTERNAL BUSINESS RULES CONFIGURATION**
+#### **📋 Business Rules Externalization**
+- **NEW**: External business rules configuration in `config/business_rules.yml`
+- **Enhanced Flexibility**: Settlement keywords, payer splits, and merchant categories now configurable
+- **Production Ready**: All business logic externalized from codebase for easier maintenance
+
+#### **🧪 Enhanced Test Coverage**
+- **CSV Consolidator**: Expanded test coverage with comprehensive scenarios
+- **Test Infrastructure**: All identified production readiness issues resolved
+- **Quality Assurance**: Maintains 100% test pass rate with enhanced coverage
+
+#### **📚 Documentation Updates**
+- Updated README with external business rules configuration
+- Added business rules documentation to configuration guide
+- Standardized documentation formatting across all files
 
 ### **Version 0.3.3** - 2025-08-04 - **AUDIT ANALYSIS ENHANCED**
 #### **🔍 Audit Analysis Features**

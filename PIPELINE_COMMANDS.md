@@ -140,6 +140,30 @@ All utility scripts are now organized in `scripts/powershell/`:
 - **Core Engine**: `src/balance_pipeline/` (Python package)
 - **CLI Commands**: `balance-pipe`, `balance-analyze`, `balance-baseline`
 - **Configuration**: `config/`, `rules/`
+- **Business Rules**: `config/business_rules.yml` (external configuration)
 - **Utilities**: `scripts/powershell/`
 
 The master pipeline script provides a unified interface to all underlying Python CLI commands and utilities.
+
+## ⚙️ **Business Rules Configuration**
+
+The pipeline now supports external business rules configuration through `config/business_rules.yml`:
+
+### **Customizing Business Rules**
+```powershell
+# Edit business rules without changing code
+notepad config/business_rules.yml
+
+# Modify settlement keywords, payer splits, merchant categories
+# Changes take effect on next pipeline run
+
+# Process with updated business rules
+.\pipeline.ps1 process
+```
+
+### **Business Rules Components**
+- **Settlement Keywords**: Configure payment method detection
+- **Payer Splits**: Set shared expense allocation percentages  
+- **Merchant Categories**: Define transaction categorization rules
+- **Outlier Thresholds**: Set unusual transaction detection limits
+- **Risk Assessment**: Configure financial risk thresholds

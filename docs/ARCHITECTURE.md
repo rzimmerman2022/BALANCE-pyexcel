@@ -1,8 +1,8 @@
 # BALANCE-pyexcel: Gold Standard System Architecture
 
 **Status**: ✅ **GOLD STANDARD PRODUCTION READY**  
-**Version**: 0.3.2  
-**Last Updated**: 2025-08-04
+**Version**: 0.3.4  
+**Last Updated**: 2025-08-05
 
 ---
 
@@ -95,6 +95,7 @@ User Command → pipeline.ps1 → Python CLI → Core Engine → Output
 │ • Schema Registry: rules/schema_registry.yml                │
 │ • Merchant Lookup: rules/merchant_lookup.csv               │
 │ • Analysis Config: config/balance_analyzer.yaml             │
+│ • Business Rules: config/business_rules.yml (NEW)          │
 │ • Python Config: pyproject.toml                            │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -273,6 +274,26 @@ raw_merchant,clean_merchant,category
 "AMAZON.COM*123ABC","Amazon","online_shopping"
 "WAL-MART #1234","Walmart","groceries"
 "STARBUCKS #12345","Starbucks","dining"
+```
+
+### **Business Rules Configuration (`config/business_rules.yml`)**
+Externalizes key business logic for easy customization:
+```yaml
+# Settlement payment methods
+settlement_keywords:
+  - venmo
+  - zelle
+  - cash app
+
+# Expense sharing percentages  
+payer_split:
+  ryan_pct: 0.43
+  jordyn_pct: 0.57
+
+# Transaction categorization rules
+merchant_categories:
+  Groceries: [fry, safeway, walmart]
+  Utilities: [electric, gas, water]
 ```
 
 ### **Analysis Configuration (`config/balance_analyzer.yaml`)**

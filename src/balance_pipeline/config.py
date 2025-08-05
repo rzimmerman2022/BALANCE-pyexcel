@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum
-import yaml
 import os
 import sys
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
+
+import yaml
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -15,7 +16,7 @@ load_dotenv()
 def get_resource_path(relative_path: str | Path) -> Path:
     """Get absolute path to resource, works for dev and for PyInstaller"""
     if hasattr(sys, "_MEIPASS"):
-        base_path = Path(getattr(sys, "_MEIPASS"))
+        base_path = Path(sys._MEIPASS)
     else:
         # Not frozen, running in normal Python environment
         base_path = Path(__file__).parent.parent.parent  # Go up to project root
@@ -154,9 +155,9 @@ DEFAULT_MERCHANT_CATEGORIES = {
 }
 
 # Cached rules to avoid repeated file I/O
-_CACHED_RULES: Dict[str, Any] = {}
+_CACHED_RULES: dict[str, Any] = {}
 
-def load_rules(path: str) -> Dict[str, Any]:
+def load_rules(path: str) -> dict[str, Any]:
     """
     Load business rules from YAML file with caching.
     
@@ -177,7 +178,7 @@ def load_rules(path: str) -> Dict[str, Any]:
         raise FileNotFoundError(f"Rules file not found: {rules_path}")
     
     try:
-        with open(rules_path, 'r', encoding='utf-8') as f:
+        with open(rules_path, encoding='utf-8') as f:
             rules = yaml.safe_load(f)
         
         # Cache the loaded rules
@@ -185,6 +186,6 @@ def load_rules(path: str) -> Dict[str, Any]:
         return rules
         
     except yaml.YAMLError as e:
-        raise ValueError(f"Invalid YAML in rules file {rules_path}: {e}")
+        raise ValueError(f"Invalid YAML in rules file {rules_path}: {e}") from e
     except Exception as e:
-        raise RuntimeError(f"Error loading rules from {rules_path}: {e}")
+        raise RuntimeError(f"Error loading rules from {rules_path}: {e}") from e

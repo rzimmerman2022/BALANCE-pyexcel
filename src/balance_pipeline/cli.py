@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import argparse
 import logging
-from pathlib import Path
-import sys # For sys.exit in case of critical errors
 import os
+import sys
+from pathlib import Path
+
 import numpy as np
 
 # Windows console UTF-8 configuration to prevent UnicodeEncodeError
@@ -12,26 +13,21 @@ if os.name == "nt":  # Windows cmd/PowerShell default is cp1252
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-# Import from other modules in the pipeline
+from .analytics import comprehensive_risk_assessment, perform_advanced_analytics
 from .config import AnalysisConfig, load_rules
-from .loaders import DataLoaderV23, merge_expense_and_ledger_data, merge_rent_data
-from .processing import expense_pipeline, rent_pipeline
 from .ledger import create_master_ledger
+from .loaders import DataLoaderV23, merge_expense_and_ledger_data, merge_rent_data
+from .outputs import generate_all_outputs
+from .processing import expense_pipeline, rent_pipeline
 from .recon import triple_reconciliation
-from .analytics import perform_advanced_analytics, comprehensive_risk_assessment
 from .viz import (
     build_design_theme,
-    build_running_balance_timeline, build_waterfall_category_impact,
-    build_monthly_shared_trend, build_payer_type_heatmap,
-    build_calendar_heatmaps, build_treemap_shared_spending,
-    build_anomaly_scatter, build_pareto_concentration,
-    build_sankey_settlements, build_data_quality_table_viz
+    build_monthly_shared_trend,
+    build_running_balance_timeline,
+    build_waterfall_category_impact,
 )
-from .outputs import generate_all_outputs
 
 # Configure logging for the CLI entry point
-# This might be duplicative if other modules also configure basicConfig.
-# Consider a central logging setup function if this becomes an issue.
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - [%(module)s.%(funcName)s:%(lineno)d] - %(message)s",
@@ -40,7 +36,7 @@ logging.basicConfig(
         logging.StreamHandler(),
     ],
 )
-logger = logging.getLogger(__name__) # Logger for the CLI module itself
+logger = logging.getLogger(__name__)
 
 def run_analysis_pipeline(
     expense_file: Path,
@@ -109,8 +105,22 @@ def run_analysis_pipeline(
     
     # Load business rules from YAML
     try:
-        rules = load_rules("src/balance_pipeline/rules.yaml")
-        logger.info(f"Loaded rules: {list(rules.keys())}")
+        # Use external business rules path from config if it exists
+        rules_path = Path(config.external_business_rules_yaml_path)
+        if not rules_path.is_absolute():
+            rules_path = Path.cwd() / rules_path
+        
+        if rules_path.exists():
+            rules = load_rules(str(rules_path))
+            logger.info(f"Loaded external rules from {rules_path}: {list(rules.keys())}")
+        else:
+            # Fallback to internal rules file
+            internal_rules_path = Path("src/balance_pipeline/rules.yaml")
+            if internal_rules_path.exists():
+                rules = load_rules(str(internal_rules_path))
+                logger.info(f"Loaded internal rules: {list(rules.keys())}")
+            else:
+                raise FileNotFoundError("No rules file found")
     except Exception as e:
         logger.warning(f"Failed to load rules: {e}. Using defaults.")
         rules = {
@@ -164,7 +174,7 @@ def run_analysis_pipeline(
     # The main `EnhancedSharedExpenseAnalyzer` class used to store `alt_texts` and `visualizations` paths.
     # We'll need a similar mechanism here or pass these dicts around.
     
-    visualizations_paths: Dict[str, str] = {} # Store paths to generated viz files
+    visualizations_paths: dict[str, str] = {} # Store paths to generated viz files
 
     # Example calls (these will need the data and config they depend on)
     # Some visualizations might depend on analytics_results too.

@@ -1,8 +1,8 @@
 # Configuration Guide
 
 **Status**: ✅ **PRODUCTION READY**  
-**Version**: 0.3.2  
-**Last Updated**: 2025-07-31
+**Version**: 0.3.4  
+**Last Updated**: 2025-08-05
 
 ---
 
@@ -18,6 +18,7 @@ This guide provides comprehensive configuration information for BALANCE-pyexcel.
 ```
 config/
 ├── balance_analyzer.yaml          # Balance analysis settings
+├── business_rules.yml             # External business rules configuration
 ├── canonical_schema_v2.yaml       # Data schema definitions  
 ├── comprehensive_balance_analysis.json  # Analysis parameters
 └── generated_sharing_rules.json   # Automated sharing rules
@@ -66,6 +67,117 @@ export BALANCE_SUPPORTED_FORMATS="excel,parquet,csv,powerbi"
 export BALANCE_CONFIDENCE_LEVEL="0.95"
 export BALANCE_OUTLIER_THRESHOLD="5000.0"
 export BALANCE_RENT_BASELINE="2100.0"
+```
+
+---
+
+## 📋 **Business Rules Configuration**
+
+### **External Business Rules (`config/business_rules.yml`)**
+
+The `business_rules.yml` file externalizes key business logic from the codebase, making it easier to customize behavior without code changes.
+
+#### **Settlement Keywords Configuration**
+Configure keywords that identify settlement transactions between parties:
+```yaml
+settlement_keywords:
+  - venmo
+  - zelle
+  - cash app
+  - paypal
+  - apple pay
+  - google pay
+  - bank transfer
+  - e-transfer
+```
+
+#### **Payer Split Configuration**
+Define percentage allocation for shared expenses:
+```yaml
+payer_split:
+  ryan_pct: 0.43
+  jordyn_pct: 0.57
+```
+
+#### **Merchant Categories**
+Define rules for categorizing transactions based on merchant names:
+```yaml
+merchant_categories:
+  Groceries:
+    - fry
+    - safeway
+    - walmart
+    - target
+    - costco
+    - trader joe
+    - whole foods
+  
+  Utilities:
+    - electric
+    - gas
+    - water
+    - internet
+    - phone
+    - cox
+    - srp
+    - aps
+  
+  Dining Out:
+    - restaurant
+    - cafe
+    - coffee
+    - starbucks
+    - pizza
+    - doordash
+    - grubhub
+    - uber eats
+```
+
+#### **Outlier Detection Thresholds**
+Configure thresholds for identifying unusual transactions:
+```yaml
+outlier_thresholds:
+  amount: 5000.0
+  z_score: 3.0
+```
+
+#### **Data Quality Rules**
+Set rules for data validation and quality control:
+```yaml
+data_quality:
+  max_duplicate_days: 3  # Days within which similar transactions are flagged
+  manual_calculation_triggers:
+    - "2x to calculate"
+    - "manual calc"
+    - "adjusted"
+```
+
+#### **Rent Analysis Rules**
+Configure rent-specific analysis parameters:
+```yaml
+rent_analysis:
+  baseline: 2100.0
+  variance_threshold: 0.10  # 10% variance from baseline
+  budget_variance_threshold_pct: 10.0
+```
+
+#### **Risk Assessment Rules**
+Set thresholds for financial risk assessment:
+```yaml
+risk_assessment:
+  liquidity_strain_threshold: 5000.0
+  liquidity_strain_days: 60
+  concentration_risk_threshold: 0.40  # 40% of spending in one category
+```
+
+### **Loading Business Rules in Code**
+```python
+# Example of loading business rules in your configuration
+from balance_pipeline.config import load_config
+
+config = load_config()
+# Business rules are automatically loaded from config/business_rules.yml
+# when external_business_rules_yaml_path is specified in configuration
 ```
 
 ---
