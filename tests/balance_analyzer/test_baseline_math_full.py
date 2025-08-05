@@ -22,7 +22,7 @@ def test_ledger_math(desc: str, expected: tuple[float, float]) -> None:
     csv_text = f"Name,Date,Actual Amount,Description\nRyan,2025-06-18,50,\"{desc}\""
     ledger_df = pd.read_csv(StringIO(csv_text))
 
-    summary, audit = build_baseline(pd.DataFrame(), ledger_df)
+    summary, audit = build_baseline(ledger_df)
 
     r_allow = audit.loc[audit.person == "Ryan", "allowed_amount"].iloc[-1]
     j_allow = audit.loc[audit.person == "Jordyn", "allowed_amount"].iloc[-1]
@@ -39,7 +39,7 @@ def test_expense_history_explode():
         "Date": ["2025-06-18"],
         "Allowed Amount": [30],
     })
-    summary, audit = build_baseline(exp, pd.DataFrame())
+    summary, audit = build_baseline(exp)
     assert len(audit) == 2  # two person-rows
     # Ryan paid → Ryan allowed 30, Jordyn 0
     r_allow = audit.loc[audit.person == "Ryan", "allowed_amount"].iloc[0]

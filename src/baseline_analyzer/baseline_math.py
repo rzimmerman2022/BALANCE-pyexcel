@@ -3,6 +3,7 @@ Core accounting logic for the balance analyzer.
 """
 from __future__ import annotations
 
+import logging
 import re
 from typing import Dict, List, Tuple
 import pandas as pd
@@ -10,6 +11,8 @@ from ._settings import get_settings
 
 _CFG = get_settings()
 _PATTERNS: Dict[str, re.Pattern] = {k: re.compile(v, flags=re.I) for k, v in _CFG.patterns.items()}
+
+log = logging.getLogger(__name__)
 
 def _detect_patterns(desc: str, payer: str) -> Tuple[List[str], Tuple[str, str | None]]:
     desc_l = desc or ""
@@ -19,13 +22,13 @@ def _detect_patterns(desc: str, payer: str) -> Tuple[List[str], Tuple[str, str |
         if re.search(r"\$\s*\d+(?:\.\d{1,2})?\s*\(2x\)", desc_l, re.I):
             return ["multiplier_2x", "double_charge"], ("double_charge", None)
         return ["multiplier_2x", "ambiguous_2x"], ("full_to", payer)
-    for key in ("xfer_to_ryan", "xfer_to_jordyn", "cashback", "gift"):
+    for key in ("xfer_to_ryan", "xfer_to_jordyn", "cashback", "gift", "gift_or_present"):
         if key in _PATTERNS and _PATTERNS[key].search(desc_l):
             if key.startswith("xfer_to_"):
                 return [key], ("transfer", "Ryan" if key.endswith("ryan") else "Jordyn")
             if key == "cashback":
                 return [key], ("zero_out", None)
-            if key == "gift":
+            if key in ("gift", "gift_or_present"):
                 return [key], ("full_to", "Jordyn" if payer.lower() == "ryan" else "Ryan")
     if m := re.search(r"100%\s+(Jordyn|Ryan)", desc_l, flags=re.I):
         return ["full_allocation_100_percent"], ("full_to", m.group(1).title())
@@ -74,25 +77,47 @@ def build_baseline(df: pd.DataFrame, output_dir: str = "audit_reports") -> tuple
     # Ensure output directory exists
     pathlib.Path(output_dir).mkdir(exist_ok=True)
     
+    # Clean the input data
+    df = _clean_data(df, "test_data")
+    
     rows = []
 
     # Process standard expenses and ledger items
     for _, row in df.iterrows():
         payer = row["person"]
-        actual_paid = float(row.get("actual_amount", 0.0))
-        desc = f"{row.get('description', '')} {row.get('merchant', '')}"
-        flags, rule = _detect_patterns(desc, payer)
-
-        if rule[0] == 'zero_out':
-            net_effect_ryan = 0.0
-            net_effect_jordyn = 0.0
-            allowed_ryan = 0.0
-            allowed_jordyn = 0.0
-            note = "CB | Cash-back"
+        actual_paid = float(row.get("actual", 0.0))
+        allowed_amount = float(row.get("allowed", 0.0))
+        
+        # Handle expense history records (have allowed but no actual)
+        if allowed_amount > 0 and actual_paid == 0:
+            # For expense history, the payer gets the allowed amount, other person gets 0
+            if payer == "Ryan":
+                allowed_ryan = allowed_amount
+                allowed_jordyn = 0.0
+                net_effect_ryan = allowed_amount  # Ryan gets positive allowed amount
+                net_effect_jordyn = -allowed_amount  # Jordyn owes this amount
+            else:
+                allowed_ryan = 0.0
+                allowed_jordyn = allowed_amount
+                net_effect_ryan = -allowed_amount  # Ryan owes this amount
+                net_effect_jordyn = allowed_amount  # Jordyn gets positive allowed amount
+            note = "EH | Expense History"
+            flags = ["expense_history"]
         else:
-            allowed_ryan, allowed_jordyn, note = _apply_split_rules(actual_paid, rule, payer)
-            net_effect_ryan = round(allowed_ryan - (actual_paid if payer == "Ryan" else 0.0), 2)
-            net_effect_jordyn = round(allowed_jordyn - (actual_paid if payer == "Jordyn" else 0.0), 2)
+            # Standard transaction processing
+            desc = f"{row.get('description', '')} {row.get('merchant', '')}"
+            flags, rule = _detect_patterns(desc, payer)
+
+            if rule[0] == 'zero_out':
+                net_effect_ryan = 0.0
+                net_effect_jordyn = 0.0
+                allowed_ryan = 0.0
+                allowed_jordyn = 0.0
+                note = "CB | Cash-back"
+            else:
+                allowed_ryan, allowed_jordyn, note = _apply_split_rules(actual_paid, rule, payer)
+                net_effect_ryan = round(allowed_ryan - (actual_paid if payer == "Ryan" else 0.0), 2)
+                net_effect_jordyn = round(allowed_jordyn - (actual_paid if payer == "Jordyn" else 0.0), 2)
 
         # Preserve full original description for context
         full_description = f"{row.get('description', '')} | {row.get('merchant', '')}".strip(' |')
@@ -194,7 +219,7 @@ def build_baseline(df: pd.DataFrame, output_dir: str = "audit_reports") -> tuple
     summary_df = audit_df.groupby("person")["net_effect"].sum().reset_index().rename(columns={"net_effect": "net_owed"})
     imbalance = summary_df["net_owed"].sum()
     if abs(imbalance) > _CFG.rounding_tolerance:
-        print(f"⚠️ Net imbalance {imbalance:,.2f} exceeds tolerance ({_CFG.rounding_tolerance}).")
+        log.warning(f"Net imbalance {imbalance:,.2f} exceeds tolerance ({_CFG.rounding_tolerance}).")
     
     # Auto-save audit files to output directory
     import datetime
@@ -206,7 +231,7 @@ def build_baseline(df: pd.DataFrame, output_dir: str = "audit_reports") -> tuple
     audit_df.to_csv(audit_file, index=False)
     summary_df.to_csv(summary_file, index=False)
     
-    print(f"✅ Saved audit trail: {audit_file}")
-    print(f"✅ Saved summary: {summary_file}")
+    log.info(f"Saved audit trail: {audit_file}")
+    log.info(f"Saved summary: {summary_file}")
         
     return summary_df, audit_df

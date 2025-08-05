@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 import sys # For sys.exit in case of critical errors
 import os
-import numpy as np        #  ← add this right after the other imports
+import numpy as np
 
 # Windows console UTF-8 configuration to prevent UnicodeEncodeError
 if os.name == "nt":  # Windows cmd/PowerShell default is cp1252

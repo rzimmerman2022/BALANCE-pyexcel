@@ -84,7 +84,7 @@ class AnalysisConfig:
     
     # P0: Observability Enhancement from Blueprint
     debug_mode: bool = False 
-    # TODO P1: Add path for external business rules YAML
+    external_business_rules_yaml_path: str = "config/business_rules.yml"
 
 
 class DataQualityFlag(Enum):
