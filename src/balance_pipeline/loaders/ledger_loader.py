@@ -7,9 +7,10 @@ Name,Date of Purchase,Account,Merchant, Merchant Description , Actual Amount , D
 [data rows]
 """
 
-import pandas as pd
 import pathlib
-import re
+
+import pandas as pd
+
 from ..column_utils import normalize_cols
 
 
@@ -28,7 +29,7 @@ def find_header_row(file_path: pathlib.Path) -> int:
     Scan first 10 rows to find the header row containing transaction columns.
     Look for patterns like 'date', 'name', 'actual', 'merchant'
     """
-    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+    with open(file_path, encoding='utf-8', errors='ignore') as f:
         for i, line in enumerate(f):
             if i >= 10:  # Only check first 10 rows
                 break

@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
-import pandas as pd
 import numpy as np
-from pandas.testing import assert_frame_equal
-
+import pandas as pd
 from balance_pipeline.sync import (
-    sync_review_decisions,
-    QUEUE_TXNID_COL,
     QUEUE_DECISION_COL,
     QUEUE_SPLIT_COL,
-    TRANS_TXNID_COL,
+    QUEUE_TXNID_COL,
     TRANS_SHARED_FLAG_COL,
     TRANS_SPLIT_PERC_COL,
+    TRANS_TXNID_COL,
+    sync_review_decisions,
 )
+from pandas.testing import assert_frame_equal
 
 
 # Sample transactions DataFrame

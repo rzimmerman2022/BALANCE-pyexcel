@@ -4,10 +4,11 @@ Manual Verification Script for Balance Reconciliation
 This script helps you verify the calculations step-by-step
 """
 
-import pandas as pd
 import pathlib
 from datetime import datetime
-import numpy as np
+
+import pandas as pd
+
 
 class BalanceVerifier:
     def __init__(self, audit_csv_path):
@@ -124,7 +125,7 @@ class BalanceVerifier:
         ryan_net = valid_df[valid_df['person'] == 'Ryan']['net_effect'].sum()
         jordyn_net = valid_df[valid_df['person'] == 'Jordyn']['net_effect'].sum()
         
-        print(f"\nFinal Balance Check:")
+        print("\nFinal Balance Check:")
         print(f"  Ryan Net: ${ryan_net:,.2f}")
         print(f"  Jordyn Net: ${jordyn_net:,.2f}")
         print(f"  Sum (should be ~0): ${ryan_net + jordyn_net:,.2f}")
@@ -197,7 +198,7 @@ class BalanceVerifier:
         
         if not standard_expense.empty:
             row = standard_expense.iloc[0]
-            print(f"\n1. Standard Expense Example:")
+            print("\n1. Standard Expense Example:")
             print(f"   Description: {row['full_description']}")
             print(f"   Ryan paid: ${row['actual_amount']:.2f}")
             print(f"   Ryan's share: ${row['allowed_amount']:.2f}")
@@ -225,7 +226,7 @@ class BalanceVerifier:
         
     def run_full_verification(self):
         """Run all verification checks"""
-        print(f"\nBALANCE VERIFICATION REPORT")
+        print("\nBALANCE VERIFICATION REPORT")
         print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Analyzing: {len(self.audit_df)} transactions")
         

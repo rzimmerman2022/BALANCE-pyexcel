@@ -1,7 +1,7 @@
-import pytest
 import pandas as pd
-from src.balance_pipeline.processing import expense_pipeline
+
 from src.balance_pipeline.config import AnalysisConfig
+from src.balance_pipeline.processing import expense_pipeline
 
 
 def test_expense_pipeline_basic_shared_math():

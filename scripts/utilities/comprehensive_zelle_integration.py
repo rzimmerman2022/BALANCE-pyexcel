@@ -3,9 +3,10 @@ ZELLE PAYMENT INTEGRATION SYSTEM
 Integrates Zelle payments into the financial reconciliation system
 """
 
-import pandas as pd
 from datetime import datetime
-import numpy as np
+
+import pandas as pd
+
 
 def load_zelle_payments():
     """Load and process Zelle payment data"""
@@ -33,7 +34,7 @@ def load_zelle_payments():
         # Show breakdown by year
         zelle_2024_plus['Year'] = zelle_2024_plus['Date'].dt.year
         yearly_summary = zelle_2024_plus.groupby('Year')['Amount'].agg(['count', 'sum'])
-        print(f"\n📊 Zelle payments by year:")
+        print("\n📊 Zelle payments by year:")
         for year, data in yearly_summary.iterrows():
             print(f"  {year}: {data['count']} payments, ${data['sum']:,.2f}")
         
@@ -56,7 +57,7 @@ def analyze_zelle_impact():
         
         # Get current balances
         current_balances = current_audit.groupby('Person')['Running_Balance'].last()
-        print(f"\n📊 CURRENT BALANCES (before Zelle):")
+        print("\n📊 CURRENT BALANCES (before Zelle):")
         for person, balance in current_balances.items():
             if balance < 0:
                 print(f"  {person}: ${balance:,.2f} (is owed ${abs(balance):,.2f})")
@@ -65,23 +66,23 @@ def analyze_zelle_impact():
         
     except Exception as e:
         print(f"❌ Error loading current audit trail: {e}")
-        return
+        return None
     
     # Load Zelle payments
     zelle_df = load_zelle_payments()
     if zelle_df is None:
-        return
+        return None
     
     # Calculate Zelle impact
     total_zelle = zelle_df['Amount'].sum()
     
-    print(f"\n💸 ZELLE PAYMENT IMPACT:")
+    print("\n💸 ZELLE PAYMENT IMPACT:")
     print(f"  • Jordyn paid Ryan via Zelle: ${total_zelle:,.2f}")
     print(f"  • This reduces Jordyn's debt by ${total_zelle:,.2f}")
     print(f"  • This reduces Ryan's credit by ${total_zelle:,.2f}")
     
     # Calculate adjusted balances
-    print(f"\n📊 ADJUSTED BALANCES (after Zelle):")
+    print("\n📊 ADJUSTED BALANCES (after Zelle):")
     for person, balance in current_balances.items():
         if person == 'Ryan':
             adjusted_balance = balance + total_zelle  # Ryan received money, so less owed to him
@@ -100,13 +101,13 @@ def analyze_zelle_impact():
     ryan_adjusted = current_balances['Ryan'] + total_zelle
     jordyn_adjusted = current_balances['Jordyn'] - total_zelle
     
-    print(f"\n💰 FINAL SETTLEMENT (after Zelle):")
+    print("\n💰 FINAL SETTLEMENT (after Zelle):")
     if jordyn_adjusted > 0:
         print(f"  Jordyn still owes Ryan: ${jordyn_adjusted:,.2f}")
     elif jordyn_adjusted < 0:
         print(f"  Ryan now owes Jordyn: ${abs(jordyn_adjusted):,.2f}")
     else:
-        print(f"  Perfect balance! No money owed either way.")
+        print("  Perfect balance! No money owed either way.")
     
     return {
         'zelle_total': total_zelle,
@@ -129,12 +130,12 @@ def generate_integrated_audit_trail():
         print(f"✅ Loaded current audit trail: {len(current_audit)} transactions")
     except Exception as e:
         print(f"❌ Error loading current audit trail: {e}")
-        return
+        return None
     
     # Load Zelle payments
     zelle_df = load_zelle_payments()
     if zelle_df is None:
-        return
+        return None
     
     # Convert Zelle payments to audit trail format
     zelle_transactions = []
@@ -193,7 +194,7 @@ def generate_integrated_audit_trail():
     final_ryan = combined_audit[combined_audit['Person'] == 'Ryan']['Running_Balance'].iloc[-1] if len(combined_audit[combined_audit['Person'] == 'Ryan']) > 0 else 0
     final_jordyn = combined_audit[combined_audit['Person'] == 'Jordyn']['Running_Balance'].iloc[-1] if len(combined_audit[combined_audit['Person'] == 'Jordyn']) > 0 else 0
     
-    print(f"\n💰 FINAL BALANCES (with Zelle integrated):")
+    print("\n💰 FINAL BALANCES (with Zelle integrated):")
     if final_ryan < 0:
         print(f"  Ryan: ${final_ryan:,.2f} (is owed ${abs(final_ryan):,.2f})")
     else:
@@ -210,7 +211,7 @@ def generate_integrated_audit_trail():
     elif final_jordyn < 0:
         print(f"\n🎯 FINAL SETTLEMENT: Ryan owes Jordyn ${abs(final_jordyn):,.2f}")
     else:
-        print(f"\n🎯 FINAL SETTLEMENT: Perfect balance! No money owed.")
+        print("\n🎯 FINAL SETTLEMENT: Perfect balance! No money owed.")
     
     return output_file
 

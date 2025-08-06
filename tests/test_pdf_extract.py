@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Integration test for the process_pdfs.py script.
 
@@ -6,13 +5,14 @@ Ensures that running the script on a sample Wells Fargo PDF produces a CSV
 with valid, non-empty Amount and parseable TransDate columns.
 """
 
+import re  # Added for money_re
 import subprocess
 import sys
+from io import StringIO  # Added for creating DataFrame from string
 from pathlib import Path
+
 import pandas as pd
 import pytest
-import re  # Added for money_re
-from io import StringIO  # Added for creating DataFrame from string
 
 # Define paths relative to the project root (assuming tests run from root)
 PROJECT_ROOT = Path(__file__).parent.parent

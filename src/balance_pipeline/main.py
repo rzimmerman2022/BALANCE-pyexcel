@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+################################################################################
+#                                                                              #
+#                         BALANCE PIPELINE MAIN ENTRY                         #
+#                                                                              #
+################################################################################
 """
 Main entry point for the Balance Pipeline application.
 
@@ -12,16 +17,12 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import List, Optional
+
 import pandas as pd
+from balance_pipeline.config import DEFAULT_OUTPUT_FORMAT, SUPPORTED_OUTPUT_FORMATS
 
 # Import the unified pipeline - adjust import based on your project structure
 from balance_pipeline.pipeline_v2 import UnifiedPipeline
-from balance_pipeline.config import (
-    DEFAULT_OUTPUT_FORMAT,
-    SUPPORTED_OUTPUT_FORMATS
-)
-
 
 # Configure logging format for consistency across the application
 LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
@@ -61,7 +62,7 @@ def setup_logging(verbosity: int = 0) -> None:
     logging.getLogger("balance_pipeline").setLevel(log_level)
 
 
-def validate_file_paths(file_paths: List[str]) -> List[Path]:
+def validate_file_paths(file_paths: list[str]) -> list[Path]:
     """
     Validate that all provided file paths exist and are readable.
     
@@ -79,7 +80,7 @@ def validate_file_paths(file_paths: List[str]) -> List[Path]:
         FileNotFoundError: If any file doesn't exist
         PermissionError: If any file isn't readable
     """
-    validated_paths: List[Path] = []
+    validated_paths: list[Path] = []
     
     for file_path_str in file_paths:
         path = Path(file_path_str)
@@ -102,10 +103,10 @@ def validate_file_paths(file_paths: List[str]) -> List[Path]:
 
 
 def process_files_command(
-    files: List[str],
-    schema_path: Optional[str] = None,
-    merchant_path: Optional[str] = None,
-    output_path: Optional[str] = None,
+    files: list[str],
+    schema_path: str | None = None,
+    merchant_path: str | None = None,
+    output_path: str | None = None,
     output_format: str = DEFAULT_OUTPUT_FORMAT,
     debug: bool = False
 ) -> None:
@@ -133,8 +134,8 @@ def process_files_command(
         
         # Step 2: Convert optional paths to Path objects if provided
         # These variables are properly typed as Optional[Path]
-        schema_registry_override: Optional[Path] = None
-        merchant_lookup_override: Optional[Path] = None
+        schema_registry_override: Path | None = None
+        merchant_lookup_override: Path | None = None
         
         if schema_path is not None:
             schema_registry_override = Path(schema_path)
@@ -182,7 +183,7 @@ def process_files_command(
 
 def save_output(
     df: pd.DataFrame,
-    output_path: Optional[str],
+    output_path: str | None,
     output_format: str
 ) -> None:
     """

@@ -3,8 +3,9 @@
 Quick-look preview of each CSV in ./data.
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import pandas as pd
 
 # -------- config --------

@@ -4,7 +4,7 @@ Defines the foundational schema for the BALANCE-pyexcel pipeline.
 This includes the core set of columns that every processed transaction record
 should aim to have, forming the basis for consistent analysis and reconciliation.
 """
-from pandas import StringDtype, Float64Dtype # For pandas dtypes
+from pandas import Float64Dtype, StringDtype  # For pandas dtypes
 
 # The 8+1 Core Foundational Columns
 # These columns represent the "gold standard" minimal viable transaction.

@@ -1,7 +1,9 @@
 ﻿"""conftest_skip_legacy.py
 Automatically skip legacy baseline tests that we haven’t ported yet.
 """
-import pytest, pathlib, os
+import pathlib
+
+import pytest
 
 LEGACY_DIR = pathlib.Path(__file__).parent / "baseline"
 

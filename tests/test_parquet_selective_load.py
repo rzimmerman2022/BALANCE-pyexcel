@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: test_parquet_selective_load.py
@@ -7,9 +6,10 @@ Description: Unit tests for verifying memory reduction from selective Parquet co
 ==============================================================================
 """
 
-import pytest
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+import pytest
 
 # Assuming cli.py and its Parquet reading logic are the target.
 # We are testing the effectiveness of pd.read_parquet(columns=[...])

@@ -2,14 +2,15 @@
 import ast
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
-def analyze(path: Path) -> List[Dict[str, Any]]:
+
+def analyze(path: Path) -> list[dict[str, Any]]:
     """Parse Python file and extract function information."""
     print(f"Reading {path}...")
     source = path.read_text(encoding='utf-8')
     tree = ast.parse(source)
-    functions: List[Dict[str, Any]] = []
+    functions: list[dict[str, Any]] = []
     
     # Walk through all nodes in the AST
     for node in ast.walk(tree):
@@ -60,7 +61,7 @@ def main() -> None:
     avg_lines = total_lines / len(report) if report else 0
     
     print("-" * 70)
-    print(f"\nStatistics:")
+    print("\nStatistics:")
     print(f"  Total functions: {len(report)}")
     print(f"  Total function lines: {total_lines}")
     print(f"  Average function size: {avg_lines:.1f} lines")

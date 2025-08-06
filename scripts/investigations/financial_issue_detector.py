@@ -3,12 +3,12 @@ Financial Issue Detection & Analysis System
 Comprehensive tool to identify disputes, recurring patterns, anomalies, and potential issues
 """
 
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-import re
-from collections import Counter
 import warnings
+from collections import Counter
+from datetime import datetime
+
+import pandas as pd
+
 warnings.filterwarnings('ignore')
 
 class FinancialIssueDetector:

@@ -9,6 +9,7 @@ and see what the real settlement should be.
 
 import pandas as pd
 
+
 def calculate_simple_balance():
     print("🎯 SIMPLE BALANCE CALCULATION")
     print("=" * 50)
@@ -22,7 +23,7 @@ def calculate_simple_balance():
     rent_df['Net_Effect'] = pd.to_numeric(rent_df['Net_Effect'], errors='coerce')
     rent_balances = rent_df.groupby('Person')['Net_Effect'].sum()
     
-    print(f"\n🏠 RENT-ONLY BALANCES:")
+    print("\n🏠 RENT-ONLY BALANCES:")
     for person, balance in rent_balances.items():
         if balance > 0:
             print(f"  {person}: ${balance:,.2f} (is owed)")
@@ -43,16 +44,16 @@ def calculate_simple_balance():
         
         if jordyn_rent > 0 and ryan_rent < 0:
             settlement = jordyn_rent
-            print(f"\n💰 CORE RENT SETTLEMENT:")
+            print("\n💰 CORE RENT SETTLEMENT:")
             print(f"Based purely on rent, Ryan owes Jordyn ${settlement:,.2f}")
             
             # Now let's see what other transactions add to this
-            print(f"\n📊 OTHER CONSIDERATIONS:")
+            print("\n📊 OTHER CONSIDERATIONS:")
             print(f"This ${settlement:,.2f} is just for rent.")
-            print(f"Additional amounts may be owed for:")
-            print(f"  • Shared expenses")
-            print(f"  • Zelle transfers")
-            print(f"  • Other shared costs")
+            print("Additional amounts may be owed for:")
+            print("  • Shared expenses")
+            print("  • Zelle transfers")
+            print("  • Other shared costs")
             
             return settlement
     else:
@@ -63,10 +64,10 @@ def main():
     settlement = calculate_simple_balance()
     
     if settlement:
-        print(f"\n🎯 MINIMUM SETTLEMENT AMOUNT:")
+        print("\n🎯 MINIMUM SETTLEMENT AMOUNT:")
         print(f"Ryan owes Jordyn at least ${settlement:,.2f} for rent alone.")
-        print(f"\nTo get the complete picture including all shared expenses,")
-        print(f"we'd need to carefully review all non-rent transactions.")
+        print("\nTo get the complete picture including all shared expenses,")
+        print("we'd need to carefully review all non-rent transactions.")
 
 if __name__ == "__main__":
     main()

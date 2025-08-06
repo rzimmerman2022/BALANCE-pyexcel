@@ -3,10 +3,10 @@ Enhanced Comprehensive Audit Trail with Source File References
 Shows exactly where each transaction comes from and tracks all filtering
 """
 
-import pandas as pd
 from datetime import datetime
-import numpy as np
-import os
+
+import pandas as pd
+
 
 def clean_currency_string(value):
     """Convert currency strings like '$1,946.00 ' to float"""
@@ -194,7 +194,7 @@ def create_enhanced_audit_trail():
     
     if expense_df is None or rent_df is None:
         print("Error loading data files")
-        return
+        return None
     
     # Set clean slate date
     clean_slate_date = datetime(2024, 1, 1)
@@ -205,7 +205,7 @@ def create_enhanced_audit_trail():
     filtered_rent = filter_data_by_date_enhanced(rent_df, clean_slate_date, "rent")
     
     # Combine datasets
-    print(f"\n--- Combining Datasets ---")
+    print("\n--- Combining Datasets ---")
     combined_df = pd.concat([filtered_expense, filtered_rent], ignore_index=True)
     print(f"Total combined records: {len(combined_df)}")
     
@@ -246,7 +246,7 @@ def create_enhanced_audit_trail():
                 explanation = f"Jordyn owes her rent share ${allowed_share:,.2f}"
             else:
                 trans_type = "Rent"
-                explanation = f"Rent transaction"
+                explanation = "Rent transaction"
         else:  # Expense
             if allowed_share == 0:
                 trans_type = "Personal Expense"
@@ -303,7 +303,7 @@ def create_enhanced_audit_trail():
     print("ENHANCED AUDIT TRAIL SUMMARY")
     print("="*80)
     
-    print(f"\nFinal Balances:")
+    print("\nFinal Balances:")
     print(f"Ryan: ${final_ryan:,.2f}")
     print(f"Jordyn: ${final_jordyn:,.2f}")
     
@@ -337,7 +337,7 @@ def create_enhanced_audit_trail():
     print(f"\nEnhanced audit trail saved to: {audit_filename}")
     
     # Show sample with source references
-    print(f"\nSample transactions with source file references:")
+    print("\nSample transactions with source file references:")
     print(audit_df[['Transaction_Number', 'Date', 'Person', 'Source_File', 'Original_Row', 'Amount_Paid', 'Running_Balance']].head(10).to_string(index=False))
     
     return audit_df

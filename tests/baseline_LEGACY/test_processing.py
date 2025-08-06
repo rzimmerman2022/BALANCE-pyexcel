@@ -1,16 +1,15 @@
-import pytest
-import pandas as pd
-from pathlib import Path
 import sys
 import tempfile
-import shutil
-import os
+from pathlib import Path
+
+import pandas as pd
+import pytest
 
 # Add src to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from baseline_analyzer.processing import build_baseline, CleanerStats
-from baseline_analyzer.lineage_utils import validate_lineage, add_step_id
+from baseline_analyzer.lineage_utils import add_step_id, validate_lineage
+from baseline_analyzer.processing import CleanerStats, build_baseline
 
 
 class TestBuildBaseline:

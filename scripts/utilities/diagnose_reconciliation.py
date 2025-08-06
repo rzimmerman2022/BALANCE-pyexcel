@@ -1,8 +1,9 @@
 """
 Diagnostic script to understand the reconciliation imbalance
 """
+
 import pandas as pd
-from pathlib import Path
+
 
 def main():
     print("=== DIAGNOSING RECONCILIATION ISSUES ===")
@@ -101,9 +102,9 @@ def main():
             print(f"Shares sum: ${ryan_share + jordyn_share:,.2f}")
             
             # This reveals the core issue - we need to know WHO ACTUALLY PAYS the rent
-            print(f"\n*** CRITICAL QUESTION ***")
+            print("\n*** CRITICAL QUESTION ***")
             print(f"Does Ryan pay the full ${gross_total:,.2f} rent each month?")
-            print(f"Or do they each pay their individual shares?")
+            print("Or do they each pay their individual shares?")
     
     except Exception as e:
         print(f"Error reading rent file: {e}")
@@ -125,14 +126,14 @@ def main():
     details['Abs_Discrepancy'] = abs(details['Net Effect'])
     large_discrepancies = details[details['Abs_Discrepancy'] > 100].sort_values('Abs_Discrepancy', ascending=False)
     
-    print(f"\nTransactions with large discrepancies (>$100):")
+    print("\nTransactions with large discrepancies (>$100):")
     print(f"Count: {len(large_discrepancies)}")
     if len(large_discrepancies) > 0:
         print("Top 10 largest discrepancies:")
         print(large_discrepancies[['Name', 'Description', 'Actual Amount', 'Allowed Amount', 'Net Effect']].head(10))
     
     # Analyze the expense data for patterns
-    print(f"\n=== EXPENSE PATTERN ANALYSIS ===")
+    print("\n=== EXPENSE PATTERN ANALYSIS ===")
     expense_only = details[details['Source'] == 'Expense']
     
     # Look at the distribution of allowed vs actual amounts
@@ -161,10 +162,10 @@ def main():
         for person, amount in unallowed_by_person.items():
             print(f"  {person}: ${amount:,.2f}")
     
-    print(f"\n=== FINAL DIAGNOSIS ===")
+    print("\n=== FINAL DIAGNOSIS ===")
     print(f"System imbalance: ${details['Net Effect'].sum():,.2f}")
-    print(f"This likely represents spending on items that were deemed 'unallowed'")
-    print(f"or personal expenses that shouldn't be shared.")
+    print("This likely represents spending on items that were deemed 'unallowed'")
+    print("or personal expenses that shouldn't be shared.")
     
     # Check if the imbalance matches the unallowed spending
     if abs(abs(details['Net Effect'].sum()) - total_unallowed_spending) < 1:

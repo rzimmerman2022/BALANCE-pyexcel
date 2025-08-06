@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
+
+import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Design constants
@@ -115,9 +116,9 @@ DEFAULT_MERCHANT_CATEGORIES = {
 }
 
 # Cached rules to avoid repeated file I/O
-_CACHED_RULES: Dict[str, Any] = {}
+_CACHED_RULES: dict[str, Any] = {}
 
-def load_rules(path: str) -> Dict[str, Any]:
+def load_rules(path: str) -> dict[str, Any]:
     """
     Load business rules from YAML file with caching.
     
@@ -138,7 +139,7 @@ def load_rules(path: str) -> Dict[str, Any]:
         raise FileNotFoundError(f"Rules file not found: {rules_path}")
     
     try:
-        with open(rules_path, 'r', encoding='utf-8') as f:
+        with open(rules_path, encoding='utf-8') as f:
             rules = yaml.safe_load(f)
         
         # Cache the loaded rules
@@ -170,13 +171,11 @@ _default_yaml_path = (
 def load_config(path: Path | None = None) -> Settings:
     """Load Settings from YAML, allowing env var overrides."""
     cfg_path = Path(path) if path else _default_yaml_path
-    with open(cfg_path, "r", encoding="utf-8") as f:
+    with open(cfg_path, encoding="utf-8") as f:
         yaml_data = yaml.safe_load(f)
     return Settings(**yaml_data)
-import os
-import yaml
 from pathlib import Path
-from typing import Dict, Any
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Design constants
@@ -287,9 +286,9 @@ DEFAULT_MERCHANT_CATEGORIES = {
 }
 
 # Cached rules to avoid repeated file I/O
-_CACHED_RULES: Dict[str, Any] = {}
+_CACHED_RULES: dict[str, Any] = {}
 
-def load_rules(path: str) -> Dict[str, Any]:
+def load_rules(path: str) -> dict[str, Any]:
     """
     Load business rules from YAML file with caching.
     
@@ -310,7 +309,7 @@ def load_rules(path: str) -> Dict[str, Any]:
         raise FileNotFoundError(f"Rules file not found: {rules_path}")
     
     try:
-        with open(rules_path, 'r', encoding='utf-8') as f:
+        with open(rules_path, encoding='utf-8') as f:
             rules = yaml.safe_load(f)
         
         # Cache the loaded rules
@@ -342,6 +341,6 @@ _default_yaml_path = (
 def load_config(path: Path | None = None) -> Settings:
     """Load Settings from YAML, allowing env var overrides."""
     cfg_path = Path(path) if path else _default_yaml_path
-    with open(cfg_path, "r", encoding="utf-8") as f:
+    with open(cfg_path, encoding="utf-8") as f:
         yaml_data = yaml.safe_load(f)
     return Settings(**yaml_data)

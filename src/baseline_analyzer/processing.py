@@ -3,11 +3,14 @@ Tiny config helpers + legacy-compat stubs
 ----------------------------------------
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
-from datetime import datetime, date
+from datetime import date, datetime
+
 import pandas as pd
 
-from ._settings import load_config, Settings
+from ._settings import Settings, load_config
+
 
 # ── New helpers (Sprint 3) ─────────────────────────────────────────────
 def _cfg(cfg: Settings | None = None) -> Settings:

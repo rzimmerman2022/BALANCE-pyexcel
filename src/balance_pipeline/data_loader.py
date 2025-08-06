@@ -3,10 +3,12 @@ Main data loader for balance pipeline.
 Uses modular loaders to ensure all DataFrames conform to Canonical Transaction Schema (CTS).
 """
 
-import pandas as pd
 import pathlib
-from .loaders import LOADER_REGISTRY
+
+import pandas as pd
+
 from .column_utils import CTS, validate_cts_compliance
+from .loaders import LOADER_REGISTRY
 
 
 def load_all_data(data_dir: pathlib.Path) -> pd.DataFrame:

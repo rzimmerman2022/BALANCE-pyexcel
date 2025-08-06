@@ -12,12 +12,13 @@ calculating correctly. It provides detailed insights into:
 Run this to establish a baseline and understand your data better.
 """
 
-import pandas as pd
-import numpy as np
-from pathlib import Path
-import matplotlib.pyplot as plt
-from datetime import datetime
 import warnings
+from datetime import datetime
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
 warnings.filterwarnings('ignore')
 
 
@@ -197,7 +198,7 @@ def analyze_expense_structure(df):
     if 'Name' in df.columns:
         payer_counts = df['Name'].value_counts()
         analysis['payers'] = payer_counts.to_dict()
-        print(f"\nPayer breakdown:")
+        print("\nPayer breakdown:")
         for payer, count in payer_counts.items():
             print(f"  {payer}: {count} transactions")
     
@@ -213,7 +214,7 @@ def analyze_expense_structure(df):
         analysis['shared_total'] = df.loc[shared_mask, 'Allowed Amount'].sum()
         analysis['personal_total'] = df.loc[~shared_mask, 'Actual Amount'].sum()
         
-        print(f"\nExpense breakdown:")
+        print("\nExpense breakdown:")
         print(f"  Total transactions: {len(df)}")
         print(f"  Shared expenses: {analysis['shared_count']} (${analysis['shared_total']:,.2f})")
         print(f"  Personal expenses: {analysis['personal_count']} (${analysis['personal_total']:,.2f})")
@@ -230,7 +231,7 @@ def print_expense_insights(df, analysis):
     # Insight 1: Personal expense impact
     if 'personal_total' in analysis and 'shared_total' in analysis:
         personal_pct = (analysis['personal_total'] / (analysis['personal_total'] + analysis['shared_total']) * 100)
-        print(f"\n1. Personal Expense Impact:")
+        print("\n1. Personal Expense Impact:")
         print(f"   {personal_pct:.1f}% of total spending is personal (not shared)")
         print(f"   This represents ${analysis['personal_total']:,.2f} that should NOT affect balances")
     
@@ -238,7 +239,7 @@ def print_expense_insights(df, analysis):
     if 'Name' in df.columns and 'Actual Amount' in df.columns:
         ryan_total = df[df['Name'] == 'Ryan']['Actual Amount'].sum()
         jordyn_total = df[df['Name'] == 'Jordyn']['Actual Amount'].sum()
-        print(f"\n2. Who Pays More Often:")
+        print("\n2. Who Pays More Often:")
         print(f"   Ryan has paid: ${ryan_total:,.2f}")
         print(f"   Jordyn has paid: ${jordyn_total:,.2f}")
         print(f"   Difference: ${abs(ryan_total - jordyn_total):,.2f}")
@@ -253,7 +254,7 @@ def analyze_rent_structure(df):
         analysis['average_rent'] = df['Gross Total'].mean()
         analysis['total_rent'] = df['Gross Total'].sum()
         
-        print(f"\nRent summary:")
+        print("\nRent summary:")
         print(f"  Months tracked: {analysis['total_months']}")
         print(f"  Average monthly rent: ${analysis['average_rent']:,.2f}")
         print(f"  Total rent paid: ${analysis['total_rent']:,.2f}")
@@ -273,7 +274,7 @@ def print_rent_insights(df, analysis):
     
     if 'ryan_total_rent' in analysis:
         print(f"\n1. Rent adds ${analysis['ryan_total_rent']:,.2f} to what Ryan owes")
-        print(f"   (Assuming Jordyn pays the landlord each month)")
+        print("   (Assuming Jordyn pays the landlord each month)")
 
 
 def analyze_shared_vs_all_expenses(df):
@@ -310,7 +311,7 @@ def analyze_shared_vs_all_expenses(df):
         ryan_balance_wrong = ryan_share_wrong - all_ryan
         jordyn_balance_wrong = jordyn_share_wrong - all_jordyn
         
-        print(f"\n  Using 43/57 split on TOTAL spending:")
+        print("\n  Using 43/57 split on TOTAL spending:")
         print(f"  Ryan should pay: ${ryan_share_wrong:,.2f}")
         print(f"  Ryan balance: ${ryan_balance_wrong:,.2f}")
         print(f"  Jordyn should pay: ${jordyn_share_wrong:,.2f}")
@@ -343,7 +344,7 @@ def analyze_shared_vs_all_expenses(df):
         ryan_balance_correct = ryan_share_correct - shared_ryan
         jordyn_balance_correct = jordyn_share_correct - shared_jordyn
         
-        print(f"\n  Using 43/57 split on SHARED expenses only:")
+        print("\n  Using 43/57 split on SHARED expenses only:")
         print(f"  Ryan should pay: ${ryan_share_correct:,.2f}")
         print(f"  Ryan balance: ${ryan_balance_correct:,.2f}")
         print(f"  Jordyn should pay: ${jordyn_share_correct:,.2f}")
@@ -351,7 +352,7 @@ def analyze_shared_vs_all_expenses(df):
         print(f"  Sum of balances: ${ryan_balance_correct + jordyn_balance_correct:,.2f} (PROPERLY ZERO!)")
         
         # Show the difference
-        print(f"\n\nTHE CRITICAL DIFFERENCE:")
+        print("\n\nTHE CRITICAL DIFFERENCE:")
         print(f"  Wrong method total: ${all_total:,.2f}")
         print(f"  Correct method total: ${shared_total:,.2f}")
         print(f"  Difference (personal expenses): ${all_total - shared_total:,.2f}")
@@ -503,7 +504,7 @@ def create_analysis_visualizations(expenses_df, rent_df, balance_comparison):
             ax.set_ylabel('Total Amount ($)')
             
             # Add value labels on bars
-            for bar, total in zip(bars, totals):
+            for bar, total in zip(bars, totals, strict=False):
                 height = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width()/2., height,
                        f'${total:,.0f}', ha='center', va='bottom')

@@ -4,9 +4,11 @@ Currently: Parquet via DuckDB (works on Py 3.13 without PyArrow wheels).
 """
 
 from __future__ import annotations
-import duckdb
+
 import logging
 import pathlib
+
+import duckdb
 import pandas as pd
 
 log = logging.getLogger(__name__)

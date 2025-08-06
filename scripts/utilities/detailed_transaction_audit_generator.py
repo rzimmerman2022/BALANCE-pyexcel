@@ -3,8 +3,10 @@ COMPREHENSIVE TRANSACTION AUDIT TOOL
 Lists every single transaction with source file, row number, and all details
 """
 
-import pandas as pd
 from datetime import datetime
+
+import pandas as pd
+
 
 def generate_comprehensive_audit():
     print("=" * 80)
@@ -23,7 +25,7 @@ def generate_comprehensive_audit():
             print(f"✅ Loaded {len(audit_df)} transactions from enhanced audit trail")
         except Exception as e:
             print(f"❌ Error loading audit trail: {e}")
-            return
+            return None
     
     # Create detailed audit report
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -63,36 +65,36 @@ def generate_comprehensive_audit():
     print(f"✅ Comprehensive audit saved to: {output_file}")
     
     # Generate summary statistics
-    print(f"\n📊 AUDIT SUMMARY:")
+    print("\n📊 AUDIT SUMMARY:")
     print(f"Total transactions: {len(detailed_audit)}")
     
     # By source
     source_counts = detailed_audit['Source'].value_counts()
-    print(f"\nBy source:")
+    print("\nBy source:")
     for source, count in source_counts.items():
         source_total = detailed_audit[detailed_audit['Source'] == source]['Amount_Paid'].sum()
         print(f"  {source}: {count} transactions, ${source_total:,.2f} total")
     
     # By person
     person_counts = detailed_audit['Person'].value_counts()
-    print(f"\nBy person:")
+    print("\nBy person:")
     for person, count in person_counts.items():
         person_total = detailed_audit[detailed_audit['Person'] == person]['Amount_Paid'].sum()
         print(f"  {person}: {count} transactions, ${person_total:,.2f} total")
     
     # Show sample transactions
-    print(f"\n📋 SAMPLE TRANSACTIONS (first 10):")
+    print("\n📋 SAMPLE TRANSACTIONS (first 10):")
     print("─" * 120)
     sample_cols = ['Transaction_Number', 'Date', 'Person', 'Description', 'Amount_Paid', 'Source_File', 'Original_Row']
     print(detailed_audit[sample_cols].head(10).to_string(index=False, max_colwidth=30))
     
-    print(f"\n📋 SAMPLE TRANSACTIONS (last 10):")
+    print("\n📋 SAMPLE TRANSACTIONS (last 10):")
     print("─" * 120)
     print(detailed_audit[sample_cols].tail(10).to_string(index=False, max_colwidth=30))
     
     # Final balances
     final_balances = detailed_audit.groupby('Person')['Running_Balance'].last()
-    print(f"\n💰 FINAL BALANCES:")
+    print("\n💰 FINAL BALANCES:")
     for person, balance in final_balances.items():
         if balance < 0:
             print(f"  {person}: ${balance:,.2f} (is owed ${abs(balance):,.2f})")
@@ -100,15 +102,15 @@ def generate_comprehensive_audit():
             print(f"  {person}: ${balance:,.2f} (owes ${balance:,.2f})")
     
     # Source file breakdown
-    print(f"\n📁 SOURCE FILE BREAKDOWN:")
+    print("\n📁 SOURCE FILE BREAKDOWN:")
     source_file_counts = detailed_audit['Source_File'].value_counts()
     for file, count in source_file_counts.items():
         print(f"  {file}: {count} transactions")
     
-    print(f"\n" + "=" * 80)
-    print(f"COMPREHENSIVE AUDIT COMPLETE!")
+    print("\n" + "=" * 80)
+    print("COMPREHENSIVE AUDIT COMPLETE!")
     print(f"Review file: {output_file}")
-    print(f"This file contains every transaction with full source traceability.")
+    print("This file contains every transaction with full source traceability.")
     print("=" * 80)
     
     return output_file
@@ -164,14 +166,14 @@ def main():
     csv_file = generate_comprehensive_audit()
     excel_file = generate_excel_audit()
     
-    print(f"\n🎯 FILES GENERATED:")
+    print("\n🎯 FILES GENERATED:")
     print(f"• CSV: {csv_file}")
     print(f"• Excel: {excel_file}")
-    print(f"\nBoth files contain every transaction with:")
-    print(f"• Source file name and row number")
-    print(f"• Complete transaction details")
-    print(f"• Running balance calculations")
-    print(f"• Full audit trail")
+    print("\nBoth files contain every transaction with:")
+    print("• Source file name and row number")
+    print("• Complete transaction details")
+    print("• Running balance calculations")
+    print("• Full audit trail")
 
 if __name__ == "__main__":
     main()

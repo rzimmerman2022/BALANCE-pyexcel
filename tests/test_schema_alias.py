@@ -1,7 +1,8 @@
 import sys
-from pathlib import Path
-import types as _types_module
 import sys as _sys_module  # Alias for sys, used in stubbing logic below
+import types as _types_module
+from pathlib import Path
+
 from balance_pipeline.schema_registry import find_matching_schema
 
 # Ensure src directory is on sys.path for direct import when package not installed

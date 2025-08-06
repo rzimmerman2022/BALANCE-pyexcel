@@ -11,33 +11,47 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
-import psutil # For performance checking
+from typing import Any
+
+import psutil  # For performance checking
+
+from src.balance_pipeline.analytics import (
+    _calculate_data_quality_score,  # Make it public or call via perform_advanced_analytics
+    _summarize_data_quality_issues,  # Make it public or call via perform_advanced_analytics
+    comprehensive_risk_assessment,
+    perform_advanced_analytics,
+)
 
 # --- Pipeline Module Imports ---
-from src.balance_pipeline.config import AnalysisConfig # DataQualityFlag might be used for typing if needed
-from src.balance_pipeline.loaders import DataLoaderV23, merge_expense_and_ledger_data, merge_rent_data
-from src.balance_pipeline.processing import process_expense_data, process_rent_data
+from src.balance_pipeline.config import (
+    AnalysisConfig,  # DataQualityFlag might be used for typing if needed
+)
 from src.balance_pipeline.ledger import create_master_ledger
-from src.balance_pipeline.recon import triple_reconciliation
-from src.balance_pipeline.analytics import (
-    perform_advanced_analytics, 
-    comprehensive_risk_assessment,
-    _calculate_data_quality_score, # Make it public or call via perform_advanced_analytics
-    _summarize_data_quality_issues # Make it public or call via perform_advanced_analytics
+from src.balance_pipeline.loaders import (
+    DataLoaderV23,
+    merge_expense_and_ledger_data,
+    merge_rent_data,
 )
-from src.balance_pipeline.viz import (
-    build_design_theme,
-    build_running_balance_timeline, build_waterfall_category_impact,
-    build_monthly_shared_trend, build_payer_type_heatmap,
-    build_calendar_heatmaps, build_treemap_shared_spending,
-    build_anomaly_scatter, build_pareto_concentration,
-    build_sankey_settlements, build_data_quality_table_viz
-    # Other viz functions can be imported if called directly
-)
+
+# Other viz functions can be imported if called directly
 from src.balance_pipeline.outputs import generate_all_outputs
+from src.balance_pipeline.processing import process_expense_data, process_rent_data
+from src.balance_pipeline.recon import triple_reconciliation
+from src.balance_pipeline.viz import (
+    build_anomaly_scatter,
+    build_calendar_heatmaps,
+    build_data_quality_table_viz,
+    build_design_theme,
+    build_monthly_shared_trend,
+    build_pareto_concentration,
+    build_payer_type_heatmap,
+    build_running_balance_timeline,
+    build_sankey_settlements,
+    build_treemap_shared_spending,
+    build_waterfall_category_impact,
+)
 
 # Configure logging for this orchestrator module
 # Note: cli.py also configures logging. This ensures logs are captured if analyzer.py is imported.
@@ -65,7 +79,7 @@ class EnhancedSharedExpenseAnalyzer:
         ledger_file: Path,
         rent_alloc_file: Path,
         rent_hist_file: Path,
-        config: Optional[AnalysisConfig] = None,
+        config: AnalysisConfig | None = None,
     ):
         self.config = config or AnalysisConfig()
         self.expense_file = expense_file
@@ -74,11 +88,11 @@ class EnhancedSharedExpenseAnalyzer:
         self.rent_hist_file = rent_hist_file
 
         # These lists/dicts will be populated during the pipeline execution
-        self.data_quality_issues: List[Dict[str, Any]] = []
-        self.alt_texts: Dict[str, str] = {}
-        self.validation_summary: Dict[str, Any] = {} # For checks like ledger balance match
+        self.data_quality_issues: list[dict[str, Any]] = []
+        self.alt_texts: dict[str, str] = {}
+        self.validation_summary: dict[str, Any] = {} # For checks like ledger balance match
 
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         self.memory_usage_mb = 0
 
         logger.info(f"Initialized EnhancedSharedExpenseAnalyzer (Orchestrator) with config: {self.config}")
@@ -95,7 +109,7 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _check_performance(self):
         """Logs processing time and memory usage."""
-        elapsed_seconds = (datetime.now(timezone.utc) - self.start_time).total_seconds()
+        elapsed_seconds = (datetime.now(UTC) - self.start_time).total_seconds()
         if elapsed_seconds > self.config.MAX_PROCESSING_TIME_SECONDS:
             logger.warning(
                 f"Processing time ({elapsed_seconds:.1f}s) EXCEEDED limit ({self.config.MAX_PROCESSING_TIME_SECONDS}s)."
@@ -112,7 +126,7 @@ class EnhancedSharedExpenseAnalyzer:
             self.memory_usage_mb = -1 # Indicate error
         logger.info(f"Performance Check: Time={elapsed_seconds:.2f}s, Memory={self.memory_usage_mb:.2f}MB")
 
-    def analyze(self) -> Dict[str, Any]:
+    def analyze(self) -> dict[str, Any]:
         """
         Executes the full analysis pipeline by calling modular functions.
         """
@@ -202,7 +216,7 @@ class EnhancedSharedExpenseAnalyzer:
 
         # --- 6. Generate Visualizations ---
         logger.info("--- Stage 6: Generating Visualizations ---")
-        visualizations_paths: Dict[str, str] = {}
+        visualizations_paths: dict[str, str] = {}
         output_viz_dir = Path("analysis_output") # Visualizations are saved here by default
         output_viz_dir.mkdir(exist_ok=True)
 
@@ -304,7 +318,7 @@ class EnhancedSharedExpenseAnalyzer:
             "recommendations": recommendations_list,
             "output_paths": output_file_paths,
             "performance_metrics": {
-                "processing_time_seconds": round((datetime.now(timezone.utc) - self.start_time).total_seconds(), 2),
+                "processing_time_seconds": round((datetime.now(UTC) - self.start_time).total_seconds(), 2),
                 "memory_usage_mb": round(self.memory_usage_mb, 2),
                 "total_transactions_in_master_ledger": len(master_ledger_df) if not master_ledger_df.empty else 0,
             }

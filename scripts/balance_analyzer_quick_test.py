@@ -3,9 +3,10 @@
 Quick expense totals: all vs shared – NA-safe
 """
 
-import pandas as pd
 import re
 from pathlib import Path
+
+import pandas as pd
 
 DATA_DIR  = Path(__file__).resolve().parent / "data"
 csv_path  = DATA_DIR / "Expense_History_20250527.csv"

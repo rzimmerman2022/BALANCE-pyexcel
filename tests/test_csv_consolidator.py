@@ -12,15 +12,16 @@
 
 from __future__ import annotations
 
-import pytest
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+import pytest
 
 # Module to test
 from balance_pipeline.csv_consolidator import (
-    process_csv_files,
     MANDATORY_MASTER_COLS,
     _normalize_csv_header,
+    process_csv_files,
 )
 
 # --- Constants for Test Fixtures ---

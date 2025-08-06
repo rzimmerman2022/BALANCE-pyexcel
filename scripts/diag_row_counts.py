@@ -8,6 +8,7 @@ Diagnostic: print raw vs kept row counts for every CSV in data/.
 
 import pathlib
 import re
+
 import pandas as pd
 
 DATA_DIR = pathlib.Path("data")

@@ -3,9 +3,10 @@ ZELLE MATCHER - Cross-reference Zelle payments with existing expense data
 Identifies which Zelle payments are already included and which are missing
 """
 
+from datetime import datetime
+
 import pandas as pd
-from datetime import datetime, timedelta
-import numpy as np
+
 
 def load_existing_expense_data():
     """Load the existing expense data for comparison"""
@@ -218,7 +219,7 @@ def main():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     save_matching_results(matches_df, unmatched_zelle_df, timestamp)
     
-    print(f"\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("NEXT STEPS:")
     print("1. Review the match files to confirm which are duplicates")
     print("2. Use zelle_integration.py to add unmatched payments to reconciliation")

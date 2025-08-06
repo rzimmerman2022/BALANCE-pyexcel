@@ -1,5 +1,6 @@
-﻿import pandas as pd
-import pathlib
+﻿import pathlib
+
+import pandas as pd
 
 # Load latest audit file
 audit_dir = pathlib.Path("audit_reports")
@@ -24,7 +25,7 @@ print(f"Rows removed: {len(df) - len(cleaned_df)}")
 ryan_net = cleaned_df[cleaned_df['person'] == 'Ryan']['net_effect'].sum()
 jordyn_net = cleaned_df[cleaned_df['person'] == 'Jordyn']['net_effect'].sum()
 
-print(f"\nCleaned Balance:")
+print("\nCleaned Balance:")
 print(f"Ryan: ${ryan_net:,.2f}")
 print(f"Jordyn: ${jordyn_net:,.2f}")
 print(f"Total: ${ryan_net + jordyn_net:,.2f}")

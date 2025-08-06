@@ -8,6 +8,7 @@ Fixes the sign error in the rent allocation logic.
 
 import pandas as pd
 
+
 def create_truly_correct_rent_allocation():
     print("🔧 CREATING TRULY CORRECT RENT ALLOCATION")
     print("=" * 60)
@@ -66,7 +67,7 @@ def create_truly_correct_rent_allocation():
     total_jordyn_net = corrected_df['Jordyn_Net_Effect'].sum()
     total_ryan_net = corrected_df['Ryan_Net_Effect'].sum()
     
-    print(f"\n📊 TOTAL IMPACT ACROSS ALL MONTHS:")
+    print("\n📊 TOTAL IMPACT ACROSS ALL MONTHS:")
     print(f"Jordyn total owed: ${total_jordyn_net:,.2f}")
     print(f"Ryan total owes: ${abs(total_ryan_net):,.2f}")
     print(f"Balance check: ${total_jordyn_net + total_ryan_net:,.2f}")

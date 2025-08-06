@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
-from datetime import datetime, timezone
 import hashlib
-import re
 import logging
-from typing import Tuple
+import re
+from datetime import datetime
+
+import pandas as pd
 
 # Assuming config.py is in the same directory or accessible via PYTHONPATH
 from .config import AnalysisConfig, DataQualityFlag
 
 logger = logging.getLogger(__name__)
 
-def _explode_audit(audit_note: str) -> Tuple[str, str, str, str]:
+def _explode_audit(audit_note: str) -> tuple[str, str, str, str]:
     """Parse audit note into structured components."""
     if pd.isna(audit_note) or not str(audit_note).strip():
         return ("<NA>", "<NA>", "<NA>", "<NA>") # XML escaped for safety

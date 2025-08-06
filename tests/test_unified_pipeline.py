@@ -5,15 +5,16 @@ This module contains pytest test cases for the UnifiedPipeline,
 its configuration, output adapters, and overall integration.
 """
 import logging
-import pytest
-import pandas as pd
+import shutil  # For cleaning up test outputs
 from pathlib import Path
-import shutil # For cleaning up test outputs
+
+import pandas as pd
+import pytest
+from balance_pipeline.config_v2 import PipelineConfig
+from balance_pipeline.outputs import ExcelOutput, PowerBIOutput
 
 # Modules to test
 from balance_pipeline.pipeline_v2 import UnifiedPipeline
-from balance_pipeline.outputs import PowerBIOutput, ExcelOutput
-from balance_pipeline.config_v2 import PipelineConfig
 
 # Configure logging for tests
 logger = logging.getLogger(__name__)

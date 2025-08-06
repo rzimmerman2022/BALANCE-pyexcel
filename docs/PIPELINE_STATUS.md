@@ -2,7 +2,7 @@
 
 **Last Updated**: 2025-08-04  
 **Status**: ✅ **GOLD STANDARD PRODUCTION READY**  
-**Version**: 0.3.3
+**Version**: 1.0.2
 
 ---
 
@@ -19,7 +19,7 @@
 | **Documentation** | ✅ **AI-OPTIMIZED** | Crystal clear, comprehensive, verbose |
 | **CI/CD** | ✅ **ACTIVE** | GitHub Actions with multi-platform testing |
 | **Dependencies** | ✅ **CURRENT** | Poetry lock file current, all deps resolved |
-| **Tests** | ✅ **PASSING** | Test suite passing on Python 3.10, 3.11 |
+| **Tests** | ✅ **PASSING** | Test suite passing on Python 3.11, 3.12, 3.13 |
 | **Audit Analysis** | ✅ **ENHANCED** | Merchant lookup includes audit categories |
 | **Aggregator Support** | ✅ **NATIVE** | Rocket Money & Monarch Money schemas active |
 

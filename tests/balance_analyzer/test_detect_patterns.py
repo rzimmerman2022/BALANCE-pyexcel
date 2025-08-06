@@ -1,5 +1,5 @@
-from baseline_analyzer.baseline_math import _detect_patterns
 import pytest
+from baseline_analyzer.baseline_math import _detect_patterns
 
 
 @pytest.mark.parametrize(

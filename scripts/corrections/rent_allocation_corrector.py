@@ -7,7 +7,7 @@ Creates corrected rent allocation CSV with proper logic:
 """
 
 import pandas as pd
-import numpy as np
+
 
 def create_corrected_rent_allocation():
     """Create corrected rent allocation CSV"""
@@ -82,7 +82,7 @@ def create_corrected_rent_allocation():
     # Convert to DataFrame
     corrected_df = pd.DataFrame(corrected_data)
     
-    print(f"\n✅ CORRECTED ALLOCATION:")
+    print("\n✅ CORRECTED ALLOCATION:")
     print("-" * 40)
     print("Jordyn pays full rent, Ryan owes 43% back to her")
     print(f"Recent example: ${recent_total:.2f} total")
@@ -91,7 +91,7 @@ def create_corrected_rent_allocation():
     
     # Save corrected allocation
     corrected_df.to_csv("data/Consolidated_Rent_Allocation_CORRECTED_20250718.csv", index=False)
-    print(f"\n💾 Saved corrected allocation: data/Consolidated_Rent_Allocation_CORRECTED_20250718.csv")
+    print("\n💾 Saved corrected allocation: data/Consolidated_Rent_Allocation_CORRECTED_20250718.csv")
     
     # Calculate total impact
     total_months = len(corrected_df)

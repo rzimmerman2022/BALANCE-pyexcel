@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: cli_merchant.py
@@ -9,11 +8,10 @@ Description: CLI sub-commands for managing merchant rules.
 
 import argparse
 import csv
+import logging
 import re
 import sys
 from pathlib import Path
-import logging
-from typing import Optional  # Added Optional
 
 # Local application imports
 from . import config
@@ -41,7 +39,7 @@ __all__ = ["add_merchant_rule", "MERCHANT_RULES_FILENAME", "RULES_DIR"]
 
 
 def add_merchant_rule(
-    pattern: str, canonical_name: str, rules_file: Optional[Path] = None
+    pattern: str, canonical_name: str, rules_file: Path | None = None
 ) -> None:  # Added Optional and -> None
     """
     Adds a new merchant rule to the merchant_lookup.csv file.
@@ -85,7 +83,7 @@ def add_merchant_rule(
             writer.writerow([pattern, canonical_name])
         log.info(f"Rule added: '{pattern}' -> '{canonical_name}' to {rules_file}")
         print("Rule added - Refresh in Excel to apply.")  # Standard output for user
-    except IOError as e:
+    except OSError as e:
         log.error(f"Error writing to rules file {rules_file}: {e}")
         print(
             f"Error: Could not write to rules file {rules_file}. Details: {e}",

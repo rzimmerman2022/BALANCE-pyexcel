@@ -18,13 +18,13 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
-def analyze(path: Path) -> List[Dict[str, Any]]:
+def analyze(path: Path) -> list[dict[str, Any]]:
     source = path.read_text()
     tree = ast.parse(source)
-    functions: List[Dict[str, Any]] = []
+    functions: list[dict[str, Any]] = []
     for node in tree.body:
         if isinstance(node, ast.FunctionDef):
             calls = {

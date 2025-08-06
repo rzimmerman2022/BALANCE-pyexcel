@@ -4,9 +4,8 @@ from pathlib import Path
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from rich.console import Console
-
 from baseline_analyzer.baseline_math import build_baseline
+from rich.console import Console
 
 console = Console()
 

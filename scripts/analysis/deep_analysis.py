@@ -3,6 +3,7 @@ Deep dive analysis to find the exact source of the system imbalance
 """
 import pandas as pd
 
+
 def main():
     print("=== DEEP DIVE IMBALANCE ANALYSIS ===")
     
@@ -22,7 +23,7 @@ def main():
     print(f"Total system imbalance: ${details['Net_Effect'].sum():.2f}")
     
     # Let's also check the original source files to see what we're missing
-    print(f"\n=== CHECKING ORIGINAL SOURCE FILES ===")
+    print("\n=== CHECKING ORIGINAL SOURCE FILES ===")
     
     # Check expense file
     expense_file = pd.read_csv("data/Consolidated_Expense_History_20250622.csv")
@@ -40,10 +41,10 @@ def main():
     # Count by person in 2024+ data
     if len(expense_2024_plus) > 0:
         person_counts = expense_2024_plus['Name'].value_counts()
-        print(f"2024+ expense breakdown by person:")
+        print("2024+ expense breakdown by person:")
         print(person_counts)
     
-    print(f"\n*** POTENTIAL ISSUE ***")
+    print("\n*** POTENTIAL ISSUE ***")
     print(f"We should have ~{len(expense_2024_plus)} expense transactions from 2024+")
     print(f"But our audit trail only has {len(details[details['Source'] == 'Expense'])} expense transactions")
     print(f"We may be missing {len(expense_2024_plus) - len(details[details['Source'] == 'Expense'])} transactions!")
@@ -59,7 +60,7 @@ def main():
     # If it doesn't, that's part of our imbalance
     
     # Look at expense transactions in detail
-    print(f"\n=== EXPENSE BREAKDOWN ===")
+    print("\n=== EXPENSE BREAKDOWN ===")
     
     # Categorize expenses
     expenses_allowed_zero = expense_trans[expense_trans['Share_Owed'] == 0]
@@ -94,13 +95,13 @@ def main():
     
     # Show some examples of partially allowed expenses
     if len(expenses_partial_allowed) > 0:
-        print(f"\n=== PARTIAL ALLOWANCE EXAMPLES ===")
+        print("\n=== PARTIAL ALLOWANCE EXAMPLES ===")
         print("Top 10 partially allowed expenses:")
         partial_sorted = expenses_partial_allowed.sort_values('Net_Effect', ascending=False)
         print(partial_sorted[['Person', 'Description', 'Amount_Paid', 'Share_Owed', 'Net_Effect']].head(10))
     
     # Final summary
-    print(f"\n=== CORRECTED FINAL SUMMARY ===")
+    print("\n=== CORRECTED FINAL SUMMARY ===")
     
     # Calculate the true amounts owed
     ryan_data = details[details['Person'] == 'Ryan']

@@ -9,9 +9,11 @@ Tax Garage - Residential,$100.00,$40.00,$100.00,$43.00,...
 Melts this into tall format with separate transactions.
 """
 
-import pandas as pd
 import pathlib
 import re
+
+import pandas as pd
+
 from ..column_utils import normalize_cols
 
 

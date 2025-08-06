@@ -24,10 +24,9 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import pandas as pd
-
 from analyzer import AnalysisConfig
 
 try:
@@ -47,7 +46,7 @@ LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-def setup_logging(log_dir: Optional[Path] = None) -> None:
+def setup_logging(log_dir: Path | None = None) -> None:
     """
     Configure logging with both file and console handlers.
     
@@ -81,7 +80,7 @@ def setup_logging(log_dir: Optional[Path] = None) -> None:
     logger.info("Log file: %s", log_file)
 
 
-def validate_data_files(data_dir: Path) -> Dict[str, Path]:
+def validate_data_files(data_dir: Path) -> dict[str, Path]:
     """
     Validate that all required data files exist.
     
@@ -122,8 +121,8 @@ def validate_data_files(data_dir: Path) -> Dict[str, Path]:
 
 
 def load_and_validate_data(
-    file_paths: Dict[str, Path]
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    file_paths: dict[str, Path]
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load all data files and perform basic validation.
     
@@ -179,7 +178,7 @@ def run_debug_calculation(
     ledger_df: pd.DataFrame,
     rent_alloc_df: pd.DataFrame,
     rent_hist_df: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Run the core balance calculation with detailed logging.
     
@@ -227,7 +226,7 @@ def run_debug_calculation(
     return result
 
 
-def save_results(result: Dict[str, Any], output_dir: Path) -> Path:
+def save_results(result: dict[str, Any], output_dir: Path) -> Path:
     """
     Save calculation results to JSON file.
     

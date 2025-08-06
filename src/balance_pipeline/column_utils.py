@@ -2,9 +2,9 @@
 Canonical Transaction Schema (CTS) utilities for balance pipeline.
 Ensures all DataFrames conform to a single schema before concatenation.
 """
-import pandas as pd
 import re
-from typing import Dict, Set
+
+import pandas as pd
 
 # Canonical Transaction Schema - all loaders must return this exact schema
 CTS = [
@@ -13,10 +13,10 @@ CTS = [
 ]
 
 # Money columns that need special parsing and dtype enforcement
-CTS_MONEY_COLS: Set[str] = {'actual_amount', 'allowed_amount'}
+CTS_MONEY_COLS: set[str] = {'actual_amount', 'allowed_amount'}
 
 # Central column alias mapping - all variants map to CTS names
-COLUMN_ALIASES: Dict[str, str] = {
+COLUMN_ALIASES: dict[str, str] = {
     # Date variants
     'date of purchase': 'date',
     'month': 'date',

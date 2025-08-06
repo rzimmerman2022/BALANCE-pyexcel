@@ -21,17 +21,17 @@ def verify_rent_logic():
     ryan_share_amount = total_rent * ryan_share_percent
     jordyn_share_amount = total_rent - ryan_share_amount
     
-    print(f"\nCORRECT ALLOCATION:")
+    print("\nCORRECT ALLOCATION:")
     print(f"Ryan should pay: ${ryan_share_amount:,.2f}")
     print(f"Jordyn should pay: ${jordyn_share_amount:,.2f}")
     
     # Current situation: Jordyn pays full rent
-    print(f"\nCURRENT SITUATION:")
+    print("\nCURRENT SITUATION:")
     print(f"Jordyn actually pays: ${total_rent:,.2f}")
-    print(f"Ryan actually pays: $0.00")
+    print("Ryan actually pays: $0.00")
     
     # Net effects (what should be recorded):
-    print(f"\nNET EFFECTS (what should be in audit trail):")
+    print("\nNET EFFECTS (what should be in audit trail):")
     
     # Jordyn: Paid more than her share, so she's OWED money (positive balance)
     jordyn_net = ryan_share_amount  # She's owed Ryan's share
@@ -47,7 +47,7 @@ def verify_rent_logic():
     return jordyn_net, ryan_net
 
 def check_current_rent_data():
-    print(f"\n🔍 CHECKING CURRENT RENT DATA:")
+    print("\n🔍 CHECKING CURRENT RENT DATA:")
     print("=" * 50)
     
     import pandas as pd
@@ -65,16 +65,16 @@ def check_current_rent_data():
     print(f"Ryan pays: ${first_month['Ryan_Pays']:,.2f}")  
     print(f"Ryan net effect: ${first_month['Ryan_Net_Effect']:,.2f}")
     
-    print(f"\n⚠️  PROBLEM IDENTIFIED:")
+    print("\n⚠️  PROBLEM IDENTIFIED:")
     if first_month['Jordyn_Net_Effect'] < 0:
         print(f"Jordyn's net effect is NEGATIVE (${first_month['Jordyn_Net_Effect']:,.2f})")
-        print(f"This means she OWES money, but she paid the full rent!")
-        print(f"This is backwards - she should have a POSITIVE net effect.")
+        print("This means she OWES money, but she paid the full rent!")
+        print("This is backwards - she should have a POSITIVE net effect.")
     
     if first_month['Ryan_Net_Effect'] > 0:
         print(f"Ryan's net effect is POSITIVE (${first_month['Ryan_Net_Effect']:,.2f})")
-        print(f"This means he's OWED money, but he paid nothing!")
-        print(f"This is backwards - he should have a NEGATIVE net effect.")
+        print("This means he's OWED money, but he paid nothing!")
+        print("This is backwards - he should have a NEGATIVE net effect.")
 
 if __name__ == "__main__":
     verify_rent_logic()

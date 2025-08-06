@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: ingest.py
@@ -20,14 +19,18 @@ Author: Your Name / AI Assistant
 # ==============================================================================
 from __future__ import (
     annotations,
-)  # Ensures compatibility with type hints like str | Path
+)
+
+import logging
+import re
+
+# Ensures compatibility with type hints like str | Path
 from pathlib import Path
-from typing import Any, List, Dict  # Added for F821, List, Dict
+from typing import Any  # Added for F821, List, Dict
+
 import pandas as pd
 import yaml
-import re
-import logging
-from balance_pipeline.errors import RecoverableFileError, FatalSchemaError
+from balance_pipeline.errors import FatalSchemaError, RecoverableFileError
 from balance_pipeline.schema_registry import load_registry
 
 # Local application imports
@@ -67,7 +70,7 @@ STANDARD_COLS = [
 # The schema registry defines the rules for processing each different CSV format.
 # It's loaded once when this module is imported using the path from config.
 _SCHEMA_REGISTRY_PATH = config.SCHEMA_REGISTRY_PATH  # Use path from config
-_SCHEMAS: List[Dict[str, Any]] = []  # Initialize as empty list # Updated type hint
+_SCHEMAS: list[dict[str, Any]] = []  # Initialize as empty list # Updated type hint
 
 try:
     _SCHEMAS = load_registry(
@@ -100,7 +103,7 @@ except Exception as e:
 # ------------------------------------------------------------------------------
 def _find_schema(
     csv_path: Path, df_head: pd.DataFrame
-) -> Dict[str, Any] | None:  # Updated type hint
+) -> dict[str, Any] | None:  # Updated type hint
     """
     Finds the appropriate schema from the loaded registry (_SCHEMAS) that matches
     the given CSV file based on filename patterns and required header columns.
@@ -257,7 +260,7 @@ def _apply_sign_rule(df: pd.DataFrame, rule: str | None) -> pd.DataFrame:
 # Function: _derive_columns
 # ------------------------------------------------------------------------------
 def _derive_columns(
-    df: pd.DataFrame, derived_cfg: Dict[str, Any] | None
+    df: pd.DataFrame, derived_cfg: dict[str, Any] | None
 ) -> pd.DataFrame:  # Updated type hint
     """
     Derives new columns based on rules defined in the schema's 'derived_columns' section.

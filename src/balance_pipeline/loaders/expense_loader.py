@@ -10,10 +10,11 @@ Name,Date of Purchase,Account,Merchant, Actual Amount , Allowed Amount , Descrip
 [data rows]
 """
 
-import pandas as pd
 import pathlib
 from io import StringIO
-from typing import List
+
+import pandas as pd
+
 from ..column_utils import normalize_cols
 
 
@@ -43,7 +44,7 @@ def load_expense_history(data_dir: pathlib.Path) -> pd.DataFrame:
         return pd.DataFrame()
     
     # Read all lines
-    with open(expense_file, 'r', encoding='utf-8', errors='ignore') as f:
+    with open(expense_file, encoding='utf-8', errors='ignore') as f:
         lines = f.readlines()
     
     # Find all header lines (contain "Date of Purchase")

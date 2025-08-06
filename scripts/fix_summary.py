@@ -4,8 +4,9 @@ Quick fix to display the analysis results that were already generated
 """
 
 import json
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
+
 
 def display_analysis_results():
     """Load and display the analysis results with proper error handling"""
@@ -17,7 +18,7 @@ def display_analysis_results():
         print("[ERROR] Results file not found. Please run the analysis first.")
         return
     
-    with open(results_path, 'r') as f:
+    with open(results_path) as f:
         results = json.load(f)
     
     # Print header
@@ -73,12 +74,12 @@ def display_analysis_results():
                     
                     adj_types = allowed.get('adjustment_types', {})
                     if adj_types:
-                        print(f"  - Adjustment Breakdown:")
+                        print("  - Adjustment Breakdown:")
                         for adj_type, count in adj_types.items():
                             print(f"    * {adj_type}: {count}")
                 
                 if 'person_breakdown' in analysis:
-                    print(f"  - Transaction Count by Person:")
+                    print("  - Transaction Count by Person:")
                     for person, stats in analysis['person_breakdown'].items():
                         print(f"    * {person}: {stats['transaction_count']} transactions, ${stats['total_allowed']:,.2f} allowed")
             
@@ -131,7 +132,7 @@ def display_analysis_results():
     # Duplicate analysis
     dup_analysis = results.get('duplicate_analysis', {})
     if dup_analysis:
-        print(f"\n[DUPLICATE ANALYSIS]")
+        print("\n[DUPLICATE ANALYSIS]")
         print("-"*40)
         dup_count = len(dup_analysis.get('potential_duplicates', []))
         cross_file = dup_analysis.get('cross_file_matches', 0)
@@ -147,7 +148,7 @@ def display_analysis_results():
     # Business rules
     rules = results.get('business_rules', {})
     if rules and 'core_rules' in rules:
-        print(f"\n[DISCOVERED BUSINESS RULES]")
+        print("\n[DISCOVERED BUSINESS RULES]")
         print("-"*40)
         for rule in rules['core_rules'][:5]:  # Show top 5 rules
             print(f"  {rule['priority']}. {rule['rule']}")
@@ -157,7 +158,7 @@ def display_analysis_results():
     # Recommendations
     recommendations = results.get('recommendations', [])
     if recommendations:
-        print(f"\n[TOP RECOMMENDATIONS]")
+        print("\n[TOP RECOMMENDATIONS]")
         print("-"*40)
         for rec in recommendations[:3]:
             print(f"  [{rec['priority']}] {rec['recommendation']}")
@@ -166,7 +167,7 @@ def display_analysis_results():
     
     # Pattern examples
     if 'pattern_examples' in results:
-        print(f"\n[PATTERN EXAMPLES]")
+        print("\n[PATTERN EXAMPLES]")
         print("-"*40)
         examples = results['pattern_examples']
         for pattern, pattern_examples in list(examples.items())[:3]:  # Show 3 pattern types

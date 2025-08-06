@@ -8,9 +8,9 @@ This module is intentionally self-contained:
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 import os
+from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -57,13 +57,13 @@ class Settings(BaseSettings):
     date_col: str
     baseline_floor_date: str
     # ─── Sprint-5 additions ────────────────────────────────────────────
-    column_map: Dict[str, str] = {}  # noqa: RUF012
-    person_aliases: Dict[str, List[str]] = {}
+    column_map: dict[str, str] = {}  # noqa: RUF012
+    person_aliases: dict[str, list[str]] = {}
     header_noise_regex: str = ""
-    patterns: Dict[str, str] = {}
-    rent_share: Dict[str, float] = {}
+    patterns: dict[str, str] = {}
+    rent_share: dict[str, float] = {}
     rounding_tolerance: float = 0.0
-    audit_columns: List[str] = []
+    audit_columns: list[str] = []
 
     # Pydantic-settings configuration: env overrides + immutability
     model_config = SettingsConfigDict(env_prefix="BA_", frozen=True)

@@ -14,6 +14,7 @@ import os
 
 import pandas as pd
 
+
 def load_corrected_audit_trail():
     """Load the corrected audit trail"""
     files = [f for f in os.listdir('.') if f.startswith('corrected_audit_trail_with_rent_fix_')]

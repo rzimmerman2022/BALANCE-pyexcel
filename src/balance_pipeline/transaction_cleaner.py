@@ -4,13 +4,14 @@ Provides comprehensive data-driven cleaning for transaction descriptions and mer
 Based on analysis of actual transaction patterns
 """
 
-import re
-import pandas as pd
-import numpy as np
-from typing import Dict, Optional, Any
-import logging
 import json
+import logging
+import re
 from pathlib import Path
+from typing import Any
+
+import numpy as np
+import pandas as pd
 
 log = logging.getLogger(__name__)
 
@@ -21,12 +22,12 @@ class ComprehensiveTransactionCleaner:
     based on the analysis results.
     """
     
-    def __init__(self, analysis_results_path: Optional[Path] = None):
+    def __init__(self, analysis_results_path: Path | None = None):
         """Initialize with patterns from analysis or defaults"""
-        self.analysis_results: Dict[str, Any] = {}
-        self.recommendations: Dict[str, Any] = {} # For cleaning_recommendations.json
-        self.merchant_standardization: Dict[str, str] = {} # For merchant_variations.json
-        self.analysis_results_path: Optional[Path] = analysis_results_path # Store for later use
+        self.analysis_results: dict[str, Any] = {}
+        self.recommendations: dict[str, Any] = {} # For cleaning_recommendations.json
+        self.merchant_standardization: dict[str, str] = {} # For merchant_variations.json
+        self.analysis_results_path: Path | None = analysis_results_path # Store for later use
 
         if self.analysis_results_path:
             self.load_analysis_results(self.analysis_results_path) # Loads full_column_analysis & recommendations
@@ -43,7 +44,7 @@ class ComprehensiveTransactionCleaner:
             # Load the full analysis
             analysis_file = results_path / 'full_column_analysis.json'
             if analysis_file.exists():
-                with open(analysis_file, 'r') as f:
+                with open(analysis_file) as f:
                     self.analysis_results = json.load(f)
                 log.info(f"Loaded analysis results from {analysis_file}")
             else:
@@ -52,7 +53,7 @@ class ComprehensiveTransactionCleaner:
             # Load cleaning recommendations
             recommendations_file = results_path / 'cleaning_recommendations.json'
             if recommendations_file.exists():
-                with open(recommendations_file, 'r') as f:
+                with open(recommendations_file) as f:
                     self.recommendations = json.load(f)
                 log.info(f"Loaded cleaning recommendations from {recommendations_file}")
             else:
@@ -124,7 +125,7 @@ class ComprehensiveTransactionCleaner:
             merchant_variations_file = self.analysis_results_path / 'merchant_variations.json'
             if merchant_variations_file.exists():
                 try:
-                    with open(merchant_variations_file, 'r') as f:
+                    with open(merchant_variations_file) as f:
                         # Assuming the JSON is a flat dict of pattern: replacement
                         loaded_rules = json.load(f)
                         # The patterns are direct strings, not regex, so we store them as is.
@@ -475,7 +476,7 @@ class ComprehensiveTransactionCleaner:
 
 # Integration helper for csv_consolidator.py
 def apply_comprehensive_cleaning(df: pd.DataFrame, 
-                               analysis_path: Optional[Path] = None) -> pd.DataFrame:
+                               analysis_path: Path | None = None) -> pd.DataFrame:
     """
     Main entry point for comprehensive cleaning.
     Call this from csv_consolidator.py after schema transformations.

@@ -1,8 +1,8 @@
+import importlib
 import pathlib
 import re
 import textwrap
 import warnings
-import importlib
 
 import numpy as np
 import pandas as pd
@@ -102,13 +102,15 @@ for p in all_paths:
 # ------------------------------------------------------------------------------
 # 4  BUILD DATA FRAMES
 # ------------------------------------------------------------------------------
-from src.balance_pipeline.data_loader import load_all_data
+
 from baseline_analyzer import baseline_math as bm
-import importlib
+
+from src.balance_pipeline.data_loader import load_all_data
 
 # Reload modules to pick up changes
 importlib.reload(bm)
 from src.balance_pipeline import data_loader
+
 importlib.reload(data_loader)
 
 df = load_all_data(DATA_DIR)

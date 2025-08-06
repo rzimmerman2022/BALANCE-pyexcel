@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: test_cli_retry.py
@@ -7,10 +6,11 @@ Description: Unit tests for the Parquet write retry logic in cli.py
 ==============================================================================
 """
 
-import pandas as pd
-from pathlib import Path
 import time
-from unittest.mock import patch, call, MagicMock
+from pathlib import Path
+from unittest.mock import MagicMock, call, patch
+
+import pandas as pd
 
 # Assuming cli.py is structured such that 'main' can be called or relevant parts tested.
 # For this specific test, we might need to refactor cli.main or test a helper function
@@ -18,7 +18,6 @@ from unittest.mock import patch, call, MagicMock
 # However, the user asked to monkeypatch to_parquet, implying we're testing its usage within a flow.
 # Let's assume we can trigger the relevant part of cli.main or a similar function.
 # For simplicity, we'll mock the to_parquet method on a DataFrame instance.
-
 from balance_pipeline import cli  # To access the main function or relevant parts
 
 # A minimal DataFrame for testing
@@ -88,7 +87,7 @@ def test_parquet_write_succeeds_on_retry(monkeypatch, caplog):
                     f"Successfully wrote Parquet file on attempt {attempt + 1}/{max_retries_in_cli}."
                 )
                 break
-            except (IOError, PermissionError, OSError) as e:
+            except (PermissionError, OSError) as e:
                 mock_log_warning(
                     f"Parquet write attempt {attempt + 1}/{max_retries_in_cli} failed: {e}"
                 )
@@ -180,7 +179,7 @@ def test_parquet_write_fails_after_all_retries(monkeypatch, caplog):
                     f"Successfully wrote Parquet file on attempt {attempt + 1}/{max_retries_in_cli}."
                 )
                 break
-            except (IOError, PermissionError, OSError) as e:
+            except (PermissionError, OSError) as e:
                 mock_log_warning(
                     f"Parquet write attempt {attempt + 1}/{max_retries_in_cli} failed: {e}"
                 )

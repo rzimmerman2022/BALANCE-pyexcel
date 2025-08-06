@@ -3,10 +3,10 @@ Detailed Transaction Count Analysis
 Let's trace exactly what happens to every transaction at each filtering step
 """
 
-import pandas as pd
 from datetime import datetime
-import numpy as np
-import os
+
+import pandas as pd
+
 
 def clean_currency_string(value):
     """Convert currency strings like '$1,946.00 ' to float"""
@@ -64,7 +64,7 @@ def analyze_expense_data_step_by_step():
         
     except Exception as e:
         print(f"Error loading data: {e}")
-        return
+        return None
     
     # Step 2: Remove header rows
     print("\nSTEP 2: Removing header rows")
@@ -146,7 +146,7 @@ def analyze_rent_data_step_by_step():
         
     except Exception as e:
         print(f"Error loading rent data: {e}")
-        return
+        return None
     
     # Step 2: Process dates
     print("\nSTEP 2: Date processing")
@@ -216,7 +216,7 @@ def main():
         print(f"TOTAL TRANSACTIONS: {total}")
         
         # Compare to our expected 1,206
-        print(f"Expected from our system: 1,206")
+        print("Expected from our system: 1,206")
         print(f"Difference: {total - 1206}")
 
 if __name__ == "__main__":

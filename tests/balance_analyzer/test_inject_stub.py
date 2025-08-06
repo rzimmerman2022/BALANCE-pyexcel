@@ -6,9 +6,8 @@ identical DataFrame (values and index preserved).
 from __future__ import annotations
 
 import pandas as pd
-from pandas.testing import assert_frame_equal
-
 from baseline_analyzer import inject_opening_balance, load_config
+from pandas.testing import assert_frame_equal
 
 
 def test_inject_opening_balance_noop() -> None:

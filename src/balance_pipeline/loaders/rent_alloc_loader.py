@@ -8,8 +8,10 @@ Jan-24,"$1,946.00 ",$100.00 ,$29.00 ,$15.00 ,$29.72 ,"$2,119.72 ",$911.48 ,"$1,2
 Creates separate rows for Ryan and Jordyn with their respective amounts.
 """
 
-import pandas as pd
 import pathlib
+
+import pandas as pd
+
 from ..column_utils import normalize_cols
 
 

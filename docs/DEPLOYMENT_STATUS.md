@@ -28,7 +28,7 @@
 - **✅ FEATURES**: PyInstaller executable building, artifact management
 
 ### Build System & Dependencies
-- **✅ CURRENT**: `pyproject.toml` - Complete Poetry configuration (v0.3.1)
+- **✅ CURRENT**: `pyproject.toml` - Complete Poetry configuration (v1.0.2)
 - **✅ CURRENT**: All runtime and development dependencies specified
 - **✅ CURRENT**: 5 CLI entry points defined and functional
 - **✅ CURRENT**: Comprehensive tool configurations (ruff, mypy, pytest)
@@ -168,7 +168,7 @@ pyinstaller --onefile --name balance-pyexcel src/balance_pipeline/cli.py
 ✅ src/balance_pipeline/pipeline_v2.py (PRESENT)
 ✅ src/balance_pipeline/main.py (PRESENT)  
 ✅ .github/workflows/ci.yml (PRESENT)
-✅ pyproject.toml (CURRENT - v0.3.1)
+✅ pyproject.toml (CURRENT - v1.0.2)
 ```
 
 ---

@@ -5,6 +5,7 @@ Generates optimized datasets for Power BI dashboard consumption
 
 import pandas as pd
 
+
 def generate_powerbi_datasets():
     """Generate comprehensive datasets optimized for Power BI visualization"""
     

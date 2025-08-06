@@ -5,6 +5,7 @@ Confirms all numbers match between our analysis and the actual system
 
 import pandas as pd
 
+
 def verify_system():
     print("=" * 80)
     print("FINAL SYSTEM VERIFICATION")
@@ -21,13 +22,13 @@ def verify_system():
         expense_count = len(df[df['Source'] == 'Expense'])
         rent_count = len(df[df['Source'] == 'Rent'])
         
-        print(f"\n📊 TRANSACTION BREAKDOWN:")
+        print("\n📊 TRANSACTION BREAKDOWN:")
         print(f"• Expense transactions: {expense_count}")
         print(f"• Rent transactions: {rent_count}")
         print(f"• Total: {expense_count + rent_count}")
         
         # Verify our expected counts
-        print(f"\n🔍 VERIFICATION:")
+        print("\n🔍 VERIFICATION:")
         print(f"• Expected expense: 1,170 → Actual: {expense_count} {'✅' if expense_count == 1170 else '❌'}")
         print(f"• Expected rent: 36 → Actual: {rent_count} {'✅' if rent_count == 36 else '❌'}")
         print(f"• Expected total: 1,206 → Actual: {len(df)} {'✅' if len(df) == 1206 else '❌'}")
@@ -35,7 +36,7 @@ def verify_system():
         # Check final balances
         final_balances = df.groupby('Person')['Running_Balance'].last()
         
-        print(f"\n💰 FINAL BALANCES:")
+        print("\n💰 FINAL BALANCES:")
         for person, balance in final_balances.items():
             if balance < 0:
                 print(f"• {person}: ${balance:,.2f} (is owed ${abs(balance):,.2f})")
@@ -59,7 +60,7 @@ def verify_system():
         missing_source = df[df['Source_File'].isna() | (df['Source_File'] == '')]
         missing_row = df[df['Original_Row'].isna()]
         
-        print(f"\n🔗 SOURCE REFERENCES:")
+        print("\n🔗 SOURCE REFERENCES:")
         print(f"• Transactions with source file: {len(df) - len(missing_source)}/{len(df)}")
         print(f"• Transactions with row number: {len(df) - len(missing_row)}/{len(df)}")
         
@@ -73,7 +74,7 @@ def verify_system():
         min_date = df['Date'].min()
         max_date = df['Date'].max()
         
-        print(f"\n📅 DATE RANGE:")
+        print("\n📅 DATE RANGE:")
         print(f"• From: {min_date.strftime('%Y-%m-%d')}")
         print(f"• To: {max_date.strftime('%Y-%m-%d')}")
         print(f"• Spans: {(max_date - min_date).days} days")

@@ -4,9 +4,11 @@ Analyzes the comprehensive audit trail to identify any remaining inconsistent ro
 and document edge cases or unusual transactions for future system improvement.
 """
 
-import pandas as pd
-from datetime import datetime
 import pathlib
+from datetime import datetime
+
+import pandas as pd
+
 
 def analyze_issues():
     """Main function to run the issue analysis."""

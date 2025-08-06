@@ -4,14 +4,15 @@ Comprehensive Balance Analyzer for BALANCE-pyexcel
 Processes all four file types without context window limitations
 """
 
-import pandas as pd
-import numpy as np
-import re
 import json
-from pathlib import Path
-from datetime import datetime
-from collections import defaultdict, Counter
 import logging
+import re
+from collections import Counter, defaultdict
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ class SmartCSVReader:
         header_keywords = ['Name', 'Date', 'Amount', 'Merchant', 'Description', 
                           'Account', 'Month', 'Rent', 'Category', 'Balance']
         
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             for i in range(max_rows):
                 line = f.readline()
                 if not line:
@@ -451,9 +452,7 @@ class ComprehensiveAnalyzer:
             for col in df.columns:
                 if 'Date' in col:
                     date_col = col
-                if 'Amount' in col and 'Actual' in col:
-                    amount_col = col
-                elif 'Amount' in col and amount_col is None:
+                if 'Amount' in col and 'Actual' in col or 'Amount' in col and amount_col is None:
                     amount_col = col
             
             if date_col and amount_col:
@@ -727,7 +726,7 @@ class ComprehensiveAnalyzer:
         if 'duplicate_analysis' in self.results:
             dup_count = len(self.results['duplicate_analysis']['potential_duplicates'])
             cross_file = self.results['duplicate_analysis']['cross_file_matches']
-            print(f"\n[DUPLICATE ANALYSIS]")
+            print("\n[DUPLICATE ANALYSIS]")
             print(f"  - Potential Duplicates: {dup_count}")
             print(f"  - Cross-File Matches: {cross_file}")
         

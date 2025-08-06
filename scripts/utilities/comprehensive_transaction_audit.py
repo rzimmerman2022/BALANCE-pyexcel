@@ -3,8 +3,10 @@ COMPREHENSIVE TRANSACTION AUDIT REPORT
 Lists every single transaction with complete source details for manual review
 """
 
-import pandas as pd
 from datetime import datetime
+
+import pandas as pd
+
 
 def generate_comprehensive_audit():
     """Generate a detailed transaction-by-transaction audit report"""
@@ -24,14 +26,14 @@ def generate_comprehensive_audit():
             print(f"✅ Loaded enhanced audit trail: {len(audit_df)} transactions")
         except:
             print("❌ Could not load audit trail file")
-            return
+            return None
     
     # Convert date for sorting
     audit_df['Date'] = pd.to_datetime(audit_df['Date'])
     audit_df = audit_df.sort_values(['Date', 'Transaction_Number']).reset_index(drop=True)
     
     # Create detailed audit report
-    print(f"\n📊 AUDIT SUMMARY:")
+    print("\n📊 AUDIT SUMMARY:")
     print(f"  • Total transactions: {len(audit_df)}")
     print(f"  • Date range: {audit_df['Date'].min().strftime('%Y-%m-%d')} to {audit_df['Date'].max().strftime('%Y-%m-%d')}")
     print(f"  • Sources: {', '.join(audit_df['Source'].unique())}")
@@ -77,7 +79,7 @@ def generate_comprehensive_audit():
     print(f"✅ Detailed audit report saved: {detailed_report_file}")
     
     # Generate summary by source
-    print(f"\n📋 TRANSACTION BREAKDOWN BY SOURCE:")
+    print("\n📋 TRANSACTION BREAKDOWN BY SOURCE:")
     source_summary = audit_df.groupby(['Source', 'Source_File']).agg({
         'Transaction_Number': 'count',
         'Amount_Paid': 'sum'
@@ -89,7 +91,7 @@ def generate_comprehensive_audit():
         print(f"  {source} ({source_file}): {count} transactions, ${total:,.2f} total")
     
     # Show first 10 transactions as sample
-    print(f"\n📄 SAMPLE TRANSACTIONS (first 10):")
+    print("\n📄 SAMPLE TRANSACTIONS (first 10):")
     print("-" * 100)
     
     sample_cols = ['Transaction_Number', 'Date', 'Person', 'Description', 'Amount_Paid', 'Source_File', 'Original_Row']
@@ -103,7 +105,7 @@ def generate_comprehensive_audit():
     print("... (see full CSV file for all transactions)")
     
     # Generate verification checklist
-    print(f"\n✅ VERIFICATION CHECKLIST:")
+    print("\n✅ VERIFICATION CHECKLIST:")
     print("For each transaction in the CSV file, verify:")
     print("  1. Date is correct")
     print("  2. Person is correct (Ryan or Jordyn)")
@@ -117,19 +119,19 @@ def generate_comprehensive_audit():
     missing_original_row = audit_df[audit_df['Original_Row'].isna()]
     
     if len(missing_source_file) > 0 or len(missing_original_row) > 0:
-        print(f"\n⚠️  WARNING - MISSING SOURCE REFERENCES:")
+        print("\n⚠️  WARNING - MISSING SOURCE REFERENCES:")
         if len(missing_source_file) > 0:
             print(f"  • {len(missing_source_file)} transactions missing source file")
         if len(missing_original_row) > 0:
             print(f"  • {len(missing_original_row)} transactions missing original row number")
     else:
-        print(f"\n✅ All transactions have complete source references!")
+        print("\n✅ All transactions have complete source references!")
     
     return detailed_report_file
 
 def generate_source_file_cross_reference():
     """Generate a cross-reference showing which source rows were used"""
-    print(f"\n" + "=" * 100)
+    print("\n" + "=" * 100)
     print("SOURCE FILE CROSS-REFERENCE")
     print("Shows which rows from each source file were included in the reconciliation")
     print("=" * 100)
@@ -165,11 +167,11 @@ def generate_source_file_cross_reference():
                 if missing_rows:
                     print(f"  • Missing rows in range: {missing_rows[:10]}{'...' if len(missing_rows) > 10 else ''}")
                 else:
-                    print(f"  • No gaps in row sequence")
+                    print("  • No gaps in row sequence")
         
         # Show sample transactions from this file
         sample = file_transactions[['Transaction_Number', 'Date', 'Person', 'Description', 'Original_Row']].head(3)
-        print(f"  • Sample transactions:")
+        print("  • Sample transactions:")
         for _, row in sample.iterrows():
             print(f"    #{row['Transaction_Number']} | Row {row['Original_Row']:.0f} | {row['Person']} | {row['Description'][:60]}...")
 
@@ -182,22 +184,22 @@ def main():
     # Generate source file cross-reference
     generate_source_file_cross_reference()
     
-    print(f"\n" + "=" * 100)
+    print("\n" + "=" * 100)
     print("AUDIT REPORTS GENERATED")
     print("=" * 100)
     print(f"📁 Main audit file: {audit_file}")
-    print(f"📋 This file contains every transaction with:")
-    print(f"   • Transaction number and date")
-    print(f"   • Person (Ryan/Jordyn)")
-    print(f"   • Complete description")
-    print(f"   • All amounts (paid, owed, net effect)")
-    print(f"   • Source file name and original row number")
-    print(f"   • Full explanation of each transaction")
-    print(f"")
-    print(f"🔍 Open the CSV file in Excel to review each transaction")
-    print(f"📝 You can add a 'Verified' column to check off each one")
-    print(f"⚠️  Pay special attention to transactions you don't recognize")
-    print(f"")
+    print("📋 This file contains every transaction with:")
+    print("   • Transaction number and date")
+    print("   • Person (Ryan/Jordyn)")
+    print("   • Complete description")
+    print("   • All amounts (paid, owed, net effect)")
+    print("   • Source file name and original row number")
+    print("   • Full explanation of each transaction")
+    print("")
+    print("🔍 Open the CSV file in Excel to review each transaction")
+    print("📝 You can add a 'Verified' column to check off each one")
+    print("⚠️  Pay special attention to transactions you don't recognize")
+    print("")
     print("=" * 100)
 
 if __name__ == "__main__":

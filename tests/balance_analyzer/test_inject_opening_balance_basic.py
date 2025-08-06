@@ -5,10 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
-from pandas.testing import assert_frame_equal
-
 from baseline_analyzer import inject_opening_balance, load_config
-
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 CSV_PATH = FIXTURE_DIR / "mini.csv"

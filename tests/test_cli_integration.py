@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Integration tests for the command-line interface
 """
@@ -7,14 +6,15 @@ import os
 import subprocess
 import zipfile
 from pathlib import Path
-import pytest
-import pandas as pd
-from pandas.testing import assert_frame_equal  # Added for F821
+
 import openpyxl  # For creating more realistic Excel files
+import pandas as pd
+import pytest
+from balance_pipeline.normalize import FINAL_COLS  # To check output columns
 
 # Import constants for column names if needed, or define them
-from balance_pipeline.sync import QUEUE_TXNID_COL, QUEUE_DECISION_COL, QUEUE_SPLIT_COL
-from balance_pipeline.normalize import FINAL_COLS  # To check output columns
+from balance_pipeline.sync import QUEUE_DECISION_COL, QUEUE_SPLIT_COL, QUEUE_TXNID_COL
+from pandas.testing import assert_frame_equal  # Added for F821
 
 
 @pytest.fixture

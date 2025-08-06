@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
-from datetime import datetime, timezone
 import logging
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List, Any, Union
+from typing import Any
+
+import numpy as np
+import pandas as pd
 
 # Assuming config.py and loaders.py are in the same directory or accessible via PYTHONPATH
-from .config import AnalysisConfig, DataQualityFlag 
+from .config import AnalysisConfig, DataQualityFlag
+
 # from .loaders import merge_expense_and_ledger_data, merge_rent_data # Not needed directly here if passed as DFs
 
 logger = logging.getLogger(__name__)
@@ -21,11 +23,11 @@ logger = logging.getLogger(__name__)
 # Alternatively, processing functions can return flags/data for a central logger in the main orchestrator.
 
 def _log_data_quality_issue_processing(
-    data_quality_issues_list: List[Dict[str, Any]], # Pass the list to append to
+    data_quality_issues_list: list[dict[str, Any]], # Pass the list to append to
     source: str,
     row_idx: Any,
-    row_data: Dict[str, Any],
-    flags: List[Union[DataQualityFlag, str]],
+    row_data: dict[str, Any],
+    flags: list[DataQualityFlag | str],
     logger_instance: logging.Logger = logger # Allow passing a specific logger
 ):
     """Log data quality issues for audit trail (processing context)"""
@@ -46,7 +48,7 @@ def _log_data_quality_issue_processing(
         "source": source,
         "row_index_in_source_df": str(row_idx),
         "flags": flag_values,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "row_data_sample": {
             k: sanitized_row_data.get(k)
             for k in ["Date", "Payer", "ActualAmount", "AllowedAmount", "Description"]
@@ -59,7 +61,7 @@ def _log_data_quality_issue_processing(
     )
 
 def _update_row_data_quality_flags_processing(
-    df: pd.DataFrame, row_idx: Any, new_flags_enums: List[DataQualityFlag]
+    df: pd.DataFrame, row_idx: Any, new_flags_enums: list[DataQualityFlag]
 ):
     """Appends new unique flags to the existing flags for a given row (processing context)"""
     if not new_flags_enums:
@@ -100,7 +102,7 @@ def _impute_missing_date_processing(
             idx_pos = df.index.get_loc(idx)
         except KeyError:
             logger_instance.error(f"Cannot find index {idx} in DataFrame for date imputation.")
-            return pd.Timestamp.now(tz=timezone.utc).replace(day=1) + pd.offsets.MonthEnd(0)
+            return pd.Timestamp.now(tz=UTC).replace(day=1) + pd.offsets.MonthEnd(0)
     else:
         idx_pos = idx
 
@@ -110,7 +112,7 @@ def _impute_missing_date_processing(
 
     if start_idx >= end_idx:
         logger_instance.warning(f"Invalid slice for date imputation for index {idx} (pos {idx_pos}). Falling back.")
-        return pd.Timestamp.now(tz=timezone.utc).replace(day=1) + pd.offsets.MonthEnd(0)
+        return pd.Timestamp.now(tz=UTC).replace(day=1) + pd.offsets.MonthEnd(0)
 
     nearby_dates = df.iloc[start_idx:end_idx][date_col_name].dropna()
 
@@ -123,14 +125,14 @@ def _impute_missing_date_processing(
     else:
         logger_instance.warning(f"Could not impute date for row {idx} based on neighbors. Falling back to current month-end.")
     
-    now = pd.Timestamp.now(tz=timezone.utc)
+    now = pd.Timestamp.now(tz=UTC)
     return now.replace(day=1) + pd.offsets.MonthEnd(0)
 
 
 def _handle_calculation_notes_in_processed_data(
     df: pd.DataFrame, 
     config: AnalysisConfig, 
-    data_quality_issues_list: List[Dict[str, Any]],
+    data_quality_issues_list: list[dict[str, Any]],
     logger_instance: logging.Logger = logger
 ) -> pd.DataFrame:
     logger_instance.info("Handling '2x to calculate' notes in processed expense descriptions...")
@@ -180,7 +182,7 @@ def _handle_calculation_notes_in_processed_data(
 
 def _detect_duplicates_in_processed_data(
     df: pd.DataFrame, 
-    data_quality_issues_list: List[Dict[str, Any]],
+    data_quality_issues_list: list[dict[str, Any]],
     logger_instance: logging.Logger = logger
 ) -> pd.DataFrame:
     logger_instance.info("Detecting potential duplicate transactions in processed data...")
@@ -222,7 +224,7 @@ def _detect_duplicates_in_processed_data(
     return df
 
 
-def tag_settlements(df: pd.DataFrame, rules: Dict[str, Any]) -> pd.DataFrame:
+def tag_settlements(df: pd.DataFrame, rules: dict[str, Any]) -> pd.DataFrame:
     """
     Tag settlement transactions based on rules.
     """
@@ -243,7 +245,7 @@ def tag_settlements(df: pd.DataFrame, rules: Dict[str, Any]) -> pd.DataFrame:
 
 
 def apply_two_x_rule(df: pd.DataFrame, config: AnalysisConfig, 
-                     data_quality_issues_list: List[Dict[str, Any]],
+                     data_quality_issues_list: list[dict[str, Any]],
                      logger_instance: logging.Logger = logger) -> pd.DataFrame:
     """
     Apply 2x calculation rule for transactions with special notes.
@@ -273,7 +275,7 @@ def apply_two_x_rule(df: pd.DataFrame, config: AnalysisConfig,
 
 
 def detect_duplicates(df: pd.DataFrame, 
-                     data_quality_issues_list: List[Dict[str, Any]],
+                     data_quality_issues_list: list[dict[str, Any]],
                      logger_instance: logging.Logger = logger) -> pd.DataFrame:
     """
     Detect and flag potential duplicate transactions.
@@ -291,7 +293,7 @@ def detect_duplicates(df: pd.DataFrame,
     available_dup_cols = [col for col in dup_cols if col in df.columns]
 
     if len(available_dup_cols) < 3:
-        logger_instance.warning(f"Skipping duplicate detection: insufficient columns")
+        logger_instance.warning("Skipping duplicate detection: insufficient columns")
         return df
 
     temp_df = df[available_dup_cols].copy()
@@ -314,7 +316,7 @@ def detect_duplicates(df: pd.DataFrame,
 
 
 def flag_row_quality(df: pd.DataFrame, config: AnalysisConfig,
-                    data_quality_issues_list: List[Dict[str, Any]],
+                    data_quality_issues_list: list[dict[str, Any]],
                     logger_instance: logging.Logger = logger) -> pd.DataFrame:
     """
     Flag data quality issues for individual rows.
@@ -385,7 +387,7 @@ def _create_expense_audit_note(row: pd.Series, config: AnalysisConfig) -> str:
 
 
 def calc_budget_variance(df: pd.DataFrame, config: AnalysisConfig,
-                        data_quality_issues_list: List[Dict[str, Any]],
+                        data_quality_issues_list: list[dict[str, Any]],
                         logger_instance: logging.Logger = logger) -> pd.DataFrame:
     """
     Calculate budget variance for rent data.
@@ -418,8 +420,8 @@ def calc_budget_variance(df: pd.DataFrame, config: AnalysisConfig,
     return df
 
 
-def expense_pipeline(df: pd.DataFrame, config: AnalysisConfig, rules: Dict[str, Any],
-                    data_quality_issues_list: List[Dict[str, Any]],
+def expense_pipeline(df: pd.DataFrame, config: AnalysisConfig, rules: dict[str, Any],
+                    data_quality_issues_list: list[dict[str, Any]],
                     logger_instance: logging.Logger = logger) -> pd.DataFrame:
     """
     Main expense processing pipeline orchestrator.
@@ -518,8 +520,8 @@ def expense_pipeline(df: pd.DataFrame, config: AnalysisConfig, rules: Dict[str, 
     return df
 
 
-def rent_pipeline(df: pd.DataFrame, config: AnalysisConfig, rules: Dict[str, Any],
-                 data_quality_issues_list: List[Dict[str, Any]],
+def rent_pipeline(df: pd.DataFrame, config: AnalysisConfig, rules: dict[str, Any],
+                 data_quality_issues_list: list[dict[str, Any]],
                  logger_instance: logging.Logger = logger) -> pd.DataFrame:
     """
     Main rent processing pipeline orchestrator.
@@ -577,7 +579,7 @@ def rent_pipeline(df: pd.DataFrame, config: AnalysisConfig, rules: Dict[str, Any
 def process_expense_data(
     merged_expense_ledger_df: pd.DataFrame, 
     config: AnalysisConfig,
-    data_quality_issues_list: List[Dict[str, Any]], # To be populated by helper functions
+    data_quality_issues_list: list[dict[str, Any]], # To be populated by helper functions
     logger_instance: logging.Logger = logger
 ) -> pd.DataFrame:
     logger_instance.info("Processing merged expense and ledger data...")
@@ -728,7 +730,7 @@ def _create_enhanced_rent_audit_note(row: pd.Series, config: AnalysisConfig) -> 
 def process_rent_data(
     merged_rent_df: pd.DataFrame, 
     config: AnalysisConfig,
-    data_quality_issues_list: List[Dict[str, Any]], # To be populated
+    data_quality_issues_list: list[dict[str, Any]], # To be populated
     logger_instance: logging.Logger = logger
 ) -> pd.DataFrame:
     logger_instance.info("Processing merged rent data with budget analysis...")

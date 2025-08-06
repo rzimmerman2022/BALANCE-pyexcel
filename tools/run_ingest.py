@@ -36,13 +36,14 @@ import pandas as pd
 # This try/except block provides a helpful error message if the script
 # is not run as a module, which prevents the ModuleNotFoundError.
 try:
+    from baseline_analyzer import inject_opening_balance, load_config
+
     from tools.ingest_helpers import (
         expense_history_df,
         rent_allocation_df,
         rent_history_df,
         transaction_ledger_df,
     )
-    from baseline_analyzer import inject_opening_balance, load_config
 except ModuleNotFoundError:
     print("❌ Error: Could not import helper modules.")
     print("   Please run this script as a module from the project root:")

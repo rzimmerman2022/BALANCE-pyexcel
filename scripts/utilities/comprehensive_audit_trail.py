@@ -3,10 +3,11 @@ Comprehensive Line-by-Line Audit Trail Generator
 This creates the detailed audit trail showing every transaction and its impact on the balance
 """
 
-import pandas as pd
-from datetime import datetime
-import numpy as np
 import os
+from datetime import datetime
+
+import pandas as pd
+
 
 def clean_currency_string(value):
     """Convert currency strings like '$1,946.00 ' to float"""
@@ -61,7 +62,7 @@ def create_comprehensive_audit_trail():
             details = pd.read_csv("reconciliation_details_20250623_002813.csv")
         except:
             print("Error: Could not find reconciliation details. Please run the main script first.")
-            return
+            return None
     
     # Also load the original source files to get row references
     expense_file = "data/Consolidated_Expense_History_20250622.csv"
@@ -156,7 +157,7 @@ def create_comprehensive_audit_trail():
                 explanation = f"Jordyn owes her rent share ${allowed_share:,.2f}"
             else:
                 trans_type = "Rent"
-                explanation = f"Rent transaction"
+                explanation = "Rent transaction"
         else:  # Expense
             if allowed_share == 0:
                 trans_type = "Personal Expense"
@@ -216,7 +217,7 @@ def create_comprehensive_audit_trail():
     final_ryan = running_balance_ryan
     final_jordyn = running_balance_jordyn
     
-    print(f"\nFinal Balances:")
+    print("\nFinal Balances:")
     print(f"Ryan: ${final_ryan:,.2f}")
     print(f"Jordyn: ${final_jordyn:,.2f}")
     
@@ -292,7 +293,7 @@ def create_verification_summary(audit_df, final_ryan, final_jordyn):
         print(f"  Verification: {'✓ MATCHES' if abs(calculated_net - total_net) < 0.01 else '✗ MISMATCH'}")
     
     # Cross-verification
-    print(f"\n\nCross-Verification:")
+    print("\n\nCross-Verification:")
     print(f"Ryan's final balance from running total: ${final_ryan:,.2f}")
     print(f"Jordyn's final balance from running total: ${final_jordyn:,.2f}")
     print(f"System balance check: ${final_ryan + final_jordyn:,.2f} (should be the system imbalance)")
@@ -332,7 +333,7 @@ def create_monthly_summary(audit_df):
     
     # Save monthly summary
     monthly_summary.to_csv('monthly_summary_audit.csv')
-    print(f"\nMonthly summary saved to: monthly_summary_audit.csv")
+    print("\nMonthly summary saved to: monthly_summary_audit.csv")
 
 def create_transaction_lookup():
     """Create a lookup table for finding specific transactions"""

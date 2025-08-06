@@ -15,6 +15,7 @@ from datetime import datetime
 
 import pandas as pd
 
+
 def load_audit_trail():
     """Load the current integrated audit trail"""
     audit_file = 'integrated_audit_trail_with_zelle_20250702_103908.csv'

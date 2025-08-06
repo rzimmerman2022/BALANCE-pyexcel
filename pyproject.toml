@@ -295,11 +295,11 @@ snakeviz = "^2.2.2"
 [tool.poetry.scripts]
 # Main pipeline command
 # Usage: balance-pipe [options]
-balance-pipe = "balance_pipeline.main:balance_pipe_cli"
+balance-pipe = "balance_pipeline.main:main"
 
 # Legacy CLI for backwards compatibility
 # Usage: balance-legacy-cli [options]
-balance-legacy-cli = "balance_pipeline.cli:main"
+balance-legacy-cli = "balance_pipeline.cli:main_cli"
 
 # Merchant-specific operations
 # Usage: balance-merchant [options]

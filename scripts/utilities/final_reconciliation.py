@@ -5,12 +5,12 @@ This script implements a complete financial reconciliation starting from January
 combining expense history and rent allocation data to calculate who owes whom.
 """
 
-import pandas as pd
-import numpy as np
-from datetime import datetime
-import os
 import sys
+from datetime import datetime
 from pathlib import Path
+
+import pandas as pd
+
 
 def clean_currency_string(value):
     """Convert currency strings like '$1,946.00 ' to float"""
@@ -278,7 +278,7 @@ def main():
     filtered_rent = filter_data_by_date(rent_df, clean_slate_date, "rent")
     
     # Combine datasets
-    print(f"\n--- Combining Datasets ---")
+    print("\n--- Combining Datasets ---")
     combined_df = pd.concat([filtered_expense, filtered_rent], ignore_index=True)
     print(f"Total combined records: {len(combined_df)}")
       # Calculate reconciliation
@@ -299,8 +299,8 @@ def main():
     interpretations = generate_balance_interpretation(summary)
     
     # Final summary
-    print(f"\n--- FINAL RECONCILIATION SUMMARY ---")
-    print(f"Clean slate period: January 1, 2024 to present")
+    print("\n--- FINAL RECONCILIATION SUMMARY ---")
+    print("Clean slate period: January 1, 2024 to present")
     print(f"Total transactions processed: {len(detailed_df)}")
     print(f"System imbalance: ${summary['Net Effect'].sum():.2f}")
     

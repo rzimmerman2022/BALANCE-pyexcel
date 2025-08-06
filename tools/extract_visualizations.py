@@ -16,9 +16,8 @@
 from __future__ import annotations
 
 import ast
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
-
 
 TARGET_PREFIXES = ["_build_", "_create_visualizations"]
 

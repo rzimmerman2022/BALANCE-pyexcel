@@ -3,9 +3,9 @@ Critical Issue Investigation Tool
 Interactive tool to investigate and resolve the most important financial issues
 """
 
+
 import pandas as pd
-from datetime import datetime
-import os
+
 
 class CriticalIssueInvestigator:
     """Tool for investigating and resolving critical financial issues"""
@@ -35,7 +35,7 @@ class CriticalIssueInvestigator:
         
         if len(duplicates) == 0:
             print("✅ No exact duplicates found!")
-            return
+            return None
         
         print(f"Found {len(duplicates)} duplicate transactions:")
         print("-" * 50)
@@ -84,7 +84,7 @@ class CriticalIssueInvestigator:
         
         if len(disputes) == 0:
             print("✅ No dispute indicators found!")
-            return
+            return None
         
         print(f"Found {len(disputes)} transactions with dispute indicators:")
         print("-" * 50)
@@ -112,7 +112,7 @@ class CriticalIssueInvestigator:
         
         if len(negative) == 0:
             print("✅ No negative amounts found!")
-            return
+            return None
         
         print(f"Found {len(negative)} transactions with negative amounts:")
         print("-" * 50)
@@ -138,7 +138,7 @@ class CriticalIssueInvestigator:
         
         if len(missing_desc) == 0:
             print("✅ All transactions have descriptions!")
-            return
+            return None
         
         print(f"Found {len(missing_desc)} transactions with missing descriptions:")
         print("-" * 50)
@@ -180,7 +180,7 @@ class CriticalIssueInvestigator:
         
         if len(rent_issues) == 0:
             print("✅ No rent allocation issues found!")
-            return
+            return None
         
         print(f"Found {len(rent_issues)} rent allocation discrepancies:")
         print("-" * 50)

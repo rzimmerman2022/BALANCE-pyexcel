@@ -1,20 +1,20 @@
 import re
-import yaml
-from pathlib import Path
 from collections.abc import Iterable
-from typing import Any, cast, Dict, List  # Added Dict, List, Set
+from pathlib import Path
+from typing import Any, cast  # Added Dict, List, Set
 
-from balance_pipeline.schema_types import Schema, MatchResult
+import yaml
 from balance_pipeline.errors import FatalSchemaError  # Added import
+from balance_pipeline.schema_types import MatchResult, Schema
 
 
-def load_registry(path: Path) -> List[Dict[str, Any]]:
+def load_registry(path: Path) -> list[dict[str, Any]]:
     """
     Load the full schema registry from a YAML file.
     """
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
-    return cast(List[Dict[str, Any]], data)
+    return cast(list[dict[str, Any]], data)
 
 
 # --------------------------------------------------------------------------- #
@@ -42,9 +42,9 @@ _SCHEMA_DIR = Path(__file__).parent.parent.parent / "rules"
 # _DETAILED_RULES_LIST is no longer loaded from schema_registry.yml directly here.
 # _DETAILED_RULES_MAP will be populated by _load_and_build_schema_maps.
 
-_ALL_LOADED_SCHEMAS: List[Dict[str, Any]] = []
-_SCHEMAS_RULES_MAP: Dict[str, Dict[str, Any]] = {} # Maps schema id to its rules dict
-_GENERIC_SCHEMA_RULES: Dict[str, Any] = {} # Holds the rules for 'generic_csv'
+_ALL_LOADED_SCHEMAS: list[dict[str, Any]] = []
+_SCHEMAS_RULES_MAP: dict[str, dict[str, Any]] = {} # Maps schema id to its rules dict
+_GENERIC_SCHEMA_RULES: dict[str, Any] = {} # Holds the rules for 'generic_csv'
 
 def _load_and_build_schema_maps() -> None:
     """
@@ -166,8 +166,8 @@ def _find_matching_schema_main_impl(headers: Iterable[str]) -> MatchResult:  # R
 def find_matching_schema(  # This is now the only public 'find_matching_schema'
     headers: Iterable[str],
     filename: str | None = None,
-    registry: List[Dict[str, Any]] | None = None,  # Updated type hint
-) -> MatchResult | Dict[str, Any] | None:  # Updated type hint (removed type: ignore)
+    registry: list[dict[str, Any]] | None = None,  # Updated type hint
+) -> MatchResult | dict[str, Any] | None:  # Updated type hint (removed type: ignore)
     """
     Acts as a shim for tests or older code expecting a different signature or return type.
     - If `registry` is provided (test mode), it performs a basic match against that

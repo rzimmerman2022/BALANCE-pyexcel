@@ -5,16 +5,17 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Dict, List, Tuple
+
 import pandas as pd
+
 from ._settings import get_settings
 
 _CFG = get_settings()
-_PATTERNS: Dict[str, re.Pattern] = {k: re.compile(v, flags=re.I) for k, v in _CFG.patterns.items()}
+_PATTERNS: dict[str, re.Pattern] = {k: re.compile(v, flags=re.I) for k, v in _CFG.patterns.items()}
 
 log = logging.getLogger(__name__)
 
-def _detect_patterns(desc: str, payer: str) -> Tuple[List[str], Tuple[str, str | None]]:
+def _detect_patterns(desc: str, payer: str) -> tuple[list[str], tuple[str, str | None]]:
     desc_l = desc or ""
     if "2x" in desc_l.lower():
         if m := re.search(r"\b2x\s+(Ryan|Jordyn)", desc_l, re.I) or re.search(r"(Ryan|Jordyn).*?\b2x\b", desc_l, re.I):
@@ -34,7 +35,7 @@ def _detect_patterns(desc: str, payer: str) -> Tuple[List[str], Tuple[str, str |
         return ["full_allocation_100_percent"], ("full_to", m.group(1).title())
     return [], ("standard", None)
 
-def _apply_split_rules(actual: float, rule: Tuple[str, str | None], payer: str) -> Tuple[float, float, str]:
+def _apply_split_rules(actual: float, rule: tuple[str, str | None], payer: str) -> tuple[float, float, str]:
     kind, target = rule
     if kind == "standard": return actual / 2, actual / 2, "SR | Standard 50/50 split"
     if kind == "double_charge": return actual / 2, actual / 2, "DC | Double charge documented"
@@ -42,7 +43,7 @@ def _apply_split_rules(actual: float, rule: Tuple[str, str | None], payer: str) 
         return (-actual, actual, "TR | Zelle to Ryan") if (target or "").title() == "Ryan" else (actual, -actual, "TR | Zelle to Jordyn")
     if kind == "zero_out": return 0.0, 0.0, "CB | Cash-back"
     who = (target or payer).title()
-    return (actual, 0.0, f"FT | Full to Ryan") if who == "Ryan" else (0.0, actual, f"FT | Full to Jordyn")
+    return (actual, 0.0, "FT | Full to Ryan") if who == "Ryan" else (0.0, actual, "FT | Full to Jordyn")
 
 def _clean_data(df: pd.DataFrame, file_type: str) -> pd.DataFrame:
     df = df.rename(columns={v: k for k, v in _CFG.column_map.items()})

@@ -1,5 +1,6 @@
-import pandas as pd
 from io import StringIO
+
+import pandas as pd
 
 # Import the library function under test
 from baseline_analyzer.baseline_math import build_baseline

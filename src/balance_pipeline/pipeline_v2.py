@@ -8,21 +8,23 @@ data transformation, and consolidation into a single DataFrame.
 """
 
 import logging
-from pathlib import Path
-from typing import Sequence, Optional, Union, Dict, Any, List
-import pandas as pd
+from collections.abc import Sequence
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Union
+
+import pandas as pd
+from balance_pipeline.config import (
+    MERCHANT_LOOKUP_PATH,
+    SCHEMA_REGISTRY_PATH,
+)
 
 # Import from existing modules
 from balance_pipeline.csv_consolidator import process_csv_files
-from balance_pipeline.config import (
-    SCHEMA_REGISTRY_PATH,
-    MERCHANT_LOOKUP_PATH,
-)
 from balance_pipeline.errors import (
     BalancePipelineError,  # Use the actual class name
+    FatalSchemaError,
     RecoverableFileError,
-    FatalSchemaError
 )
 
 # Type aliases for clarity
@@ -71,7 +73,7 @@ class UnifiedPipeline:
         
         self.schema_mode = schema_mode
         self.debug_mode = debug_mode
-        self._processing_stats: Dict[str, Any] = self._init_stats()
+        self._processing_stats: dict[str, Any] = self._init_stats()
         
         logger.info(
             f"Initialized UnifiedPipeline (schema_mode={schema_mode}, "
@@ -81,8 +83,8 @@ class UnifiedPipeline:
     def process_files(
         self,
         file_paths: Sequence[PathLike],  # Use Sequence instead of List
-        schema_registry_override_path: Optional[PathLike] = None,
-        merchant_lookup_override_path: Optional[PathLike] = None,
+        schema_registry_override_path: PathLike | None = None,
+        merchant_lookup_override_path: PathLike | None = None,
     ) -> pd.DataFrame:
         """
         Process CSV files and return consolidated DataFrame.
@@ -141,7 +143,7 @@ class UnifiedPipeline:
             # Step 5: Process files using the CSV consolidator
             # The consolidator accepts List[Union[str, Path]], so we convert our
             # normalized Path objects to a list that matches the expected type
-            file_list: List[Union[str, Path]] = list(normalized_paths)
+            file_list: list[str | Path] = list(normalized_paths)
             
             processed_df = process_csv_files(
                 csv_files=file_list,
@@ -180,7 +182,7 @@ class UnifiedPipeline:
             logger.exception(f"Unexpected error during processing: {e}")
             raise BalancePipelineError(f"Pipeline processing failed: {e}") from e
     
-    def _normalize_paths(self, paths: Sequence[PathLike]) -> List[Path]:
+    def _normalize_paths(self, paths: Sequence[PathLike]) -> list[Path]:
         """
         Convert a sequence of string or Path objects to a list of Path objects.
         
@@ -201,7 +203,7 @@ class UnifiedPipeline:
         if not paths:
             raise ValueError("No file paths provided for processing")
         
-        normalized: List[Path] = []
+        normalized: list[Path] = []
         
         for i, path in enumerate(paths):
             try:
@@ -221,9 +223,9 @@ class UnifiedPipeline:
     
     def _normalize_single_path(
         self, 
-        path: Optional[PathLike],
-        default: Optional[Path] = None
-    ) -> Optional[Path]:
+        path: PathLike | None,
+        default: Path | None = None
+    ) -> Path | None:
         """
         Convert a single optional path to a Path object with default fallback.
         
@@ -250,9 +252,9 @@ class UnifiedPipeline:
     
     def _validate_inputs(
         self,
-        file_paths: List[Path],
-        schema_path: Optional[Path],
-        merchant_path: Optional[Path]
+        file_paths: list[Path],
+        schema_path: Path | None,
+        merchant_path: Path | None
     ) -> None:
         """
         Validate all input paths exist and are accessible.
@@ -275,7 +277,7 @@ class UnifiedPipeline:
                 raise FileNotFoundError(f"CSV file not found: {file_path}")
             if not file_path.is_file():
                 raise ValueError(f"Path is not a file: {file_path}")
-            if not file_path.suffix.lower() == '.csv':
+            if file_path.suffix.lower() != ".csv":
                 logger.warning(
                     f"File may not be CSV (extension: {file_path.suffix}): "
                     f"{file_path.name}"
@@ -317,9 +319,9 @@ class UnifiedPipeline:
     
     def _log_debug_info(
         self,
-        file_paths: List[Path],
-        schema_path: Optional[Path],
-        merchant_path: Optional[Path]
+        file_paths: list[Path],
+        schema_path: Path | None,
+        merchant_path: Path | None
     ) -> None:
         """
         Log detailed debug information about the processing request.
@@ -339,7 +341,7 @@ class UnifiedPipeline:
         logger.debug(f"Merchant lookup: {merchant_path}")
         logger.debug("=" * 27)
     
-    def _update_stats(self, df: pd.DataFrame, file_paths: List[Path]) -> None:
+    def _update_stats(self, df: pd.DataFrame, file_paths: list[Path]) -> None:
         """
         Update internal processing statistics.
         
@@ -403,7 +405,7 @@ class UnifiedPipeline:
                         f"with {issue_name}"
                     )
     
-    def _init_stats(self) -> Dict[str, Any]:
+    def _init_stats(self) -> dict[str, Any]:
         """Initialize a fresh statistics dictionary."""
         return {
             'files_processed': 0,
@@ -414,7 +416,7 @@ class UnifiedPipeline:
             'total_bytes_processed': 0
         }
     
-    def get_processing_stats(self) -> Dict[str, Any]:
+    def get_processing_stats(self) -> dict[str, Any]:
         """
         Get processing statistics for the last run.
         

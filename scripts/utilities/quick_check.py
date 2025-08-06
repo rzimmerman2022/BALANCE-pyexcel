@@ -1,5 +1,6 @@
-﻿import pandas as pd
-import pathlib
+﻿import pathlib
+
+import pandas as pd
 
 # Find latest audit file
 audit_dir = pathlib.Path("audit_reports")

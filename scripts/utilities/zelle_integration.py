@@ -3,9 +3,10 @@ ZELLE INTEGRATION - Add missing Zelle payments to the reconciliation system
 Creates an enhanced reconciliation that includes Zelle payments
 """
 
-import pandas as pd
 from datetime import datetime
-import numpy as np
+
+import pandas as pd
+
 
 def load_unmatched_zelle_payments():
     """Load the unmatched Zelle payments from the matcher"""
@@ -247,7 +248,7 @@ def generate_enhanced_reconciliation_report(df):
     
     # Breakdown by source
     source_counts = df['Source'].value_counts()
-    print(f"\nTransactions by source:")
+    print("\nTransactions by source:")
     for source, count in source_counts.items():
         source_df = df[df['Source'] == source]
         total_amount = source_df['Amount_Paid'].sum()
@@ -255,7 +256,7 @@ def generate_enhanced_reconciliation_report(df):
     
     # Final balances
     final_balances = df.groupby('Person')['Running_Balance'].last()
-    print(f"\nFinal balances (after including Zelle payments):")
+    print("\nFinal balances (after including Zelle payments):")
     for person, balance in final_balances.items():
         if balance < 0:
             print(f"  {person}: ${balance:,.2f} (is owed ${abs(balance):,.2f})")
@@ -282,7 +283,7 @@ def save_enhanced_reconciliation(df, timestamp=None):
     """Save the enhanced reconciliation"""
     if df is None or len(df) == 0:
         print("No data to save")
-        return
+        return None
     
     if timestamp is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -321,7 +322,7 @@ def main():
         # Save enhanced reconciliation
         filename = save_enhanced_reconciliation(enhanced_df)
         
-        print(f"\n" + "=" * 80)
+        print("\n" + "=" * 80)
         print("ZELLE INTEGRATION COMPLETE!")
         print(f"Enhanced reconciliation saved as: {filename}")
         print("This file now includes all your Zelle payments!")

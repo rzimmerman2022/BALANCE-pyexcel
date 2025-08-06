@@ -1,4 +1,6 @@
-import re, pandas as pd
+import re
+
+import pandas as pd
 from dateutil.parser import parse
 
 _money = re.compile(r"[^\d\-.]")   # strips $, commas, spaces

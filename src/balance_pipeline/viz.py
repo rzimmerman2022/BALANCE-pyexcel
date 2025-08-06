@@ -1,27 +1,22 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
-from pathlib import Path
 import logging
-from typing import Dict, Any, Tuple, Optional
+from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches # Keep if used by any plot
-from matplotlib.patches import Rectangle # Keep if used
-import seaborn as sns # Keep if used
-from scipy import stats
+import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots # Keep if used by any plot
-# import plotly.io as pio # Not directly used in these functions, but good for theme setting if done here
 
-# Assuming config.py is accessible for TABLEAU_COLORBLIND_10 and AnalysisConfig
-from .config import AnalysisConfig, TABLEAU_COLORBLIND_10 
 # Assuming analytics.py for _categorize_merchant if it's not passed in
 # For P0, let's assume _categorize_merchant is available or passed if needed by a viz function.
 # Best practice would be to pass any needed categorization logic or pre-categorized data.
 from .analytics import _categorize_merchant
 
+# import plotly.io as pio # Not directly used in these functions, but good for theme setting if done here
+# Assuming config.py is accessible for TABLEAU_COLORBLIND_10 and AnalysisConfig
+from .config import TABLEAU_COLORBLIND_10, AnalysisConfig
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +61,7 @@ def build_running_balance_timeline(
     config: AnalysisConfig, 
     output_dir: Path,
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building running balance timeline visualization...")
     ledger_df = ledger_df.dropna(subset=["Date", "RunningBalance"])
     if ledger_df.empty:
@@ -116,7 +111,7 @@ def build_waterfall_category_impact(
     output_dir: Path, 
     theme: go.layout.Template, # Pass plotly theme
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building waterfall category impact visualization...")
     if ledger_df.empty or "BalanceImpact" not in ledger_df.columns:
         logger_instance.warning("No data for waterfall chart.")
@@ -156,10 +151,10 @@ def build_waterfall_category_impact(
     return path, alt_text
 
 def build_monthly_shared_trend(
-    analytics_results: Dict[str, Any], # Expects pre-calculated trend data
+    analytics_results: dict[str, Any], # Expects pre-calculated trend data
     output_dir: Path,
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building monthly shared trend visualization...")
     trend_data = analytics_results.get("monthly_shared_spending_trend", {})
     monthly_values_dict = trend_data.get("monthly_values", {})
@@ -210,7 +205,7 @@ def build_payer_type_heatmap(
     output_dir: Path, 
     theme: go.layout.Template,
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building payer type heatmap visualization...")
     if ledger_df.empty or "AllowedAmount" not in ledger_df.columns or "Payer" not in ledger_df.columns or "TransactionType" not in ledger_df.columns:
         logger_instance.warning("No data for payer-type heatmap.")
@@ -242,7 +237,7 @@ def build_calendar_heatmaps(
     ledger_df: pd.DataFrame, 
     output_dir: Path,
     logger_instance: logging.Logger = logger
-) -> Dict[str, Tuple[Path, str]]:
+) -> dict[str, tuple[Path, str]]:
     logger_instance.info("Building calendar heatmaps...")
     calendar_paths = {}
     if ledger_df.empty or "Date" not in ledger_df.columns or "AllowedAmount" not in ledger_df.columns:
@@ -290,7 +285,7 @@ def build_treemap_shared_spending(
     output_dir: Path, 
     theme: go.layout.Template,
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building treemap of shared spending...")
     if ledger_df.empty or "AllowedAmount" not in ledger_df.columns:
         logger_instance.warning("No data for treemap.")
@@ -341,7 +336,7 @@ def build_anomaly_scatter(
     ledger_df: pd.DataFrame, 
     output_dir: Path,
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building anomaly scatter plot...")
     if ledger_df.empty or "AllowedAmount" not in ledger_df.columns or "BalanceImpact" not in ledger_df.columns:
         logger_instance.warning("No data for anomaly scatter plot.")
@@ -393,7 +388,7 @@ def build_pareto_concentration(
     config: AnalysisConfig, # For _categorize_merchant
     output_dir: Path,
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building Pareto concentration chart...")
     if ledger_df.empty or "AllowedAmount" not in ledger_df.columns:
         logger_instance.warning("No data for Pareto chart.")
@@ -457,7 +452,7 @@ def build_sankey_settlements(
     output_dir: Path, 
     theme: go.layout.Template,
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building Sankey diagram for settlements...")
     if ledger_df.empty:
         logger_instance.warning("No data for Sankey diagram.")
@@ -528,7 +523,7 @@ def build_data_quality_table_viz(
     output_dir: Path, 
     theme: go.layout.Template,
     logger_instance: logging.Logger = logger
-) -> Tuple[Path, str]:
+) -> tuple[Path, str]:
     logger_instance.info("Building data quality table visualization...")
     if ledger_df.empty or "DataQualityFlag" not in ledger_df.columns:
         logger_instance.warning("No data for data quality table visualization.")

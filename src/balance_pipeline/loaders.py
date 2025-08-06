@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
-from pathlib import Path
-from typing import Dict, Any
 import logging
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +261,7 @@ class DataLoaderV23:
         transaction_ledger: pd.DataFrame,
         rent_alloc: pd.DataFrame,
         rent_hist: pd.DataFrame,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         validation_results = {
             "expense_history": {
                 "rows": len(expense_hist),

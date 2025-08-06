@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: normalize.py
@@ -19,22 +18,24 @@ Author: Your Name / AI Assistant
 # ==============================================================================
 # 0. IMPORTS
 # ==============================================================================
-import pandas as pd
+import csv  # For reading merchant lookup CSV
 import hashlib  # For generating hashes for TxnID
 import logging  # For logging messages
-from typing import Any, List, Tuple, Optional  # Added for type hint
 import re  # Added for regex operations
-import csv  # For reading merchant lookup CSV
+from pathlib import Path  # Ensure Path is imported
+from typing import Any  # Added for type hint
+
+import pandas as pd
 from balance_pipeline.errors import (
     DataConsistencyError,
-    RecoverableFileError,
     FatalSchemaError,
+    RecoverableFileError,
 )
+
+from . import config  # Import config module
 
 # Local application imports
 from .utils import _clean_desc_single, clean_desc_vectorized  # Updated import
-from . import config  # Import config module
-from pathlib import Path # Ensure Path is imported
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP & CONSTANTS
@@ -48,10 +49,10 @@ log = logging.getLogger(__name__)
 MERCHANT_LOOKUP_PATH: Path = config.MERCHANT_LOOKUP_PATH
 
 # --- Merchant Lookup Cache ---
-_merchant_lookup_data: Optional[List[Tuple[re.Pattern[str], str]]] = None
+_merchant_lookup_data: list[tuple[re.Pattern[str], str]] | None = None
 
 
-def reset_merchant_lookup_cache(new_path: Optional[Path] = None) -> None:
+def reset_merchant_lookup_cache(new_path: Path | None = None) -> None:
     """
     Resets the merchant lookup cache and optionally sets a new lookup file path.
     This function is primarily intended for testing purposes to allow for
@@ -85,7 +86,7 @@ def reset_merchant_lookup_cache(new_path: Optional[Path] = None) -> None:
         _merchant_lookup_data = [] # Ensure fallback to empty list
 
 
-def _load_merchant_lookup() -> List[Tuple[re.Pattern[str], str]]:
+def _load_merchant_lookup() -> list[tuple[re.Pattern[str], str]]:
     """
     Loads merchant cleaning rules from a CSV file.
     Validates regex patterns at load time.
@@ -99,7 +100,7 @@ def _load_merchant_lookup() -> List[Tuple[re.Pattern[str], str]]:
     try:
         # Ensure MERCHANT_LOOKUP_PATH is a Path object for `open`
         current_lookup_path = Path(MERCHANT_LOOKUP_PATH)
-        with open(current_lookup_path, mode="r", encoding="utf-8") as f:
+        with open(current_lookup_path, encoding="utf-8") as f:
             reader = csv.reader(f)
             header = next(reader)  # Skip header row
             if header != ["pattern", "canonical"]:
@@ -342,7 +343,7 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
 
         # Base hash input: join components with '|'
         hash_input_series = pd.Series(
-            ["|".join(elements) for elements in zip(*hash_components)], index=out.index
+            ["|".join(elements) for elements in zip(*hash_components, strict=False)], index=out.index
         )
 
         # Apply MD5 hashing

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: test_merchant_cli.py
@@ -7,16 +6,17 @@ Description: Unit tests for the 'balance merchant add' CLI command.
 ==============================================================================
 """
 
-import pytest
 import csv
-from pathlib import Path
 import subprocess  # To run CLI commands
+from pathlib import Path
+
+import pytest
 
 # Assuming cli_merchant.py is in src/balance_pipeline
 from balance_pipeline.cli_merchant import (
-    add_merchant_rule,
     MERCHANT_RULES_FILENAME,
     RULES_DIR,
+    add_merchant_rule,
 )
 
 
@@ -56,7 +56,7 @@ def test_add_merchant_rule_creates_file_with_header(temp_rules_file: Path):
     add_merchant_rule("Test Pattern", "Test Canonical", rules_file=temp_rules_file)
 
     assert temp_rules_file.exists()
-    with open(temp_rules_file, "r", newline="", encoding="utf-8") as f:
+    with open(temp_rules_file, newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
         header = next(reader)
         assert header == ["pattern", "canonical"]
@@ -74,7 +74,7 @@ def test_add_merchant_rule_appends_to_existing_file(temp_rules_file: Path):
 
     add_merchant_rule("New Pattern", "New Canonical", rules_file=temp_rules_file)
 
-    with open(temp_rules_file, "r", newline="", encoding="utf-8") as f:
+    with open(temp_rules_file, newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
         rows = list(reader)
         assert len(rows) == 3  # Header + Old Row + New Row
@@ -173,7 +173,7 @@ def test_cli_merchant_add_happy_path(project_root_for_cli_tests: Path):
     assert "Rule added - Refresh in Excel to apply." in result.stdout
 
     assert rules_file.exists()
-    with open(rules_file, "r", newline="", encoding="utf-8") as f:
+    with open(rules_file, newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
         rows = list(reader)
         assert len(rows) == 2  # Header + 1 rule

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Test Module: test_pdf_ingest.py
@@ -9,15 +8,17 @@ Description: Contains integration tests specifically for validating the ingestio
 ==============================================================================
 """
 
-import pytest
-from pathlib import Path
 import shutil  # For copying files in fixture
+from pathlib import Path
+
+import pytest
+
+from src.balance_pipeline import config  # To get project root for fixture path
 
 # --- Imports from Application Code ---
 # Assuming tests are run from the project root or pytest handles PYTHONPATH
 from src.balance_pipeline.ingest import load_folder
-from src.balance_pipeline.normalize import normalize_df, FINAL_COLS
-from src.balance_pipeline import config  # To get project root for fixture path
+from src.balance_pipeline.normalize import FINAL_COLS, normalize_df
 
 # --- Constants ---
 # Define the relative path to the source fixture file from the project root

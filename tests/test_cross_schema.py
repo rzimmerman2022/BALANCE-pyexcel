@@ -1,10 +1,10 @@
 # tests/test_cross_schema.py
-from balance_pipeline.ingest import load_folder, STANDARD_COLS
-
 # If normalize_df is tested here later, uncomment:
 # from balance_pipeline.normalize import normalize_df
 from pathlib import Path
+
 import pytest  # Import pytest for using fixtures and skip functionality
+from balance_pipeline.ingest import STANDARD_COLS, load_folder
 
 # Define the path to the multi-schema sample data directory
 # Assumes it's directly inside the main project folder (where pyproject.toml is)

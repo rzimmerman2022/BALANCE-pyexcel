@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for the master Parquet appending functionality.
 """
 
-import pytest
-import pandas as pd
-import duckdb
-from pathlib import Path
-import sys
 import os
+import sys
+from pathlib import Path
+
+import duckdb
+import pandas as pd
+import pytest
 
 # Adjust sys.path to allow importing from the 'scripts' directory
 # This assumes the test is run from the project root (e.g., via 'poetry run pytest')

@@ -6,8 +6,10 @@ FINAL CORRECT AUDIT TRAIL
 Creates the definitive audit trail with the truly correct rent allocation.
 """
 
-import pandas as pd
 from datetime import datetime
+
+import pandas as pd
+
 
 def create_final_correct_audit_trail():
     print("🎯 CREATING FINAL CORRECT AUDIT TRAIL")
@@ -67,7 +69,7 @@ def verify_final_balances(df):
     jordyn_balance = final_balances.get('Jordyn', 0)
     ryan_balance = final_balances.get('Ryan', 0)
     
-    print(f"\n💰 SETTLEMENT CALCULATION:")
+    print("\n💰 SETTLEMENT CALCULATION:")
     if jordyn_balance > 0 and ryan_balance < 0:
         if abs(jordyn_balance - abs(ryan_balance)) < 1:  # Within $1
             settlement = max(jordyn_balance, abs(ryan_balance))
@@ -114,7 +116,7 @@ def main():
     jordyn_balance = final_balances.get('Jordyn', 0)
     ryan_balance = final_balances.get('Ryan', 0)
     
-    print(f"\n🎯 FINAL ANSWER:")
+    print("\n🎯 FINAL ANSWER:")
     if ryan_balance < 0:
         amount = abs(ryan_balance)
         print(f"Ryan owes Jordyn ${amount:,.2f}")

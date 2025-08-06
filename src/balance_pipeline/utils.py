@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: utils.py
@@ -12,11 +11,13 @@ Author: AI Assistant (Cline)
 """
 
 from __future__ import annotations  # For using type hints before full definition
-import pandas as pd
+
+import logging
 import re
 import unicodedata
-import logging
 from typing import TYPE_CHECKING, Any  # Added TYPE_CHECKING and Any
+
+import pandas as pd
 from balance_pipeline.errors import DataConsistencyError
 
 log = logging.getLogger(__name__)

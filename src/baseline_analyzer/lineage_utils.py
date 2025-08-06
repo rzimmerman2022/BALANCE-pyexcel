@@ -5,7 +5,6 @@ Provides functions to inject step IDs and manage data lineage throughout the pip
 from __future__ import annotations
 
 import pandas as pd
-from typing import List, Optional
 
 
 def add_step_id(df: pd.DataFrame, step_id: str) -> pd.DataFrame:
@@ -113,7 +112,7 @@ def combine_lineage_values(lineage1: str, lineage2: str) -> str:
     return "|".join(combined_steps)
 
 
-def validate_lineage(df: pd.DataFrame, expected_steps: Optional[List[str]] = None) -> bool:
+def validate_lineage(df: pd.DataFrame, expected_steps: list[str] | None = None) -> bool:
     """
     Validate that all rows have valid lineage information.
     

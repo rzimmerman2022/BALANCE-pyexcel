@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 Integration tests for the full CLI workflow including Excel workbook interaction
 """
 
 import os
+import shutil
 import subprocess
 import zipfile
 from pathlib import Path
-import shutil
-import pytest
+
 import pandas as pd
+import pytest
 
 
 @pytest.fixture

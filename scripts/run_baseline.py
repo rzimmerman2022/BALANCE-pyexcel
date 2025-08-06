@@ -19,7 +19,6 @@ import logging
 
 from baseline_analyzer.cli import main as cli_main
 
-
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("run_baseline")
 

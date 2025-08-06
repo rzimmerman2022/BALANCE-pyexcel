@@ -4,8 +4,9 @@ Generate comprehensive audit report with CTS pipeline + baseline_math analysis.
 Saves timestamped files to audit_reports/ folder.
 """
 
-import sys
 import pathlib
+import sys
+
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 from src.balance_pipeline.data_loader import load_all_data
@@ -55,8 +56,8 @@ def main():
     else:
         print("⚠️  Balance check: FAILED (business logic review needed)")
     
-    print(f"\n🎉 Audit report complete!")
-    print(f"📂 Files saved to: audit_reports/")
+    print("\n🎉 Audit report complete!")
+    print("📂 Files saved to: audit_reports/")
 
 
 if __name__ == '__main__':

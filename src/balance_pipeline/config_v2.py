@@ -10,7 +10,7 @@ import logging
 import os
 from dataclasses import dataclass, field, fields
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ class PipelineConfig:
             explanation.append(f"  - {f.name}: {value}")
         return "\n".join(explanation)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Converts the configuration to a dictionary.
         Path objects are converted to strings.

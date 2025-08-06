@@ -1,14 +1,14 @@
 from dataclasses import dataclass
-from typing import Dict, Set, Tuple, Any
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
 class Schema:
     name: str
-    required: Dict[str, Set[str]]
-    optional: Dict[str, Set[str]]
+    required: dict[str, set[str]]
+    optional: dict[str, set[str]]
 
-    def match(self, headers: set[str]) -> Tuple[int, int]:
+    def match(self, headers: set[str]) -> tuple[int, int]:
         """
         Return a tuple (#required_hits, #optional_hits) indicating how many
         required and optional fields were matched in the provided headers set.
@@ -25,7 +25,7 @@ class Schema:
 @dataclass(frozen=True, slots=True)
 class MatchResult:
     schema: Schema  # new dataclass (name/required/optional)
-    rules: Dict[str, Any]  # raw dict from schema_registry.yml
-    score: Tuple[int, int]
-    missing: Set[str]
-    extras: Set[str]
+    rules: dict[str, Any]  # raw dict from schema_registry.yml
+    score: tuple[int, int]
+    missing: set[str]
+    extras: set[str]

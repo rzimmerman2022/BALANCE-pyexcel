@@ -14,6 +14,7 @@ import os
 
 import pandas as pd
 
+
 def load_corrected_audit_trail():
     """Load the most recent corrected audit trail"""
     # Find the most recent corrected audit trail

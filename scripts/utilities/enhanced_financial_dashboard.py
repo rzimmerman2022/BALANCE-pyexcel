@@ -7,6 +7,7 @@ from datetime import datetime
 
 import pandas as pd
 
+
 def generate_financial_dashboard():
     """Generate comprehensive financial dashboard and reports"""
     
@@ -23,7 +24,7 @@ def generate_financial_dashboard():
         print(f"✅ Loaded {len(transactions)} transactions")
         print(f"✅ Loaded {len(monthly_summary)} monthly summaries")
         print(f"✅ Loaded {len(balance_history)} balance history points")
-        print(f"✅ Loaded current status")
+        print("✅ Loaded current status")
         
     except Exception as e:
         print(f"❌ Error loading data: {e}")
@@ -49,14 +50,14 @@ def generate_financial_dashboard():
     earliest_date = transactions['Date'].min()
     total_days = (latest_date - earliest_date).days
     
-    print(f"\n📈 TRANSACTION SUMMARY:")
+    print("\n📈 TRANSACTION SUMMARY:")
     print(f"  • Period: {earliest_date.strftime('%Y-%m-%d')} to {latest_date.strftime('%Y-%m-%d')}")
     print(f"  • Duration: {total_days} days")
     print(f"  • Total Transactions: {len(transactions):,}")
     print(f"  • Average per day: {len(transactions)/total_days:.1f}")
     
     # 3. Monthly Breakdown
-    print(f"\n📅 MONTHLY BREAKDOWN (Last 6 Months):")
+    print("\n📅 MONTHLY BREAKDOWN (Last 6 Months):")
     recent_monthly = monthly_summary.tail(12)  # Last 12 entries (6 months x 2 people)
     for month in recent_monthly['Month'].unique()[-6:]:
         month_data = recent_monthly[recent_monthly['Month'] == month]
@@ -65,7 +66,7 @@ def generate_financial_dashboard():
             print(f"    - {row['Person']}: ${row['Total_Paid']:,.2f} paid, {row['Transaction_Count']} transactions")
     
     # 4. Category Analysis
-    print(f"\n🏷️ SPENDING ANALYSIS:")
+    print("\n🏷️ SPENDING ANALYSIS:")
     category_summary = transactions.groupby(['Transaction_Type', 'Person']).agg({
         'Amount_Paid': 'sum',
         'Transaction_Number': 'count'
@@ -75,7 +76,7 @@ def generate_financial_dashboard():
         print(f"  • {person} - {category}: ${data['Amount_Paid']:,.2f} ({data['Transaction_Number']} transactions)")
     
     # 5. Top Expenses
-    print(f"\n💸 TOP 10 LARGEST TRANSACTIONS:")
+    print("\n💸 TOP 10 LARGEST TRANSACTIONS:")
     top_expenses = transactions.nlargest(10, 'Amount_Absolute')[
         ['Date', 'Person', 'Description_Clean', 'Amount_Paid', 'Transaction_Type']
     ]
@@ -86,7 +87,7 @@ def generate_financial_dashboard():
     recent_date = latest_date - pd.Timedelta(days=30)
     recent_transactions = transactions[transactions['Date'] > recent_date]
     
-    print(f"\n🕐 RECENT ACTIVITY (Last 30 Days):")
+    print("\n🕐 RECENT ACTIVITY (Last 30 Days):")
     print(f"  • Recent Transactions: {len(recent_transactions)}")
     recent_summary = recent_transactions.groupby('Person').agg({
         'Amount_Paid': 'sum',
@@ -97,7 +98,7 @@ def generate_financial_dashboard():
         print(f"  • {person}: ${data['Amount_Paid']:,.2f} ({data['Transaction_Number']} transactions)")
     
     # 7. Balance Trend Analysis
-    print(f"\n📈 BALANCE TREND ANALYSIS:")
+    print("\n📈 BALANCE TREND ANALYSIS:")
     final_balances = balance_history.groupby('Person')['Running_Balance'].last()
     for person, balance in final_balances.items():
         print(f"  • {person} final balance: ${balance:,.2f}")
@@ -106,7 +107,7 @@ def generate_financial_dashboard():
     total_money_moved = transactions['Amount_Absolute'].sum()
     avg_transaction = transactions['Amount_Absolute'].mean()
     
-    print(f"\n📊 OVERALL STATISTICS:")
+    print("\n📊 OVERALL STATISTICS:")
     print(f"  • Total money moved: ${total_money_moved:,.2f}")
     print(f"  • Average transaction: ${avg_transaction:.2f}")
     print(f"  • Largest transaction: ${transactions['Amount_Absolute'].max():,.2f}")

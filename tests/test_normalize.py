@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
-import pytest
-import pandas as pd
 import csv
-from pathlib import Path
+
 # import importlib  # No longer needed for reloading
 import logging
+from pathlib import Path
+
+import pandas as pd
+import pytest
 
 # Module to test
 from balance_pipeline import normalize

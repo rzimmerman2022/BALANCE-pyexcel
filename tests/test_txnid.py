@@ -1,8 +1,9 @@
+import pathlib
+
 import pandas as pd
+import pytest  # Keep pytest import separate for clarity
 from balance_pipeline.ingest import load_folder
 from balance_pipeline.normalize import normalize_df
-import pathlib
-import pytest  # Keep pytest import separate for clarity
 
 # Define project root relative to this test file for robust pathing
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent

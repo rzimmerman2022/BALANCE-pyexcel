@@ -1,8 +1,9 @@
-import pandas as pd
+import json
 import pathlib
 import re
-import json
-import os
+
+import pandas as pd
+
 
 def money(v):
     v = str(v)
@@ -16,7 +17,7 @@ def profile_expense_history(path: pathlib.Path):
     Custom profiler for Expense_History.csv.
     This file has multiple sections, each with its own header.
     """
-    with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+    with open(path, encoding='utf-8', errors='ignore') as f:
         lines = f.readlines()
 
     data_blocks = []

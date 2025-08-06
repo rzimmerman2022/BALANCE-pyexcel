@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
-from scipy import stats
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Any
+
+import numpy as np
+import pandas as pd
+from scipy import stats
 
 # Assuming config.py is in the same directory or accessible via PYTHONPATH
-from .config import AnalysisConfig, DataQualityFlag, DEFAULT_MERCHANT_CATEGORIES
+from .config import DEFAULT_MERCHANT_CATEGORIES, AnalysisConfig, DataQualityFlag
 
 logger = logging.getLogger(__name__)
 
-def _categorize_merchant(merchant: Optional[str], categories_map: Optional[Dict[str, List[str]]] = None) -> str:
+def _categorize_merchant(merchant: str | None, categories_map: dict[str, list[str]] | None = None) -> str:
     """Categorize merchant based on keywords.
     P1: This should load categories_map from an external YAML via AnalysisConfig.
     For P0, it uses a default map.
@@ -33,9 +34,9 @@ def _analyze_rent_budget_variance(
     rent_df: pd.DataFrame, 
     config: AnalysisConfig, # Added config for consistency, though not directly used in this version
     logger_instance: logging.Logger = logger
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     logger_instance.info("Analyzing rent budget variance...")
-    analysis: Dict[str, Any] = {}
+    analysis: dict[str, Any] = {}
 
     if rent_df.empty or "Budget_Variance" not in rent_df.columns or rent_df["Budget_Variance"].isna().all():
         logger_instance.warning("No budget data available or all variances are NaN for rent budget analysis.")
@@ -83,9 +84,9 @@ def perform_advanced_analytics(
     processed_rent_df: pd.DataFrame, # Pass processed_rent_df for its budget info
     config: AnalysisConfig,
     logger_instance: logging.Logger = logger
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     logger_instance.info("Running advanced analytics...")
-    analytics: Dict[str, Any] = {}
+    analytics: dict[str, Any] = {}
     if master_ledger.empty or master_ledger["Date"].isna().all():
         logger_instance.warning("Master ledger is empty or has no valid dates for advanced analytics.")
         return {"error": "No data for advanced analytics"}
@@ -162,7 +163,7 @@ def perform_advanced_analytics(
                 forecast_values = slope * future_x + intercept
                 forecast_start_date = monthly_shared_spending.index.max() + pd.DateOffset(months=1)
                 forecast_dates = pd.date_range(start=forecast_start_date, periods=3, freq="ME")
-                analytics["monthly_shared_spending_forecast"] = dict(zip([d.strftime("%Y-%m") for d in forecast_dates], np.round(forecast_values, config.CURRENCY_PRECISION)))
+                analytics["monthly_shared_spending_forecast"] = dict(zip([d.strftime("%Y-%m") for d in forecast_dates], np.round(forecast_values, config.CURRENCY_PRECISION), strict=False))
             else:
                 analytics["monthly_shared_spending_forecast"] = {"message": "Not enough data or invalid trend for forecast."}
         else:
@@ -209,10 +210,10 @@ def _calculate_data_quality_score(master_ledger: pd.DataFrame, logger_instance: 
     logger_instance.info(f"Data Quality Score: {score:.2f}% ({clean_rows} clean rows out of {total_rows})")
     return score
 
-def _summarize_data_quality_issues(master_ledger: pd.DataFrame) -> Dict[str, int]:
+def _summarize_data_quality_issues(master_ledger: pd.DataFrame) -> dict[str, int]:
     if master_ledger.empty or "DataQualityFlag" not in master_ledger.columns:
         return {"No data quality flags to summarize.": 0}
-    flag_counts: Dict[str, int] = {}
+    flag_counts: dict[str, int] = {}
     for flags_str_per_row in master_ledger["DataQualityFlag"].dropna():
         if flags_str_per_row != DataQualityFlag.CLEAN.value:
             individual_flags_in_row = flags_str_per_row.split(",")
@@ -224,13 +225,13 @@ def _summarize_data_quality_issues(master_ledger: pd.DataFrame) -> Dict[str, int
 
 def comprehensive_risk_assessment(
     master_ledger: pd.DataFrame, 
-    analytics_results: Dict[str, Any],
-    validation_summary: Dict[str, Any], # Pass validation_summary from main orchestrator
+    analytics_results: dict[str, Any],
+    validation_summary: dict[str, Any], # Pass validation_summary from main orchestrator
     config: AnalysisConfig,
     logger_instance: logging.Logger = logger
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     logger_instance.info("Performing comprehensive risk assessment...")
-    risks: Dict[str, Any] = {"overall_risk_level": "LOW", "details": []}
+    risks: dict[str, Any] = {"overall_risk_level": "LOW", "details": []}
     if master_ledger.empty:
         risks["details"].append({"risk_type": "Data Availability", "assessment": "No data to assess risks.", "level": "HIGH"})
         risks["overall_risk_level"] = "HIGH"

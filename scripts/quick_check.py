@@ -3,16 +3,16 @@ Quick sanity check script for balance pipeline.
 Validates CTS compliance and mathematical balance after CSV ingestion.
 """
 
-import sys
-import pathlib
 import hashlib
+import pathlib
+import sys
 
 # Add the project root to Python path
 project_root = pathlib.Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.balance_pipeline.data_loader import load_all_data
 from src.balance_pipeline.column_utils import validate_cts_compliance
+from src.balance_pipeline.data_loader import load_all_data
 
 try:
     # Try to import baseline_math - handle different possible locations

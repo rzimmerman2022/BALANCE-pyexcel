@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
 import logging
-from typing import Dict, Any
+from typing import Any
+
+import pandas as pd
 
 # Assuming config.py is in the same directory or accessible via PYTHONPATH
 from .config import AnalysisConfig
@@ -19,7 +19,7 @@ def calc_m1_running_balance(df: pd.DataFrame) -> float:
     return float(df["RunningBalance"].iloc[-1])
 
 
-def calc_m2_fair_share(df: pd.DataFrame, config: AnalysisConfig) -> Dict[str, Any]:
+def calc_m2_fair_share(df: pd.DataFrame, config: AnalysisConfig) -> dict[str, Any]:
     """
     Calculate M2: Ryan's variance from fair share of total shared expenses.
     Returns variance calculation details.
@@ -59,7 +59,7 @@ def calc_m2_fair_share(df: pd.DataFrame, config: AnalysisConfig) -> Dict[str, An
     }
 
 
-def calc_m3_category_sum(df: pd.DataFrame, config: AnalysisConfig) -> Dict[str, Any]:
+def calc_m3_category_sum(df: pd.DataFrame, config: AnalysisConfig) -> dict[str, Any]:
     """
     Calculate M3: Sum of Ryan's variance by category.
     Returns category breakdown and total variance.
@@ -118,7 +118,7 @@ def triple_reconciliation(
     master_ledger: pd.DataFrame, 
     config: AnalysisConfig,
     logger_instance: logging.Logger = logger
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Perform triple reconciliation using helper functions.
     Orchestrates M1, M2, M3 calculations and validates reconciliation.

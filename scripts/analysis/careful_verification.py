@@ -8,6 +8,7 @@ Let's carefully trace through the numbers to make sure everything is correct.
 
 import pandas as pd
 
+
 def main():
     print("🔍 CAREFUL BALANCE VERIFICATION")
     print("=" * 60)

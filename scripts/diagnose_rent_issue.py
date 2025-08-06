@@ -4,11 +4,12 @@ Diagnostic script to analyze the 294 inconsistent rows and confirm
 that rent allocation is the primary cause of the mismatches.
 """
 
-import pandas as pd
-import numpy as np
-from baseline_analyzer import baseline_math as bm
 import pathlib
 import re
+
+import numpy as np
+import pandas as pd
+from baseline_analyzer import baseline_math as bm
 
 # Load data using the same logic as audit_run.py
 DATA_DIR = pathlib.Path("data")
@@ -139,10 +140,10 @@ print(f"\n🏠 Rent-related inconsistent rows: {len(rent_inconsistent)}")
 print(f"🛒 Other inconsistent rows: {len(other_inconsistent)}")
 print(f"📈 Rent percentage of total: {len(rent_inconsistent)/len(bad_rows)*100:.1f}%")
 
-print(f"\n🔍 Sample rent inconsistent rows:")
+print("\n🔍 Sample rent inconsistent rows:")
 print(rent_inconsistent[["person", "date", "merchant", "actual_amount", "allowed_amount", "net_effect"]].head(10).to_string(index=False))
 
-print(f"\n🔍 Sample other inconsistent rows:")
+print("\n🔍 Sample other inconsistent rows:")
 if len(other_inconsistent) > 0:
     print(other_inconsistent[["person", "date", "merchant", "actual_amount", "allowed_amount", "net_effect"]].head(10).to_string(index=False))
 else:
@@ -150,7 +151,7 @@ else:
 
 # Analyze rent patterns
 if len(rent_inconsistent) > 0:
-    print(f"\n📋 Rent inconsistency analysis:")
+    print("\n📋 Rent inconsistency analysis:")
     rent_by_person = rent_inconsistent.groupby("person").agg({
         "actual_amount": ["count", "sum"],
         "allowed_amount": "sum",
@@ -158,7 +159,7 @@ if len(rent_inconsistent) > 0:
     }).round(2)
     print(rent_by_person)
     
-    print(f"\n💡 Expected rent allocation (43% Ryan, 57% Jordyn):")
+    print("\n💡 Expected rent allocation (43% Ryan, 57% Jordyn):")
     total_rent = rent_inconsistent["actual_amount"].sum() / 2  # Divide by 2 since each rent payment creates 2 rows
     expected_ryan = total_rent * 0.43
     expected_jordyn = total_rent * 0.57

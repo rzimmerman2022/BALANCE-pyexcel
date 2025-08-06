@@ -15,6 +15,7 @@ Let's figure out what the real balances should be.
 
 import pandas as pd
 
+
 def analyze_non_rent_transactions():
     print("🔍 ANALYZING NON-RENT TRANSACTIONS")
     print("=" * 60)
@@ -48,7 +49,7 @@ def analyze_non_rent_transactions():
     jordyn_non_rent = non_rent_balances.get('Jordyn', 0)
     ryan_non_rent = non_rent_balances.get('Ryan', 0)
     
-    print(f"\n💡 INTERPRETATION:")
+    print("\n💡 INTERPRETATION:")
     if jordyn_non_rent < 0:
         jordyn_owes_ryan = abs(jordyn_non_rent)
         print(f"Before considering rent, Jordyn owed Ryan ${jordyn_owes_ryan:,.2f}")
@@ -56,25 +57,25 @@ def analyze_non_rent_transactions():
         # Now let's see how rent was handled
         total_rent_ryan_should_pay = 17701.17  # From our earlier calculation
         
-        print(f"\n🏠 RENT OFFSET SYSTEM:")
+        print("\n🏠 RENT OFFSET SYSTEM:")
         print(f"Ryan's total rent obligation: ${total_rent_ryan_should_pay:,.2f}")
         print(f"Jordyn owed Ryan (pre-rent): ${jordyn_owes_ryan:,.2f}")
         
         if jordyn_owes_ryan >= total_rent_ryan_should_pay:
             # Jordyn owed more than Ryan's rent, so rent was fully "paid" by offset
             remaining_jordyn_owes = jordyn_owes_ryan - total_rent_ryan_should_pay
-            print(f"\n✅ RENT FULLY PAID VIA OFFSET")
+            print("\n✅ RENT FULLY PAID VIA OFFSET")
             print(f"After rent offset, Jordyn still owes Ryan: ${remaining_jordyn_owes:,.2f}")
-            print(f"\n🎯 FINAL ANSWER:")
+            print("\n🎯 FINAL ANSWER:")
             print(f"Jordyn owes Ryan ${remaining_jordyn_owes:,.2f}")
             
         else:
             # Jordyn owed less than Ryan's rent, so there's still a rent balance
             remaining_rent_owed = total_rent_ryan_should_pay - jordyn_owes_ryan
-            print(f"\n⚠️  RENT PARTIALLY PAID VIA OFFSET")
+            print("\n⚠️  RENT PARTIALLY PAID VIA OFFSET")
             print(f"Jordyn's debt (${jordyn_owes_ryan:,.2f}) < Ryan's rent (${total_rent_ryan_should_pay:,.2f})")
             print(f"Remaining rent Ryan owes: ${remaining_rent_owed:,.2f}")
-            print(f"\n🎯 FINAL ANSWER:")
+            print("\n🎯 FINAL ANSWER:")
             print(f"Ryan owes Jordyn ${remaining_rent_owed:,.2f}")
     
     else:
@@ -83,7 +84,7 @@ def analyze_non_rent_transactions():
     return non_rent_balances
 
 def show_transaction_breakdown(df):
-    print(f"\n📋 TRANSACTION TYPE BREAKDOWN (NON-RENT):")
+    print("\n📋 TRANSACTION TYPE BREAKDOWN (NON-RENT):")
     print("=" * 60)
     
     df['Net_Effect'] = pd.to_numeric(df['Net_Effect'], errors='coerce')

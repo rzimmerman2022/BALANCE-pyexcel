@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: sync.py
@@ -17,9 +16,11 @@ Author: Ryan Zimmerman / AI Assistant
 # 0. IMPORTS
 # ==============================================================================
 from __future__ import annotations  # For using type hints before full definition
-import pandas as pd
+
 import logging
 from typing import TYPE_CHECKING, Any  # Added TYPE_CHECKING
+
+import pandas as pd
 
 # ==============================================================================
 # 1. MODULE LEVEL SETUP

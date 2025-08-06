@@ -21,19 +21,19 @@ expense_df = pd.DataFrame(test_expense_data)
 ledger_df = pd.DataFrame(test_ledger_data)
 
 print("🧪 Testing rent-share rule implementation...")
-print(f"📊 Test expense data:")
+print("📊 Test expense data:")
 print(expense_df.to_string(index=False))
-print(f"\n📊 Test ledger data:")
+print("\n📊 Test ledger data:")
 print(ledger_df.to_string(index=False))
 
 # Run baseline analysis
 summary_df, audit_df = bm.build_baseline(expense_df, ledger_df)
 
-print(f"\n📋 Audit results:")
+print("\n📋 Audit results:")
 rent_rows = audit_df[audit_df["merchant"] == "Rent"]
 print(rent_rows[["person", "merchant", "actual_amount", "allowed_amount", "net_effect", "calculation_notes"]].to_string(index=False))
 
-print(f"\n🔍 Rent allocation verification:")
+print("\n🔍 Rent allocation verification:")
 if len(rent_rows) > 0:
     ryan_rent = rent_rows[rent_rows["person"] == "Ryan"]
     jordyn_rent = rent_rows[rent_rows["person"] == "Jordyn"]
@@ -49,7 +49,7 @@ if len(rent_rows) > 0:
         print(f"   Total rent: ${total_rent:.2f}")
         print(f"   Ryan gets: ${ryan_allowed:.2f} ({ryan_pct:.1f}%)")
         print(f"   Jordyn gets: ${jordyn_allowed:.2f} ({jordyn_pct:.1f}%)")
-        print(f"   Expected: Ryan 43%, Jordyn 57%")
+        print("   Expected: Ryan 43%, Jordyn 57%")
         
         # Check integrity equation
         for _, row in rent_rows.iterrows():
@@ -65,5 +65,5 @@ if len(rent_rows) > 0:
 else:
     print("❌ No rent rows found in audit results")
 
-print(f"\n📊 Summary:")
+print("\n📊 Summary:")
 print(summary_df.to_string(index=False))

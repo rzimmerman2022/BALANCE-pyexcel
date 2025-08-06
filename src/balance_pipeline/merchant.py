@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==============================================================================
 Module: merchant.py
@@ -13,11 +12,11 @@ Last Modified: 2025-05-04
 Author: AI Assistant (Cline)
 """
 
-import re
 import csv
 import logging
+import re
 from functools import lru_cache
-from typing import List, Tuple, Pattern as TypingPattern  # Added List, Tuple, Pattern
+from re import Pattern as TypingPattern
 
 # Import config for path settings
 from . import config
@@ -25,12 +24,11 @@ from . import config
 # Import the cleaning function from the new utils module
 from .utils import _clean_desc_single
 
-
 # --- Setup Logger ---
 log = logging.getLogger(__name__)
 
 # --- Load Lookup Table ---
-_LOOKUP: List[Tuple[TypingPattern[str], str]] = []  # Updated type hint
+_LOOKUP: list[tuple[TypingPattern[str], str]] = []  # Updated type hint
 # Use the path defined in config.py
 _LOOKUP_PATH = config.MERCHANT_LOOKUP_PATH
 
@@ -42,7 +40,7 @@ try:
             f"Merchant lookup file not found at configured path: '{_LOOKUP_PATH}'. Merchant normalization will not work."
         )
     else:
-        with open(_LOOKUP_PATH, mode="r", encoding="utf-8") as fh:
+        with open(_LOOKUP_PATH, encoding="utf-8") as fh:
             reader = csv.DictReader(fh)
             if reader.fieldnames is None or not (
                 "pattern" in reader.fieldnames and "canonical" in reader.fieldnames

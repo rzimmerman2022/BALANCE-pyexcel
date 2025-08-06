@@ -16,11 +16,10 @@ Behaviour
 
 from __future__ import annotations
 
-from typing import List
-
 import pandas as pd
 
 from ._settings import Settings
+
 
 # --------------------------------------------------------------------------- #
 # Public API
@@ -62,7 +61,7 @@ def inject_opening_balance(df: pd.DataFrame, cfg: Settings) -> pd.DataFrame:  # 
     # Identify the first-transaction row index for each account
     first_indices = data.groupby(account_col)[date_col].idxmin()
 
-    synthetic_rows: List[pd.Series] = []
+    synthetic_rows: list[pd.Series] = []
     label_col: str | None = None  # decided lazily
 
     for idx in first_indices:

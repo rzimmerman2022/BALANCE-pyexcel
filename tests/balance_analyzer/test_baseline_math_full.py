@@ -1,8 +1,9 @@
-import pandas as pd
-import pytest
 from io import StringIO
 
+import pandas as pd
+import pytest
 from baseline_analyzer.baseline_math import build_baseline
+
 
 # --------------------------------------------------------------------------- #
 # Parametric scenarios exercising each rule branch.

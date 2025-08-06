@@ -13,13 +13,13 @@ Usage:
 """
 
 import argparse
-import re
-import sys
-from pathlib import Path
-from typing import Dict, List, Optional
-import subprocess
 import difflib
+import re
+import subprocess
+import sys
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Optional
 
 
 @dataclass
@@ -54,7 +54,7 @@ class PythonSourceFixer:
     
     def __init__(self, verbose: bool = False):
         self.verbose = verbose
-        self.files_to_fix: Dict[Path, List[MypyError]] = {}
+        self.files_to_fix: dict[Path, list[MypyError]] = {}
         
     def add_error(self, error: MypyError) -> None:
         """Add an error to be fixed."""
@@ -95,7 +95,7 @@ class PythonSourceFixer:
                     
         return '\n'.join(lines)
     
-    def _infer_return_type(self, lines: List[str], func_line_idx: int) -> str:
+    def _infer_return_type(self, lines: list[str], func_line_idx: int) -> str:
         """Infer the return type of a function by analyzing its body."""
         # Simple heuristic: look for return statements in the function body
         indent_level = len(lines[func_line_idx]) - len(lines[func_line_idx].lstrip())
@@ -214,7 +214,7 @@ class PythonSourceFixer:
         
         return source
     
-    def apply_fixes(self, dry_run: bool = False) -> Dict[Path, str]:
+    def apply_fixes(self, dry_run: bool = False) -> dict[Path, str]:
         """Apply all collected fixes to the source files."""
         fixed_files = {}
         
@@ -260,7 +260,7 @@ class PythonSourceFixer:
         return fixed_files
 
 
-def run_mypy(src_dir: str = "src", strict: bool = True) -> List[str]:
+def run_mypy(src_dir: str = "src", strict: bool = True) -> list[str]:
     """Run MyPy and capture its output."""
     cmd = ["poetry", "run", "mypy", src_dir]
     if strict:

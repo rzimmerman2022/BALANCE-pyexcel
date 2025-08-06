@@ -4,14 +4,15 @@ Fixed Comprehensive Balance Analyzer for BALANCE-pyexcel
 Correctly handles all four file types with their specific quirks
 """
 
-import pandas as pd
-import numpy as np
-import re
 import json
-from pathlib import Path
-from datetime import datetime
-from collections import defaultdict, Counter
 import logging
+import re
+from collections import Counter, defaultdict
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ class SmartCSVReader:
     def read_csv_for_transaction_ledger(filepath):
         """Special handling for Transaction Ledger files with headers on row 3"""
         # Read first few lines to confirm structure
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             first_lines = [f.readline() for _ in range(5)]
         
         # Check if this matches the Transaction Ledger pattern
@@ -861,7 +862,7 @@ class ComprehensiveAnalyzer:
             if analysis['file_type'] == 'expense_history':
                 if 'allowed_amount_analysis' in analysis:
                     adj_rate = analysis['allowed_amount_analysis']['adjustment_rate']
-                    print(f"  Has Allowed Amount: Yes")
+                    print("  Has Allowed Amount: Yes")
                     print(f"  Adjustment Rate: {adj_rate:.1f}%")
                     
                 if 'person_breakdown' in analysis:
@@ -870,7 +871,7 @@ class ComprehensiveAnalyzer:
                               f"${stats['total_allowed']:,.2f} allowed")
             
             elif analysis['file_type'] == 'transaction_ledger':
-                print(f"  Has Allowed Amount: No (requires 50/50 default)")
+                print("  Has Allowed Amount: No (requires 50/50 default)")
                 if 'pattern_analysis' in analysis:
                     total_patterns = sum(analysis['pattern_analysis'].values())
                     print(f"  Pattern Overrides Found: {total_patterns}")

@@ -1,30 +1,35 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
-from pathlib import Path
 import json
 import logging
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 
+import pandas as pd
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
+    Image,
+    PageBreak,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
 )
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 # Assuming config.py is accessible
-from .config import AnalysisConfig 
+from .config import AnalysisConfig
 
 logger = logging.getLogger(__name__)
 
 def _generate_dashboard_html(
-    visualizations: Dict[str, str], 
-    alt_texts: Dict[str, str],
+    visualizations: dict[str, str], 
+    alt_texts: dict[str, str],
     output_dir: Path,
     logger_instance: logging.Logger = logger
 ) -> Path:
@@ -61,7 +66,7 @@ iframe,img{max-width:100%;height:auto;border:none;border-radius:5px;}
             html_content += f"<p>Cannot display {viz_relative_path}</p>"
         html_content += "</div></div>"
     
-    html_content += f'</div><div class="timestamp">Generated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")}</div></div></body></html>'
+    html_content += f'</div><div class="timestamp">Generated: {datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S %Z")}</div></div></body></html>'
 
     dashboard_path = output_dir / "dashboard_v2.3.html"
     try:
@@ -75,10 +80,10 @@ iframe,img{max-width:100%;height:auto;border:none;border-radius:5px;}
 
 
 def _generate_executive_summary_pdf(
-    summary_data: Dict[str, Any], # Allow Any for values
-    visualizations: Dict[str, str],
-    alt_texts: Dict[str, str],
-    recommendations: List[str],
+    summary_data: dict[str, Any], # Allow Any for values
+    visualizations: dict[str, str],
+    alt_texts: dict[str, str],
+    recommendations: list[str],
     output_dir: Path,
     logger_instance: logging.Logger = logger
 ) -> Path:
@@ -89,7 +94,7 @@ def _generate_executive_summary_pdf(
         topMargin=0.5*inch, bottomMargin=0.5*inch,
         leftMargin=0.5*inch, rightMargin=0.5*inch
     )
-    story: List[Any] = [] # Story can contain various ReportLab flowables
+    story: list[Any] = [] # Story can contain various ReportLab flowables
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="Justify", alignment=TA_LEFT))
     styles.add(ParagraphStyle(name="H1Custom", fontSize=20, leading=22, alignment=TA_CENTER, spaceAfter=20, textColor=colors.HexColor("#007ACC")))
@@ -98,7 +103,7 @@ def _generate_executive_summary_pdf(
 
 
     story.append(Paragraph("Shared Expense Analysis - Executive Summary v2.3", styles["H1Custom"]))
-    story.append(Paragraph(f"Report Date: {datetime.now(timezone.utc).strftime('%B %d, %Y %Z')}", styles["Normal"]))
+    story.append(Paragraph(f"Report Date: {datetime.now(UTC).strftime('%B %d, %Y %Z')}", styles["Normal"]))
     story.append(Spacer(1, 0.2 * inch))
 
     story.append(Paragraph("Key Metrics", styles["H2Custom"]))
@@ -177,21 +182,21 @@ def _generate_executive_summary_pdf(
 
 def generate_all_outputs(
     master_ledger: pd.DataFrame,
-    reconciliation_results: Dict[str, Any],
-    analytics_results: Dict[str, Any],
-    risk_assessment: Dict[str, Any],
-    recommendations: List[str],
-    visualizations: Dict[str, str], # Paths to already generated viz files
-    alt_texts: Dict[str, str],
-    data_quality_issues: List[Dict[str, Any]], # Direct list of DQ issues
+    reconciliation_results: dict[str, Any],
+    analytics_results: dict[str, Any],
+    risk_assessment: dict[str, Any],
+    recommendations: list[str],
+    visualizations: dict[str, str], # Paths to already generated viz files
+    alt_texts: dict[str, str],
+    data_quality_issues: list[dict[str, Any]], # Direct list of DQ issues
     config: AnalysisConfig, # Pass full config
     output_dir_path_str: str = "analysis_output", # Allow overriding output dir
     logger_instance: logging.Logger = logger
-) -> Dict[str, str]:
+) -> dict[str, str]:
     logger_instance.info(f"Generating all output files in '{output_dir_path_str}'...")
     output_dir = Path(output_dir_path_str)
     output_dir.mkdir(exist_ok=True)
-    output_paths: Dict[str, str] = {}
+    output_paths: dict[str, str] = {}
 
     master_ledger_export = master_ledger.copy()
     if "Date" in master_ledger_export.columns:

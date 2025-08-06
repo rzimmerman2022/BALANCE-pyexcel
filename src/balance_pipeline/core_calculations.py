@@ -13,11 +13,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, TYPE_CHECKING
+import importlib
 import logging
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
-import importlib
 
 if TYPE_CHECKING:  # pragma: no cover - used only for typing
     AnalysisConfig = Any
@@ -33,7 +33,7 @@ class CoreCalculator:
     def __init__(self, config: AnalysisConfig) -> None:
         self.config = config
 
-    def triple_reconciliation(self, master_ledger: pd.DataFrame) -> Dict[str, Any]:
+    def triple_reconciliation(self, master_ledger: pd.DataFrame) -> dict[str, Any]:
         """Perform the triple reconciliation calculation."""
         if master_ledger.empty or "BalanceImpact" not in master_ledger.columns:
             logger.warning(
@@ -72,7 +72,7 @@ class CoreCalculator:
             jordyn_total_fair_share = 0.0
             ryan_actually_paid_for_shared = 0.0
             jordyn_actually_paid_for_shared = 0.0
-            category_balances_info: list[Dict[str, Any]] = []
+            category_balances_info: list[dict[str, Any]] = []
         else:
             total_shared_amount = shared_only["AllowedAmount"].sum()
             ryan_total_fair_share = total_shared_amount * self.config.RYAN_PCT

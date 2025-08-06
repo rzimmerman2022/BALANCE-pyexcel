@@ -5,6 +5,7 @@ The current system has the rent allocation backwards - need to investigate and f
 
 import pandas as pd
 
+
 def analyze_rent_allocation_issue():
     """Analyze the rent allocation discrepancy"""
     
@@ -17,7 +18,7 @@ def analyze_rent_allocation_issue():
         print(f"✅ Loaded rent allocation data: {len(rent_df)} months")
     except Exception as e:
         print(f"❌ Error loading rent data: {e}")
-        return
+        return None
     
     print("\n📊 CURRENT SYSTEM (INCORRECT):")
     print("-" * 40)

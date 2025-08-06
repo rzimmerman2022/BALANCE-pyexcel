@@ -3,9 +3,10 @@ ZELLE DATA LOADER AND PROCESSOR
 Loads Wells Fargo Zelle payment data and prepares it for integration
 """
 
-import pandas as pd
 from datetime import datetime
-import re
+
+import pandas as pd
+
 
 def clean_currency_string(value):
     """Convert currency strings to float, handling negative values"""
@@ -161,18 +162,18 @@ def analyze_zelle_data(df):
     print(f"Date range: {df['Date'].min()} to {df['Date'].max()}")
     print(f"Total amount: ${df['Amount_Clean'].sum():.2f}")
     
-    print(f"\nBy Direction:")
+    print("\nBy Direction:")
     print(f"Outgoing payments: {len(df[df['Is_Outgoing']])} (${df[df['Is_Outgoing']]['Amount_Clean'].sum():.2f})")
     print(f"Incoming payments: {len(df[~df['Is_Outgoing']])} (${df[~df['Is_Outgoing']]['Amount_Clean'].sum():.2f})")
     
-    print(f"\nBy Person:")
+    print("\nBy Person:")
     person_counts = df['Person'].value_counts()
     for person, count in person_counts.items():
         person_df = df[df['Person'] == person]
         total_amount = person_df['Amount_Clean'].sum()
         print(f"{person}: {count} transactions (${total_amount:.2f})")
     
-    print(f"\nBy Category:")
+    print("\nBy Category:")
     category_counts = df['Category'].value_counts()
     for category, count in category_counts.items():
         category_df = df[df['Category'] == category]
@@ -180,7 +181,7 @@ def analyze_zelle_data(df):
         print(f"{category}: {count} transactions (${total_amount:.2f})")
     
     # Show some examples
-    print(f"\nSample Zelle transactions:")
+    print("\nSample Zelle transactions:")
     sample_df = df[['Date', 'Description', 'Amount_Clean', 'Person', 'Category']].head(10)
     print(sample_df.to_string(index=False))
     
@@ -189,12 +190,12 @@ def analyze_zelle_data(df):
     unknown_category = df[df['Category'] == 'Unknown']
     
     if len(unknown_person) > 0:
-        print(f"\n⚠️ MANUAL REVIEW NEEDED:")
+        print("\n⚠️ MANUAL REVIEW NEEDED:")
         print(f"{len(unknown_person)} transactions with unknown person:")
         print(unknown_person[['Date', 'Description', 'Amount_Clean']].to_string(index=False))
     
     if len(unknown_category) > 0:
-        print(f"\n⚠️ MANUAL REVIEW NEEDED:")
+        print("\n⚠️ MANUAL REVIEW NEEDED:")
         print(f"{len(unknown_category)} transactions with unknown category:")
         print(unknown_category[['Date', 'Description', 'Amount_Clean']].to_string(index=False))
 
@@ -239,8 +240,8 @@ def main():
             output_file = "data/processed_zelle_transactions.csv"
             save_processed_zelle_data(df, output_file)
             
-            print(f"\n✅ Zelle data processing complete!")
-            print(f"Next step: Run zelle_matcher.py to cross-reference with existing expense data")
+            print("\n✅ Zelle data processing complete!")
+            print("Next step: Run zelle_matcher.py to cross-reference with existing expense data")
         
     except Exception as e:
         print(f"Error: {e}")

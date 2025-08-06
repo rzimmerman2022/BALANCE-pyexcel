@@ -25,45 +25,38 @@ from __future__ import annotations
 
 """Institutional-grade expense analysis and reconciliation utility."""
 
-import pandas as pd
-import numpy as np
-from datetime import datetime, timezone
-import logging
-import json
-import hashlib
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any, Union
 import argparse
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import Rectangle
-import seaborn as sns
-from scipy import stats
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.io as pio
-import warnings
-import unittest
-from dataclasses import dataclass, field
-from enum import Enum
+import hashlib
+import json
+import logging
 import re
+import unittest
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import psutil  # For performance checking
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate,
-    Table,
-    TableStyle,
-    Paragraph,
-    Spacer,
     Image,
     PageBreak,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
 )
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
-import io
-import base64
-import psutil  # For performance checking
+from scipy import stats
 
 # Configure logging for audit trail
 logging.basicConfig(
@@ -420,7 +413,7 @@ class DataLoaderV23:
         transaction_ledger: pd.DataFrame,
         rent_alloc: pd.DataFrame,
         rent_hist: pd.DataFrame,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         validation_results = {
             "expense_history": {
                 "rows": len(expense_hist),
@@ -634,7 +627,7 @@ class EnhancedSharedExpenseAnalyzer:
         ledger_file: Path,
         rent_alloc_file: Path,
         rent_hist_file: Path,
-        config: Optional[AnalysisConfig] = None,
+        config: AnalysisConfig | None = None,
     ):
         self.config = config or AnalysisConfig()
         self.expense_file = expense_file
@@ -642,20 +635,20 @@ class EnhancedSharedExpenseAnalyzer:
         self.rent_alloc_file = rent_alloc_file
         self.rent_hist_file = rent_hist_file
 
-        self.data_quality_issues: List[Dict[str, Any]] = []
-        self.audit_trail: List[
-            Dict[str, Any]
+        self.data_quality_issues: list[dict[str, Any]] = []
+        self.audit_trail: list[
+            dict[str, Any]
         ] = []  # Consider if this is still used or replaced by logging
-        self.validation_results: Dict[
+        self.validation_results: dict[
             str, Any
         ] = {}  # Allow Any for more detailed validation
-        self.alt_texts: Dict[str, str] = {}
+        self.alt_texts: dict[str, str] = {}
 
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         self.memory_usage_mb = 0
 
         logger.info(f"Initialized analyzer v2.3 with config: {self.config}")
-        logger.info(f"Data files:")
+        logger.info("Data files:")
         logger.info(f"  - Expense History: {self.expense_file}")
         logger.info(f"  - Transaction Ledger: {self.ledger_file}")
         logger.info(f"  - Rent Allocation: {self.rent_alloc_file}")
@@ -675,8 +668,8 @@ class EnhancedSharedExpenseAnalyzer:
         self,
         source: str,
         row_idx: Any,
-        row_data: Dict[str, Any],
-        flags: List[Union[DataQualityFlag, str]],
+        row_data: dict[str, Any],
+        flags: list[DataQualityFlag | str],
     ):
         """Log data quality issues for audit trail"""
         flag_values = [f.value if isinstance(f, DataQualityFlag) else f for f in flags]
@@ -696,7 +689,7 @@ class EnhancedSharedExpenseAnalyzer:
             "source": source,
             "row_index_in_source_df": str(row_idx),  # str for safety
             "flags": flag_values,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "row_data_sample": {
                 k: sanitized_row_data.get(k)
                 for k in [
@@ -715,7 +708,7 @@ class EnhancedSharedExpenseAnalyzer:
         )
 
     def _update_row_data_quality_flags(
-        self, df: pd.DataFrame, row_idx: Any, new_flags_enums: List[DataQualityFlag]
+        self, df: pd.DataFrame, row_idx: Any, new_flags_enums: list[DataQualityFlag]
     ):
         """Appends new unique flags to the existing flags for a given row"""
         if not new_flags_enums:
@@ -773,7 +766,7 @@ class EnhancedSharedExpenseAnalyzer:
                 logger.error(
                     f"Cannot find index {idx} in DataFrame for date imputation."
                 )
-                return pd.Timestamp.now(tz=timezone.utc).replace(
+                return pd.Timestamp.now(tz=UTC).replace(
                     day=1
                 ) + pd.offsets.MonthEnd(0)  # Fallback
         else:
@@ -788,7 +781,7 @@ class EnhancedSharedExpenseAnalyzer:
             logger.warning(
                 f"Invalid slice for date imputation for index {idx} (pos {idx_pos}). Falling back."
             )
-            return pd.Timestamp.now(tz=timezone.utc).replace(
+            return pd.Timestamp.now(tz=UTC).replace(
                 day=1
             ) + pd.offsets.MonthEnd(0)
 
@@ -809,7 +802,7 @@ class EnhancedSharedExpenseAnalyzer:
             )
 
         # Fallback if imputation fails
-        now = pd.Timestamp.now(tz=timezone.utc)
+        now = pd.Timestamp.now(tz=UTC)
         return now.replace(day=1) + pd.offsets.MonthEnd(0)
 
     def _process_expense_data(
@@ -1391,9 +1384,9 @@ class EnhancedSharedExpenseAnalyzer:
             logger.info("✓ Running balance matches transaction ledger's final balance.")
             self.validation_results["ledger_balance_match"] = "Matched"
 
-    def _analyze_rent_budget_variance(self, rent_df: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_rent_budget_variance(self, rent_df: pd.DataFrame) -> dict[str, Any]:
         logger.info("Analyzing rent budget variance...")
-        analysis: Dict[str, Any] = {}  # Ensure type
+        analysis: dict[str, Any] = {}  # Ensure type
 
         if (
             "Budget_Variance" not in rent_df.columns
@@ -1450,7 +1443,7 @@ class EnhancedSharedExpenseAnalyzer:
 
         return analysis
 
-    def analyze(self) -> Dict[str, Any]:
+    def analyze(self) -> dict[str, Any]:
         """Execute comprehensive analysis pipeline with all four data sources"""
         try:
             logger.info("Starting analysis pipeline v2.3...")
@@ -1537,7 +1530,7 @@ class EnhancedSharedExpenseAnalyzer:
                 "data_sources_summary": data_sources_summary,
                 "performance_metrics": {
                     "processing_time_seconds": round(
-                        (datetime.now(timezone.utc) - self.start_time).total_seconds(),
+                        (datetime.now(UTC) - self.start_time).total_seconds(),
                         2,
                     ),
                     "memory_usage_mb": round(self.memory_usage_mb, 2),
@@ -1567,7 +1560,7 @@ class EnhancedSharedExpenseAnalyzer:
                     )
             raise
 
-    def _explode_audit(self, audit_note: str) -> Tuple[str, str, str, str]:
+    def _explode_audit(self, audit_note: str) -> tuple[str, str, str, str]:
         """Parse audit note into structured components. Copied from original."""
         if pd.isna(audit_note) or not str(audit_note).strip():
             return ("<NA>", "<NA>", "<NA>", "<NA>")
@@ -1810,7 +1803,7 @@ class EnhancedSharedExpenseAnalyzer:
     # --- These methods are assumed to largely work with the processed master_ledger ---
     # --- Minor adjustments might be needed based on column name changes or data types ---
 
-    def _triple_reconciliation(self, master_ledger: pd.DataFrame) -> Dict[str, Any]:
+    def _triple_reconciliation(self, master_ledger: pd.DataFrame) -> dict[str, Any]:
         """Perform triple reconciliation. Based on original."""
         logger.info("Performing triple reconciliation...")
         if master_ledger.empty or "BalanceImpact" not in master_ledger.columns:
@@ -1929,7 +1922,7 @@ class EnhancedSharedExpenseAnalyzer:
         )
         amount_owed_val = abs(final_balance_to_report)
 
-        logger.info(f"Triple Reconciliation Results (v2.3 logic):")
+        logger.info("Triple Reconciliation Results (v2.3 logic):")
         logger.info(
             f"  M1 (Running Balance): ${method1_balance:,.2f} ({'Ryan owes Jordyn' if method1_balance > 0 else 'Jordyn owes Ryan' if method1_balance < 0 else 'Settled'})"
         )
@@ -1978,10 +1971,10 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _perform_advanced_analytics(
         self, master_ledger: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run advanced analytics. Based on original."""
         logger.info("Running advanced analytics...")
-        analytics: Dict[str, Any] = {}  # Ensure type
+        analytics: dict[str, Any] = {}  # Ensure type
         if master_ledger.empty or master_ledger["Date"].isna().all():
             logger.warning(
                 "Master ledger is empty or has no valid dates for advanced analytics."
@@ -2117,7 +2110,7 @@ class EnhancedSharedExpenseAnalyzer:
                 analytics["monthly_shared_spending_forecast"] = dict(
                     zip(
                         [d.strftime("%Y-%m") for d in forecast_dates],
-                        np.round(forecast_values, 2),
+                        np.round(forecast_values, 2), strict=False,
                     )
                 )
             else:
@@ -2159,11 +2152,11 @@ class EnhancedSharedExpenseAnalyzer:
         return analytics
 
     def _comprehensive_risk_assessment(
-        self, master_ledger: pd.DataFrame, analytics: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, master_ledger: pd.DataFrame, analytics: dict[str, Any]
+    ) -> dict[str, Any]:
         """Perform comprehensive risk assessment. Based on original."""
         logger.info("Performing comprehensive risk assessment...")
-        risks: Dict[str, Any] = {
+        risks: dict[str, Any] = {
             "overall_risk_level": "LOW",
             "details": [],
         }  # Ensure type for details
@@ -2273,16 +2266,16 @@ class EnhancedSharedExpenseAnalyzer:
     def _create_visualizations_v22(
         self,
         master_ledger: pd.DataFrame,
-        analytics: Dict[str, Any],
-        reconciliation: Dict[str, Any],
-    ) -> Dict[str, str]:
+        analytics: dict[str, Any],
+        reconciliation: dict[str, Any],
+    ) -> dict[str, str]:
         """Create all v2.2 visualizations. Based on original.
         Ensure master_ledger['Date'] is datetime.
         """
         logger.info("Creating v2.2 visualizations...")
         output_dir = Path("analysis_output")
         output_dir.mkdir(exist_ok=True)
-        viz_paths: Dict[str, str] = {}
+        viz_paths: dict[str, str] = {}
 
         theme = build_design_theme()  # Ensure theme is built
 
@@ -2404,7 +2397,7 @@ class EnhancedSharedExpenseAnalyzer:
     # --- Visualization Builder Methods (from original, ensure they use master_ledger.copy() or are robust to NaT in Date) ---
     def _build_running_balance_timeline(
         self, ledger_df: pd.DataFrame, output_dir: Path
-    ) -> Tuple[Path, str]:
+    ) -> tuple[Path, str]:
         ledger_df = ledger_df.dropna(subset=["Date", "RunningBalance"])
         if ledger_df.empty:
             return output_dir / "no_data.png", "No data for running balance timeline."
@@ -2492,7 +2485,7 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _build_waterfall_category_impact(
         self, ledger_df: pd.DataFrame, output_dir: Path, theme
-    ) -> Tuple[Path, str]:
+    ) -> tuple[Path, str]:
         if ledger_df.empty or "BalanceImpact" not in ledger_df.columns:
             return output_dir / "no_data.html", "No data for waterfall chart."
 
@@ -2555,8 +2548,8 @@ class EnhancedSharedExpenseAnalyzer:
         return path, alt_text
 
     def _build_monthly_shared_trend(
-        self, ledger_df: pd.DataFrame, analytics: Dict[str, Any], output_dir: Path
-    ) -> Tuple[Path, str]:
+        self, ledger_df: pd.DataFrame, analytics: dict[str, Any], output_dir: Path
+    ) -> tuple[Path, str]:
         # This plot uses pre-calculated analytics trend data
         trend_data = analytics.get("monthly_shared_spending_trend", {})
         monthly_values_dict = trend_data.get("monthly_values", {})
@@ -2622,7 +2615,7 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _build_payer_type_heatmap(
         self, ledger_df: pd.DataFrame, output_dir: Path, theme
-    ) -> Tuple[Path, str]:
+    ) -> tuple[Path, str]:
         # Renamed from _build_liquidity_heatmap as it shows spending by payer/type, not liquidity directly
         if (
             ledger_df.empty
@@ -2673,7 +2666,7 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _build_calendar_heatmaps(
         self, ledger_df: pd.DataFrame, output_dir: Path
-    ) -> Dict[str, Tuple[Path, str]]:
+    ) -> dict[str, tuple[Path, str]]:
         calendar_paths = {}
         if (
             ledger_df.empty
@@ -2750,7 +2743,7 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _build_treemap_shared_spending(
         self, ledger_df: pd.DataFrame, output_dir: Path, theme
-    ) -> Tuple[Path, str]:
+    ) -> tuple[Path, str]:
         if ledger_df.empty or "AllowedAmount" not in ledger_df.columns:
             return output_dir / "no_data.html", "No data for treemap."
 
@@ -2827,7 +2820,7 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _build_anomaly_scatter(
         self, ledger_df: pd.DataFrame, output_dir: Path
-    ) -> Tuple[Path, str]:
+    ) -> tuple[Path, str]:
         if (
             ledger_df.empty
             or "AllowedAmount" not in ledger_df.columns
@@ -2902,12 +2895,12 @@ class EnhancedSharedExpenseAnalyzer:
         path = output_dir / "anomaly_scatter.png"
         plt.savefig(path, dpi=300, bbox_inches="tight")
         plt.close(fig)
-        alt_text = f"Anomaly scatter plot of transactions."
+        alt_text = "Anomaly scatter plot of transactions."
         return path, alt_text
 
     def _build_pareto_concentration(
         self, ledger_df: pd.DataFrame, output_dir: Path
-    ) -> Tuple[Path, str]:
+    ) -> tuple[Path, str]:
         if ledger_df.empty or "AllowedAmount" not in ledger_df.columns:
             return output_dir / "no_data.png", "No data for Pareto chart."
 
@@ -2992,12 +2985,12 @@ class EnhancedSharedExpenseAnalyzer:
         path = output_dir / "pareto_concentration.png"
         plt.savefig(path, dpi=300, bbox_inches="tight")
         plt.close(fig)
-        alt_text = f"Pareto chart of shared spending concentration."
+        alt_text = "Pareto chart of shared spending concentration."
         return path, alt_text
 
     def _build_sankey_settlements(
         self, ledger_df: pd.DataFrame, output_dir: Path, theme
-    ) -> Tuple[Path, str]:
+    ) -> tuple[Path, str]:
         if ledger_df.empty:
             return output_dir / "no_data.html", "No data for Sankey diagram."
 
@@ -3159,7 +3152,7 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _build_data_quality_table_viz(
         self, ledger_df: pd.DataFrame, output_dir: Path, theme
-    ) -> Tuple[Path, str]:
+    ) -> tuple[Path, str]:
         # Renamed from _build_data_quality_table for clarity (it's a visualization)
         if ledger_df.empty or "DataQualityFlag" not in ledger_df.columns:
             return output_dir / "no_data.html", "No data for data quality table."
@@ -3248,10 +3241,10 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _generate_recommendations(
         self,
-        analytics: Dict[str, Any],
-        risk_assessment: Dict[str, Any],
-        reconciliation: Dict[str, Any],
-    ) -> List[str]:
+        analytics: dict[str, Any],
+        risk_assessment: dict[str, Any],
+        reconciliation: dict[str, Any],
+    ) -> list[str]:
         """Generate recommendations. Based on original, enhanced for v2.3."""
         logger.info("Generating recommendations...")
         recommendations = []
@@ -3332,12 +3325,12 @@ class EnhancedSharedExpenseAnalyzer:
 
     def _summarize_data_quality_issues(
         self, master_ledger: pd.DataFrame
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Summarizes the count of each data quality flag type. Based on original."""
         if master_ledger.empty or "DataQualityFlag" not in master_ledger.columns:
             return {"No data quality flags to summarize.": 0}
 
-        flag_counts: Dict[str, int] = {}
+        flag_counts: dict[str, int] = {}
         # Iterate over each row's DataQualityFlag string
         for flags_str_per_row in master_ledger["DataQualityFlag"].dropna():
             if flags_str_per_row != DataQualityFlag.CLEAN.value:
@@ -3351,7 +3344,7 @@ class EnhancedSharedExpenseAnalyzer:
         return flag_counts if flag_counts else {"All Clear": len(master_ledger)}
 
     def _validate_results_summary(
-        self, reconciliation: Dict[str, Any], master_ledger: pd.DataFrame
+        self, reconciliation: dict[str, Any], master_ledger: pd.DataFrame
     ) -> None:
         """Validate analysis results and populate self.validation_results. Renamed from _validate_results."""
         logger.info("Validating analysis results summary...")
@@ -3434,7 +3427,7 @@ class EnhancedSharedExpenseAnalyzer:
     def _check_performance(self) -> None:
         """Check performance metrics. Based on original."""
         logger.info("Checking performance metrics...")
-        elapsed_seconds = (datetime.now(timezone.utc) - self.start_time).total_seconds()
+        elapsed_seconds = (datetime.now(UTC) - self.start_time).total_seconds()
         if elapsed_seconds > self.config.MAX_PROCESSING_TIME_SECONDS:
             logger.warning(
                 f"Processing time ({elapsed_seconds:.1f}s) EXCEEDED limit ({self.config.MAX_PROCESSING_TIME_SECONDS}s)."
@@ -3454,7 +3447,7 @@ class EnhancedSharedExpenseAnalyzer:
             f"Performance: Time={elapsed_seconds:.2f}s, Memory={self.memory_usage_mb:.2f}MB"
         )
 
-    def _categorize_merchant(self, merchant: Optional[str]) -> str:
+    def _categorize_merchant(self, merchant: str | None) -> str:
         """Categorize merchant. Based on original."""
         if pd.isna(merchant) or not isinstance(merchant, str) or not merchant.strip():
             return "Other/Unspecified"
@@ -3595,17 +3588,17 @@ class EnhancedSharedExpenseAnalyzer:
     def _generate_outputs(
         self,
         master_ledger: pd.DataFrame,
-        reconciliation: Dict[str, Any],
-        analytics: Dict[str, Any],
-        risk_assessment: Dict[str, Any],
-        recommendations: List[str],
-        visualizations: Dict[str, str],
-    ) -> Dict[str, str]:
+        reconciliation: dict[str, Any],
+        analytics: dict[str, Any],
+        risk_assessment: dict[str, Any],
+        recommendations: list[str],
+        visualizations: dict[str, str],
+    ) -> dict[str, str]:
         """Generate all output files v2.3. Based on original."""
         logger.info("Generating output files v2.3...")
         output_dir = Path("analysis_output")
         output_dir.mkdir(exist_ok=True)
-        output_paths: Dict[str, str] = {}
+        output_paths: dict[str, str] = {}
 
         master_ledger_export = master_ledger.copy()
         # Ensure Date is string for CSV if preferred, or keep as datetime and let to_csv handle format
@@ -3704,7 +3697,7 @@ class EnhancedSharedExpenseAnalyzer:
             "Ledger Balance Matched": str(
                 self.validation_results.get("ledger_balance_match", "N/A")
             ),
-            "Processing Time (s)": f"{(datetime.now(timezone.utc) - self.start_time).total_seconds():.1f}",
+            "Processing Time (s)": f"{(datetime.now(UTC) - self.start_time).total_seconds():.1f}",
             "Total Transactions Analyzed": len(master_ledger)
             if not master_ledger.empty
             else 0,
@@ -3829,7 +3822,7 @@ class EnhancedSharedExpenseAnalyzer:
         return output_paths
 
     def _generate_dashboard_html(
-        self, visualizations: Dict[str, str], output_dir: Path
+        self, visualizations: dict[str, str], output_dir: Path
     ) -> Path:
         """Generate HTML dashboard. Based on original."""
         # (Ensure this method from original is included here)
@@ -3872,9 +3865,9 @@ iframe,img{max-width:100%;height:auto;border:none;border-radius:5px;}
 
     def _generate_executive_summary_pdf(
         self,
-        summary_data: Dict[str, str],
-        visualizations: Dict[str, str],
-        recommendations: List[str],
+        summary_data: dict[str, str],
+        visualizations: dict[str, str],
+        recommendations: list[str],
         output_dir: Path,
     ) -> Path:
         """Generate executive PDF report. Based on original."""

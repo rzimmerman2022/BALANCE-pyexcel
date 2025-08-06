@@ -18,7 +18,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 LEDGER_PATH = Path("analysis_output/master_ledger.csv")
 
 

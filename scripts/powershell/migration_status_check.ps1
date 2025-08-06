@@ -114,7 +114,7 @@ Write-Host "`n=== MIGRATION STATUS SUMMARY ===" -ForegroundColor Green
 if ((Test-Path $balanceNew) -and (Test-Path $financialNew)) {
     Write-Host "[OK] Both projects are in c:\projects structure" -ForegroundColor Green
     if (Test-Path $balanceOld) {
-        Write-Host "[TODO] Clean up original BALANCE-pyexcel after verification" -ForegroundColor Yellow
+        Write-Host "[INFO] Original BALANCE-pyexcel can be archived if no longer needed" -ForegroundColor Yellow
         Write-Host "[GOOD] Other c:\BALANCE projects preserved" -ForegroundColor Green
     }
     Write-Host "`nNext actions needed:" -ForegroundColor Yellow
