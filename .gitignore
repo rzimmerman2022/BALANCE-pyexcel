@@ -340,6 +340,15 @@ workbook/*.lock
 # csv_inbox/
 
 ################################################################################
+# Archive Directories (For Review Before Deletion)
+################################################################################
+# Archive directories pending review - DO NOT DELETE WITHOUT REVIEW
+_ARCHIVE/
+_ARCHIVE_*/
+*_ARCHIVE_TO_DELETE/
+_ARCHIVE_FOR_REVIEW_BEFORE_DELETION/
+
+################################################################################
 # Notes for Contributors
 ################################################################################
 # 1. The template folder is explicitly included and must remain in version control
@@ -347,4 +356,5 @@ workbook/*.lock
 # 3. Temporary Excel files are automatically cleaned up by the CLI
 # 4. Add project-specific ignores in the appropriate section above
 # 5. Update the CHANGELOG when making significant changes to this file
+# 6. Archive directories are ignored but preserved locally for review
 ################################################################################

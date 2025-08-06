@@ -9,7 +9,7 @@
 
 # BALANCE-pyexcel: Gold Standard Financial Analysis Pipeline
 
-[![Python CI](https://github.com/your-github-org-or-username/BALANCE-pyexcel/actions/workflows/ci.yml/badge.svg)](https://github.com/your-github-org-or-username/BALANCE-pyexcel/actions/workflows/ci.yml)
+[![Python CI](https://github.com/balance-pipeline/BALANCE-pyexcel/actions/workflows/ci.yml/badge.svg)](https://github.com/balance-pipeline/BALANCE-pyexcel/actions/workflows/ci.yml)
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://python.org)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -97,7 +97,7 @@ BALANCE-pyexcel is a **gold standard financial analysis pipeline** that:
 ### **Installation & First Run**
 ```powershell
 # 1. Clone repository
-git clone <repo_url>
+git clone https://github.com/balance-pipeline/BALANCE-pyexcel.git
 cd BALANCE-pyexcel
 
 # 2. Install dependencies (uses Poetry)

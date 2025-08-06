@@ -1,0 +1,3 @@
+person,date,merchant,full_description,actual_amount,allowed_amount,net_effect,pattern_flags,calculation_notes,transaction_type,source_file,transaction_id,running_balance_ryan,running_balance_jordyn
+Jordyn,2025-06-18,,,0.0,0.0,0.0,[],SR | Standard 50/50 split,standard,test_data,1,0.0,0.0
+Ryan,2025-06-18,,,0.0,0.0,0.0,[],SR | Standard 50/50 split,standard,test_data,2,0.0,0.0

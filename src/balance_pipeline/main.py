@@ -6,6 +6,7 @@ This module provides the command-line interface for processing financial CSV fil
 through the unified pipeline. It handles argument parsing, logging setup, and
 orchestrates the data processing workflow.
 """
+from __future__ import annotations
 
 import argparse
 import logging
