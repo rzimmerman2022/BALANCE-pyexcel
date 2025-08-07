@@ -73,9 +73,15 @@ iframe,img{max-width:100%;height:auto;border:none;border-radius:5px;}
         with open(dashboard_path, "w", encoding="utf-8") as f:
             f.write(html_content)
         logger_instance.info(f"Successfully generated HTML dashboard: {dashboard_path}")
-    except Exception as e:
-        logger_instance.error(f"Failed to write HTML dashboard {dashboard_path}: {e}")
-        # Potentially re-raise or handle as critical error
+    except PermissionError as e:
+        logger_instance.error(f"Permission denied writing HTML dashboard {dashboard_path}: {e}")
+        raise
+    except OSError as e:
+        logger_instance.error(f"OS error writing HTML dashboard {dashboard_path}: {e}")
+        raise
+    except UnicodeEncodeError as e:
+        logger_instance.error(f"Encoding error writing HTML dashboard {dashboard_path}: {e}")
+        raise
     return dashboard_path
 
 

@@ -242,15 +242,15 @@ FINAL_COLS = [
 # Function: _txn_id
 # ------------------------------------------------------------------------------
 def _txn_id(row: dict[str, Any]) -> str:  # Changed input type to dict for apply lambda
-    """Stable 16-char hex id using MD5."""
+    """Stable 32-char hex id using SHA-256 for better collision resistance."""
     # Extract values based on _ID_COLS_FOR_HASH, convert to string, strip whitespace, handle missing keys
     # Source is not included in TxnID hash components to allow for cross-source deduplication.
     # Deduplication logic will use the 'Source' column and 'prefer_source' to pick the record to keep.
     base_parts = [str(row.get(col, "")).strip() for col in _ID_COLS_FOR_HASH]
     # Join parts with a separator
     hash_input = "|".join(base_parts)
-    # Encode to bytes, generate MD5 hash, get hex digest, truncate
-    return hashlib.md5(hash_input.encode("utf-8")).hexdigest()[:16]
+    # Encode to bytes, generate SHA-256 hash, get hex digest, truncate to 32 chars
+    return hashlib.sha256(hash_input.encode("utf-8")).hexdigest()[:32]
 
 
 # ==============================================================================
@@ -346,11 +346,11 @@ def normalize_df(df: pd.DataFrame, prefer_source: str = "Rocket") -> pd.DataFram
             ["|".join(elements) for elements in zip(*hash_components, strict=False)], index=out.index
         )
 
-        # Apply MD5 hashing
+        # Apply SHA-256 hashing for better collision resistance
         # This part still uses .apply, but operates on already constructed strings
         try:
             out["TxnID"] = hash_input_series.apply(
-                lambda x: hashlib.md5(x.encode("utf-8")).hexdigest()[:16]
+                lambda x: hashlib.sha256(x.encode("utf-8")).hexdigest()[:32]
             )
             log.info(
                 "Generated 'TxnID' column using vectorized string operations and apply for hash."

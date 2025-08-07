@@ -149,20 +149,26 @@ class UnifiedPipeline:
                 self._log_debug_info(normalized_paths, schema_path, merchant_path)
             
             # Step 4: Configure processing based on schema mode
-            # In the actual implementation, this would configure csv_consolidator
-            # For now, we'll pass parameters directly
-            
-            # Step 5: Process files using the CSV consolidator
-            # The consolidator accepts List[Union[str, Path]], so we convert our
-            # normalized Path objects to a list that matches the expected type
-            file_list: list[str | Path] = list(normalized_paths)
-            
-            processed_df = process_csv_files(
-                csv_files=file_list,
-                schema_registry_override_path=schema_path,
-                merchant_lookup_override_path=merchant_path,
-                debug_mode=self.debug_mode  # Pass debug_mode to enable detailed logging
-            )
+            # Temporarily override the global SCHEMA_MODE for this processing run
+            import balance_pipeline.config as bp_config
+            original_schema_mode = bp_config.SCHEMA_MODE
+            try:
+                bp_config.SCHEMA_MODE = self.schema_mode
+                
+                # Step 5: Process files using the CSV consolidator
+                # The consolidator accepts List[Union[str, Path]], so we convert our
+                # normalized Path objects to a list that matches the expected type
+                file_list: list[str | Path] = list(normalized_paths)
+                
+                processed_df = process_csv_files(
+                    csv_files=file_list,
+                    schema_registry_override_path=schema_path,
+                    merchant_lookup_override_path=merchant_path,
+                    debug_mode=self.debug_mode  # Pass debug_mode to enable detailed logging
+                )
+            finally:
+                # Restore original schema mode
+                bp_config.SCHEMA_MODE = original_schema_mode
             
             # Step 6: Update processing statistics
             self._update_stats(processed_df, normalized_paths)
@@ -198,14 +204,14 @@ class UnifiedPipeline:
         Convert a sequence of string or Path objects to a list of Path objects.
         
         This method ensures consistent Path object usage throughout the pipeline,
-        regardless of how the user provides the file paths. It also validates
-        that all paths are properly formed.
+        regardless of how the user provides the file paths. It also expands
+        user paths (e.g., ~) and resolves them to absolute paths.
         
         Args:
             paths: Sequence of paths as strings or Path objects
             
         Returns:
-            List of Path objects
+            List of resolved Path objects
             
         Raises:
             ValueError: If the input is empty
@@ -219,9 +225,13 @@ class UnifiedPipeline:
         for i, path in enumerate(paths):
             try:
                 if isinstance(path, str):
-                    normalized.append(Path(path))
+                    # Expand user path and resolve to absolute
+                    expanded_path = Path(path).expanduser().resolve()
+                    normalized.append(expanded_path)
                 elif isinstance(path, Path):
-                    normalized.append(path)
+                    # Expand user path and resolve to absolute
+                    expanded_path = path.expanduser().resolve()
+                    normalized.append(expanded_path)
                 else:
                     raise TypeError(
                         f"Path at index {i} must be str or Path, "
@@ -239,13 +249,14 @@ class UnifiedPipeline:
     ) -> Path | None:
         """
         Convert a single optional path to a Path object with default fallback.
+        Expands user paths and resolves to absolute paths.
         
         Args:
             path: Optional path as string or Path object
             default: Default Path to use if path is None
             
         Returns:
-            Path object, default if path was None, or None if both are None
+            Resolved Path object, default if path was None, or None if both are None
             
         Raises:
             TypeError: If path is not None, str, or Path
@@ -253,9 +264,9 @@ class UnifiedPipeline:
         if path is None:
             return default
         elif isinstance(path, str):
-            return Path(path)
+            return Path(path).expanduser().resolve()
         elif isinstance(path, Path):
-            return path
+            return path.expanduser().resolve()
         else:
             raise TypeError(
                 f"Expected None, str, or Path, got {type(path).__name__}: {path}"
@@ -295,12 +306,26 @@ class UnifiedPipeline:
                 )
         
         # Validate schema registry if provided
-        if schema_path and not schema_path.exists():
-            raise FileNotFoundError(f"Schema registry not found: {schema_path}")
+        if schema_path:
+            if not schema_path.exists():
+                raise FileNotFoundError(f"Schema registry not found: {schema_path}")
+            if not schema_path.is_file():
+                raise ValueError(f"Schema registry path is not a file: {schema_path}")
+            if schema_path.suffix.lower() not in ['.yml', '.yaml']:
+                logger.warning(
+                    f"Schema registry file has unexpected extension: {schema_path.suffix}"
+                )
             
         # Validate merchant lookup if provided
-        if merchant_path and not merchant_path.exists():
-            raise FileNotFoundError(f"Merchant lookup not found: {merchant_path}")
+        if merchant_path:
+            if not merchant_path.exists():
+                raise FileNotFoundError(f"Merchant lookup not found: {merchant_path}")
+            if not merchant_path.is_file():
+                raise ValueError(f"Merchant lookup path is not a file: {merchant_path}")
+            if merchant_path.suffix.lower() != '.csv':
+                logger.warning(
+                    f"Merchant lookup file has unexpected extension: {merchant_path.suffix}"
+                )
     
     def _apply_schema_mode(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -386,14 +411,16 @@ class UnifiedPipeline:
             logger.warning("Processed DataFrame is empty")
             return
         
-        # Define required columns based on schema mode
+        # Define required columns based on schema mode using shared constants
+        from .constants import MASTER_SCHEMA_COLUMNS
+        from .config import CORE_REQUIRED_COLUMNS
+        
         if self.schema_mode == "strict":
             # In strict mode, check for all expected columns
-            # You would import MASTER_SCHEMA_COLUMNS here
-            required_columns = ['TxnID', 'Date', 'Amount', 'Merchant', 'Owner']
+            required_columns = MASTER_SCHEMA_COLUMNS
         else:
             # In flexible mode, only check for core columns
-            required_columns = ['TxnID', 'Date', 'Amount', 'Owner']
+            required_columns = CORE_REQUIRED_COLUMNS
         
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:

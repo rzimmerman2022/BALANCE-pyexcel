@@ -62,8 +62,19 @@ from .constants import MASTER_SCHEMA_COLUMNS  # Added import
 from .errors import RecoverableFileError
 
 # Verify consistency between foundation and config for core columns
-assert CORE_FOUNDATION_COLUMNS == config.CORE_REQUIRED_COLUMNS, \
-    "CORE_FOUNDATION_COLUMNS from foundation.py does not match config.CORE_REQUIRED_COLUMNS. Please reconcile."
+def _validate_core_columns_consistency():
+    """Validate that core column definitions are consistent across modules."""
+    if CORE_FOUNDATION_COLUMNS != config.CORE_REQUIRED_COLUMNS:
+        error_msg = (
+            "CORE_FOUNDATION_COLUMNS from foundation.py does not match "
+            "config.CORE_REQUIRED_COLUMNS. Please reconcile.\n"
+            f"Foundation columns: {CORE_FOUNDATION_COLUMNS}\n"
+            f"Config columns: {config.CORE_REQUIRED_COLUMNS}"
+        )
+        raise ValueError(error_msg)
+
+# Validate at module load time
+_validate_core_columns_consistency()
 
 def get_required_columns_for_mode() -> list[str]:
     """
@@ -156,12 +167,22 @@ def remove_empty_columns(df: pd.DataFrame, preserve_columns: list[str] | None = 
         # Check if column is entirely empty
         # Consider a column empty if all values are NA, None, or empty string
         if col in df.columns:
+            # First check if all values are NA/null
             is_all_na = df[col].isna().all()
-            is_all_empty_string = (df[col] == '').all()
-            is_all_none = df[col].isnull().all()
             
-            if is_all_na or is_all_empty_string or is_all_none:
+            if is_all_na:
                 columns_to_drop.append(col)
+            else:
+                # For non-numeric columns, also check for empty strings
+                if not is_numeric_dtype(df[col]):
+                    try:
+                        # Only check for empty strings on non-numeric columns
+                        is_all_empty_string = (df[col] == '').all()
+                        if is_all_empty_string:
+                            columns_to_drop.append(col)
+                    except (TypeError, ValueError):
+                        # If comparison fails, column is not empty
+                        pass
     
     if columns_to_drop:
         log.info(f"Removing {len(columns_to_drop)} empty columns in flexible mode: {columns_to_drop}")
@@ -172,19 +193,19 @@ def remove_empty_columns(df: pd.DataFrame, preserve_columns: list[str] | None = 
 # --- Setup Logger ---
 log = logging.getLogger(__name__)
 
-# MANDATORY_MASTER_COLS was defined here, but MASTER_SCHEMA_COLUMNS is now imported.
-# If MANDATORY_MASTER_COLS is still needed, it should be defined based on the imported MASTER_SCHEMA_COLUMNS or also moved to constants.py
-# For now, assuming it might be implicitly handled or defined elsewhere if still used.
-# Based on the prompt, only MASTER_SCHEMA_COLUMNS is the focus.
+# Use shared constants instead of hard-coding
+# MANDATORY_MASTER_COLS represents the subset of columns that must always be present
+# This is essentially the same as CORE_REQUIRED_COLUMNS minus sharing_status
 MANDATORY_MASTER_COLS = [
     "TxnID",
-    "Owner",
+    "Owner", 
     "Date",
+    "Amount",
     "Merchant",
     "Category",
-    "Amount",
     "Account",
 ]
+# Note: This could be replaced with config.CORE_REQUIRED_COLUMNS[:-1] if order matches
 
 # --- PipelineDebugTracer Class ---
 class PipelineDebugTracer:
@@ -373,14 +394,28 @@ def _normalize_csv_header(
     # Replace multiple spaces with a single space
     normalized = re.sub(r"\s+", " ", normalized)
 
-    # Alias mapping from main branch
+    # Alias mapping - fixed to avoid circular mappings
+    # Note: The conflicting description<->merchant swap has been removed
+    # as it could cause data confusion. Now we preserve the original meaning.
     alias_map = {
         'txn date': 'date',
         'transaction date': 'date',
+        'trans date': 'date',
+        'posting date': 'postdate',
+        'post date': 'postdate',
         'account name': 'account',
+        'account number': 'account',
         'running balance': 'balance',
-        "description": "merchant",
-        "merchant": "description",
+        'current balance': 'balance',
+        'transaction amount': 'amount',
+        'debit': 'amount',
+        'credit': 'amount',
+        'vendor': 'merchant',
+        'payee': 'merchant',
+        'transaction description': 'description',
+        'memo': 'description',
+        'transaction category': 'category',
+        'trans category': 'category',
     }
 
     return alias_map.get(normalized, normalized)
@@ -399,7 +434,8 @@ TXN_ID_HASH_COLS = ["Date", "Amount", "Description", "Account"] # Changed Origin
 def _generate_txn_id(row: pd.Series[Any]) -> str:  # Updated type hint
     """
     Generates a unique, deterministic transaction ID (TxnID) for a transaction row.
-    Uses MD5 hash of concatenated key fields.
+    Uses SHA-256 hash for better collision resistance than MD5.
+    Returns a 32-character hex string for stronger uniqueness guarantees.
     """
     # Ensure all required columns for hashing are present in the row
     # Use .get(col, '') to handle potentially missing columns gracefully, defaulting to empty string
@@ -422,9 +458,9 @@ def _generate_txn_id(row: pd.Series[Any]) -> str:  # Updated type hint
 
     hash_input = "|".join(parts)
 
-    # Import hashlib here if not already at module level, or ensure it is.
-    # hashlib is now imported at the module level
-    return hashlib.md5(hash_input.encode("utf-8")).hexdigest()[:16]
+    # Use SHA-256 for better collision resistance
+    # Return first 32 chars of hex digest (128 bits) for a good balance of uniqueness and size
+    return hashlib.sha256(hash_input.encode("utf-8")).hexdigest()[:32]
 
 
 def apply_schema_transformations(
@@ -1099,13 +1135,22 @@ def process_csv_files(
     csv_files: list[str | Path],
     schema_registry_override_path: Path | None = None,
     merchant_lookup_override_path: Path | None = None,
-    debug_mode: bool = False  # Added debug_mode parameter
+    debug_mode: bool = False,  # Added debug_mode parameter
+    use_streaming: bool | None = None,  # Auto-detect if None
+    streaming_chunk_size: int = 10000,  # Rows per chunk when streaming
+    memory_threshold_mb: float = 500.0  # Threshold for auto-detection
 ) -> pd.DataFrame:
     """
     Main public function to ingest, process, and consolidate multiple CSV files.
 
     Args:
-        csv_files (List[Union[str, Path]]): List of paths to CSV files to process.
+        csv_files: List of paths to CSV files to process.
+        schema_registry_override_path: Optional custom schema registry path.
+        merchant_lookup_override_path: Optional custom merchant lookup path.
+        debug_mode: Enable debug logging and tracing.
+        use_streaming: Force streaming mode (None=auto-detect based on file size).
+        streaming_chunk_size: Number of rows per chunk when streaming.
+        memory_threshold_mb: Memory threshold for auto-enabling streaming.
         schema_registry_override_path (Optional[Path]): Path to schema registry YAML.
                                                         Defaults to path from config.py.
         merchant_lookup_override_path (Optional[Path]): Path to merchant lookup CSV.
@@ -1143,10 +1188,34 @@ def process_csv_files(
         if debug_mode:
             debug_tracer_instance = PipelineDebugTracer(filename_for_logs)
 
+        # Determine if streaming should be used for this file
+        should_stream = use_streaming
+        if should_stream is None:
+            # Auto-detect based on file size
+            from .csv_streaming import should_use_streaming
+            should_stream = should_use_streaming(csv_file_path_obj, memory_threshold_mb)
+        
         try:
-            raw_df = pd.read_csv(
-                csv_file_path_obj, dtype=str
-            )  # Read all as string initially
+            if should_stream:
+                # Use streaming for large files
+                from .csv_streaming import process_csv_file_streaming
+                log.info(f"[PROCESS_FILE_START] File: {filename_for_logs} | Mode: Streaming (chunk_size={streaming_chunk_size})")
+                
+                def process_chunk(chunk_df):
+                    # Convert all columns to string for consistency
+                    return chunk_df.astype(str)
+                
+                raw_df = process_csv_file_streaming(
+                    csv_file_path_obj,
+                    process_chunk,
+                    chunk_size=streaming_chunk_size,
+                    encoding='utf-8'
+                )
+            else:
+                # Standard read for smaller files
+                raw_df = pd.read_csv(
+                    csv_file_path_obj, dtype=str
+                )  # Read all as string initially
             if raw_df.empty:
                 log.warning(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: CSV file is empty.")
                 continue

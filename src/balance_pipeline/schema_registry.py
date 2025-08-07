@@ -1,3 +1,4 @@
+import logging
 import re
 from collections.abc import Iterable
 from pathlib import Path
@@ -7,10 +8,15 @@ import yaml
 from balance_pipeline.errors import FatalSchemaError  # Added import
 from balance_pipeline.schema_types import MatchResult, Schema
 
+# Setup logger for this module
+logger = logging.getLogger(__name__)
+
 
 def load_registry(path: Path) -> list[dict[str, Any]]:
     """
     Load the full schema registry from a YAML file.
+    Note: This function is primarily for backward compatibility.
+    The main schema loading now happens lazily via _ensure_schemas_loaded().
     """
     with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -42,9 +48,17 @@ _SCHEMA_DIR = Path(__file__).parent.parent.parent / "rules"
 # _DETAILED_RULES_LIST is no longer loaded from schema_registry.yml directly here.
 # _DETAILED_RULES_MAP will be populated by _load_and_build_schema_maps.
 
-_ALL_LOADED_SCHEMAS: list[dict[str, Any]] = []
-_SCHEMAS_RULES_MAP: dict[str, dict[str, Any]] = {} # Maps schema id to its rules dict
-_GENERIC_SCHEMA_RULES: dict[str, Any] = {} # Holds the rules for 'generic_csv'
+_ALL_LOADED_SCHEMAS: list[dict[str, Any]] | None = None
+_SCHEMAS_RULES_MAP: dict[str, dict[str, Any]] | None = None  # Maps schema id to its rules dict
+_GENERIC_SCHEMA_RULES: dict[str, Any] | None = None  # Holds the rules for 'generic_csv'
+_schemas_loaded = False  # Track whether schemas have been loaded
+
+def _ensure_schemas_loaded() -> None:
+    """Ensure schemas are loaded before use."""
+    global _schemas_loaded
+    if not _schemas_loaded:
+        _load_and_build_schema_maps()
+        _schemas_loaded = True
 
 def _load_and_build_schema_maps() -> None:
     """
@@ -60,14 +74,14 @@ def _load_and_build_schema_maps() -> None:
     for fp in sorted(_SCHEMA_DIR.glob("*.yaml")):
         # Skip the old monolithic registry file if it still exists
         if fp.name == "schema_registry.yml":
-            print("INFO: Skipping schema_registry.yml during individual schema load.")
+            logger.info("Skipping schema_registry.yml during individual schema load.")
             continue
         try:
             with fp.open("r", encoding="utf-8") as f:
                 schema_content = yaml.safe_load(f)
             
             if not isinstance(schema_content, dict) or "id" not in schema_content:
-                print(f"WARNING: Skipping file {fp.name} as it's not a valid schema dictionary or missing 'id'.")
+                logger.warning(f"Skipping file {fp.name} as it's not a valid schema dictionary or missing 'id'.")
                 continue
 
             schema_id = schema_content["id"]
@@ -78,7 +92,7 @@ def _load_and_build_schema_maps() -> None:
                 _GENERIC_SCHEMA_RULES = schema_content
                 
         except Exception as e:
-            print(f"ERROR: Failed to load or parse schema file {fp.name}: {e}")
+            logger.error(f"Failed to load or parse schema file {fp.name}: {e}")
 
     # Ensure generic_csv (if loaded) is conceptually last for fallback,
     # though matching logic will handle this explicitly.
@@ -89,18 +103,18 @@ def _load_and_build_schema_maps() -> None:
         # This case should ideally be covered by the loop, but as a fallback:
         _GENERIC_SCHEMA_RULES = _SCHEMAS_RULES_MAP["generic_csv"]
     elif not _GENERIC_SCHEMA_RULES:
-        print("WARNING: generic_csv schema was not found or loaded. Fallback may not work.")
+        logger.warning("generic_csv schema was not found or loaded. Fallback may not work.")
 
 
-# Initialize the schema maps by calling the loader function.
-_load_and_build_schema_maps()
-
-
+# Schema maps are now loaded lazily on first use
 # _SCHEMAS is now _ALL_LOADED_SCHEMAS (List[Dict[str,Any]])
 # _GENERIC_SCHEMA_OBJECT is effectively represented by _GENERIC_SCHEMA_RULES (Dict[str,Any])
 # _DETAILED_RULES_MAP is now _SCHEMAS_RULES_MAP
 
 def _find_matching_schema_main_impl(headers: Iterable[str]) -> MatchResult:  # Renamed
+    # Ensure schemas are loaded before use
+    _ensure_schemas_loaded()
+    
     canonical_headers = {_canon(h) for h in headers}
     best_match_result: MatchResult | None = None
 

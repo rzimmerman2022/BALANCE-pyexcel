@@ -41,11 +41,11 @@ from . import config  # Import config module to access constants
 # ==============================================================================
 
 # --- Configure Logging ---
-# Sets up basic logging to provide feedback during execution.
-# Level INFO means informational messages and errors will be shown.
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# Use centralized logging configuration
+from .logging_config import get_logger
+
+# Get logger for this module
+logger = get_logger(__name__)
 
 # --- Define Standard Output Columns ---
 # This list defines the exact columns (and their order) we want in the
@@ -66,31 +66,34 @@ STANDARD_COLS = [
     "Source",
 ]
 
-# --- Load Schema Registry from YAML ---
+# --- Schema Registry Configuration ---
 # The schema registry defines the rules for processing each different CSV format.
-# It's loaded once when this module is imported using the path from config.
+# It's loaded lazily on first use to avoid I/O at import time.
 _SCHEMA_REGISTRY_PATH = config.SCHEMA_REGISTRY_PATH  # Use path from config
-_SCHEMAS: list[dict[str, Any]] = []  # Initialize as empty list # Updated type hint
+_SCHEMAS: list[dict[str, Any]] | None = None  # Will be loaded on first use
 
-try:
-    _SCHEMAS = load_registry(
-        _SCHEMA_REGISTRY_PATH
-    )  # load_registry now returns List[Dict[str, Any]]
-    logging.info(
-        f"Successfully loaded {_SCHEMA_REGISTRY_PATH} containing {len(_SCHEMAS)} schema(s)."
-    )
-except FileNotFoundError as e:
-    raise FatalSchemaError(
-        f"Schema registry file not found at '{_SCHEMA_REGISTRY_PATH}'"
-    ) from e
-except yaml.YAMLError as e:
-    raise FatalSchemaError(
-        f"Failed to parse schema registry YAML file '{_SCHEMA_REGISTRY_PATH}': {e}"
-    ) from e
-except Exception as e:
-    raise FatalSchemaError(
-        f"An unexpected error occurred loading schema registry '{_SCHEMA_REGISTRY_PATH}': {e}"
-    ) from e
+def _ensure_schemas_loaded() -> list[dict[str, Any]]:
+    """Load schemas on first use."""
+    global _SCHEMAS
+    if _SCHEMAS is None:
+        try:
+            _SCHEMAS = load_registry(_SCHEMA_REGISTRY_PATH)
+            logger.info(
+                f"Successfully loaded {_SCHEMA_REGISTRY_PATH} containing {len(_SCHEMAS)} schema(s)."
+            )
+        except FileNotFoundError as e:
+            raise FatalSchemaError(
+                f"Schema registry file not found at '{_SCHEMA_REGISTRY_PATH}'"
+            ) from e
+        except yaml.YAMLError as e:
+            raise FatalSchemaError(
+                f"Failed to parse schema registry YAML file '{_SCHEMA_REGISTRY_PATH}': {e}"
+            ) from e
+        except Exception as e:
+            raise FatalSchemaError(
+                f"An unexpected error occurred loading schema registry '{_SCHEMA_REGISTRY_PATH}': {e}"
+            ) from e
+    return _SCHEMAS
 
 
 # ==============================================================================

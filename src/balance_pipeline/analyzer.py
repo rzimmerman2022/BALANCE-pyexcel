@@ -1797,7 +1797,7 @@ class EnhancedSharedExpenseAnalyzer:
             f"{row.get('AllowedAmount',0.0):.2f}_"
             f"{row.get('BalanceImpact',0.0):.2f}"
         )
-        return hashlib.md5(key_data.encode()).hexdigest()[:16]  # Slightly longer ID
+        return hashlib.sha256(key_data.encode()).hexdigest()[:32]  # SHA-256 for better collision resistance
 
     # --- All other analysis, visualization, and reporting methods from the original script ---
     # --- These methods are assumed to largely work with the processed master_ledger ---

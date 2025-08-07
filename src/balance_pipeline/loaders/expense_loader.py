@@ -10,12 +10,15 @@ Name,Date of Purchase,Account,Merchant, Actual Amount , Allowed Amount , Descrip
 [data rows]
 """
 
+import logging
 import pathlib
 from io import StringIO
 
 import pandas as pd
 
 from ..column_utils import normalize_cols
+
+logger = logging.getLogger(__name__)
 
 
 def find_latest_expense_file(data_dir: pathlib.Path) -> pathlib.Path:
@@ -43,9 +46,19 @@ def load_expense_history(data_dir: pathlib.Path) -> pd.DataFrame:
     except FileNotFoundError:
         return pd.DataFrame()
     
-    # Read all lines
-    with open(expense_file, encoding='utf-8', errors='ignore') as f:
-        lines = f.readlines()
+    # Read all lines with proper error handling
+    try:
+        with open(expense_file, encoding='utf-8', errors='strict') as f:
+            lines = f.readlines()
+    except UnicodeDecodeError:
+        # Fallback to latin-1 if UTF-8 fails
+        logger.warning(f"UTF-8 decoding failed for {expense_file}, trying latin-1")
+        try:
+            with open(expense_file, encoding='latin-1', errors='strict') as f:
+                lines = f.readlines()
+        except Exception as e:
+            logger.error(f"Failed to read {expense_file}: {e}")
+            raise ValueError(f"Unable to decode file {expense_file}: {e}") from e
     
     # Find all header lines (contain "Date of Purchase")
     header_indices = [
@@ -84,7 +97,7 @@ def load_expense_history(data_dir: pathlib.Path) -> pd.DataFrame:
             
         except Exception as e:
             # Log warning but continue with other blocks
-            print(f"Warning: Failed to parse expense block starting at line {start_index}: {e}")
+            logger.warning(f"Failed to parse expense block starting at line {start_index}: {e}")
             continue
     
     if not data_blocks:

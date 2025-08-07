@@ -26,17 +26,15 @@ from .viz import (
     build_running_balance_timeline,
     build_waterfall_category_impact,
 )
+from .logging_config import configure_logging, get_logger
 
-# Configure logging for the CLI entry point
-logging.basicConfig(
+# Configure logging for the CLI entry point (only if not already configured)
+configure_logging(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - [%(module)s.%(funcName)s:%(lineno)d] - %(message)s",
-    handlers=[
-        logging.FileHandler("financial_analysis_audit_pipeline.log", mode="w"),
-        logging.StreamHandler(),
-    ],
+    format_string="%(asctime)s - %(name)s - %(levelname)s - [%(module)s.%(funcName)s:%(lineno)d] - %(message)s",
+    log_file="financial_analysis_audit_pipeline.log"
 )
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 def run_analysis_pipeline(
     expense_file: Path,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -49,6 +50,34 @@ CORE_REQUIRED_COLUMNS = [
     "Account",             # Account identifier
     "sharing_status",      # Sharing status ('individual', 'shared', 'split')
 ]
+
+# Optional Column Groups - defines which columns are grouped together
+# These groups help determine which columns to include in flexible mode
+OPTIONAL_COLUMN_GROUPS = {
+    "accounting": [
+        "AccountType",
+        "AccountLast4",
+        "Bank",
+        "PostDate",
+    ],
+    "metadata": [
+        "DataSourceName",
+        "Source",
+        "data_quality_flag",
+        "LineageNotes",
+    ],
+    "sharing": [
+        "PayerBalance",
+        "Jordyn_Balance",
+        "Ryan_Balance",
+        "Jordyn_Effective_Share",
+        "Ryan_Effective_Share",
+    ],
+    "settlement": [
+        "is_settlement",
+        "settlement_summary",
+    ],
+}
 
 # Design constants
 TABLEAU_COLORBLIND_10 = [
@@ -156,10 +185,11 @@ DEFAULT_MERCHANT_CATEGORIES = {
 
 # Cached rules to avoid repeated file I/O
 _CACHED_RULES: dict[str, Any] = {}
+_CACHE_LOCK = threading.RLock()  # Reentrant lock for thread safety
 
 def load_rules(path: str) -> dict[str, Any]:
     """
-    Load business rules from YAML file with caching.
+    Load business rules from YAML file with thread-safe caching.
     
     Args:
         path: Path to the YAML rules file
@@ -169,10 +199,12 @@ def load_rules(path: str) -> dict[str, Any]:
     """
     global _CACHED_RULES
     
-    # Return cached version if already loaded
-    if path in _CACHED_RULES:
-        return _CACHED_RULES[path]
+    # Fast path: return cached version if already loaded (with lock for read)
+    with _CACHE_LOCK:
+        if path in _CACHED_RULES:
+            return _CACHED_RULES[path].copy()  # Return a copy to prevent mutation
     
+    # Slow path: load from file
     rules_path = Path(path)
     if not rules_path.exists():
         raise FileNotFoundError(f"Rules file not found: {rules_path}")
@@ -181,9 +213,11 @@ def load_rules(path: str) -> dict[str, Any]:
         with open(rules_path, encoding='utf-8') as f:
             rules = yaml.safe_load(f)
         
-        # Cache the loaded rules
-        _CACHED_RULES[path] = rules
-        return rules
+        # Cache the loaded rules with thread safety
+        with _CACHE_LOCK:
+            _CACHED_RULES[path] = rules
+        
+        return rules.copy() if isinstance(rules, dict) else rules
         
     except yaml.YAMLError as e:
         raise ValueError(f"Invalid YAML in rules file {rules_path}: {e}") from e

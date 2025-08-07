@@ -1,3 +1,10 @@
+"""
+Constants module for BALANCE pipeline.
+
+Contains shared constant definitions used across the pipeline.
+"""
+from __future__ import annotations
+
 MASTER_SCHEMA_COLUMNS = [
     # Key Identifiers & Owner
     "TxnID",

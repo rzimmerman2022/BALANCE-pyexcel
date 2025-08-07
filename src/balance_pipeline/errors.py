@@ -4,6 +4,7 @@ errors.py
 Defines custom exception hierarchy for the BALANCE-pyexcel pipeline,
 enabling consistent error handling and classification.
 """
+from __future__ import annotations
 
 
 class BalancePipelineError(Exception):
