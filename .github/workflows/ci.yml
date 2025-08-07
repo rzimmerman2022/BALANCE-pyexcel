@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"] # Specify Python versions
+        python-version: ["3.10", "3.11", "3.12", "3.13"] # Support Python 3.10+
 
     steps:
     - name: Checkout repository
@@ -32,10 +32,24 @@ jobs:
       run: |
         poetry install --no-interaction --no-root # Install dependencies defined in pyproject.toml
 
+    - name: Check code formatting with Ruff
+      run: |
+        poetry run ruff format --check .
+    
     - name: Lint with Ruff
       run: |
         poetry run ruff check .
-
+    
+    - name: Type check with mypy
+      run: |
+        poetry run mypy src/ --ignore-missing-imports
+      continue-on-error: true # Allow mypy to fail initially
+    
     - name: Test with pytest
       run: |
         poetry run pytest -q tests/
+    
+    - name: Verify snakeviz installation (sanity check)
+      run: |
+        poetry run python -c "import snakeviz; print('snakeviz installed successfully')"
+      continue-on-error: true # Non-critical check

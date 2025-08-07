@@ -3,12 +3,15 @@ Main data loader for balance pipeline.
 Uses modular loaders to ensure all DataFrames conform to Canonical Transaction Schema (CTS).
 """
 
+import logging
 import pathlib
 
 import pandas as pd
 
 from .column_utils import CTS, validate_cts_compliance
 from .loaders import LOADER_REGISTRY
+
+logger = logging.getLogger(__name__)
 
 
 def load_all_data(data_dir: pathlib.Path) -> pd.DataFrame:
@@ -34,20 +37,20 @@ def load_all_data(data_dir: pathlib.Path) -> pd.DataFrame:
             if not df.empty:
                 # Validate CTS compliance
                 if not validate_cts_compliance(df):
-                    print(f"Warning: {loader_func.__name__} returned non-CTS compliant DataFrame")
+                    logger.warning(f"{loader_func.__name__} returned non-CTS compliant DataFrame")
                     continue
                 
                 all_frames.append(df)
-                print(f"Loaded {len(df)} rows from {loader_func.__name__}")
+                logger.info(f"Loaded {len(df)} rows from {loader_func.__name__}")
             else:
-                print(f"No data loaded from {loader_func.__name__}")
+                logger.debug(f"No data loaded from {loader_func.__name__}")
                 
         except Exception as e:
-            print(f"Error in {loader_func.__name__}: {e}")
+            logger.error(f"Error in {loader_func.__name__}: {e}")
             continue
     
     if not all_frames:
-        print("Warning: No data loaded from any source")
+        logger.warning("No data loaded from any source")
         # Return empty DataFrame with CTS structure
         empty_df = pd.DataFrame(columns=CTS)
         return empty_df
@@ -55,9 +58,9 @@ def load_all_data(data_dir: pathlib.Path) -> pd.DataFrame:
     # Concatenate all frames - guaranteed to work since all are CTS-compliant
     combined_df = pd.concat(all_frames, ignore_index=True)
     
-    print(f"Total combined rows: {len(combined_df)}")
-    print(f"Date range: {combined_df['date'].min()} to {combined_df['date'].max()}")
-    print(f"Sources: {combined_df['source_file'].value_counts().to_dict()}")
+    logger.info(f"Total combined rows: {len(combined_df)}")
+    logger.info(f"Date range: {combined_df['date'].min()} to {combined_df['date'].max()}")
+    logger.info(f"Sources: {combined_df['source_file'].value_counts().to_dict()}")
     
     return combined_df
 
@@ -83,10 +86,10 @@ if __name__ == '__main__':
     df = load_all_data(data_dir)
     
     if not df.empty:
-        print("\nDataFrame Info:")
-        print(df.info())
-        print("\nSample rows:")
-        print(df.head(10))
-        print("\nCTS Compliance:", validate_cts_compliance(df))
+        logger.info("\nDataFrame Info:")
+        logger.info(df.info())
+        logger.info("\nSample rows:")
+        logger.info(df.head(10))
+        logger.info("\nCTS Compliance: %s", validate_cts_compliance(df))
     else:
-        print("No data loaded")
+        logger.info("No data loaded")

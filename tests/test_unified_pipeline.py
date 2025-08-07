@@ -11,7 +11,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from balance_pipeline.config_v2 import PipelineConfig
-from balance_pipeline.outputs import ExcelOutput, PowerBIOutput
+# from balance_pipeline.outputs import ExcelOutput, PowerBIOutput  # These classes don't exist yet
 
 # Modules to test
 from balance_pipeline.pipeline_v2 import UnifiedPipeline
@@ -113,7 +113,6 @@ def test_unified_pipeline_initialization(default_pipeline_config: PipelineConfig
     with pytest.raises(ValueError):
         UnifiedPipeline(schema_mode="invalid_mode")
 
-@pytest.mark.skip(reason="Needs actual sample CSVs and schema_registry.yml to be configured for these files.")
 def test_unified_pipeline_process_files_flexible_mode(
     default_pipeline_config: PipelineConfig, 
     sample_csv_files: list[str]
@@ -146,7 +145,6 @@ def test_unified_pipeline_process_files_flexible_mode(
     logger.debug(f"Flexible mode DataFrame columns: {df_processed.columns.tolist()}")
 
 
-@pytest.mark.skip(reason="Needs actual sample CSVs and schema_registry.yml to be configured for these files.")
 def test_unified_pipeline_process_files_strict_mode(
     default_pipeline_config: PipelineConfig, 
     sample_csv_files: list[str]

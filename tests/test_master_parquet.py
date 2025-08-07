@@ -63,8 +63,11 @@ def cleanup_parquet_file():
             PARQUET_FILE_PATH.parent.parent.iterdir()
         ):  # data/
             PARQUET_FILE_PATH.parent.parent.rmdir()
-    except OSError:
-        pass  # Ignore errors if directory is not empty or cannot be removed
+    except OSError as e:
+        # Log the error but don't fail the test
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to clean up test directories: {e}")
 
 
 def test_append_to_master_parquet(cleanup_parquet_file):

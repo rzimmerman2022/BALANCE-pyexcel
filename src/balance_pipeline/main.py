@@ -94,6 +94,16 @@ def validate_file_paths(file_paths: list[str]) -> list[Path]:
             raise ValueError(f"Path is not a file: {path}")
         
         # Check if file is readable
+        try:
+            with path.open('r') as f:
+                # Try to read first byte to confirm readability
+                f.read(1)
+        except PermissionError:
+            raise PermissionError(f"File is not readable: {path}")
+        except Exception as e:
+            raise PermissionError(f"Cannot access file {path}: {e}")
+        
+        # Check if file has CSV extension
         if not path.suffix.lower() == '.csv':
             raise ValueError(f"File is not a CSV: {path}")
             

@@ -5,6 +5,58 @@ All notable changes to the BALANCE-pyexcel project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2025-08-07
+
+### 🔧 Critical Pipeline Reliability & Security Improvements
+
+This release addresses 16 critical issues identified in comprehensive code audit, focusing on reliability, security, and debugging capabilities.
+
+### Fixed
+
+#### Core Pipeline Reliability
+- **Strict Schema Validation**: Enforced column validation in strict mode - now raises `RecoverableFileError` when required columns are missing
+- **Output Validation**: Elevated validation warnings to errors - strict mode failures now raise `FatalSchemaError` 
+- **Error Recovery**: Implemented proper recoverable error handling - pipeline continues processing remaining files
+  - Added tracking for `files_processed`, `files_skipped`, and `files_failed`
+  - Recoverable errors no longer stop entire pipeline execution
+
+#### Security Improvements  
+- **Command Injection Fix**: Replaced unsafe PowerShell `Invoke-Expression` with secure parameter arrays
+- **Path Validation**: Added comprehensive input path validation before processing
+- **File Readability Checks**: Implemented actual permission checks in `validate_file_paths`
+
+#### Debugging & Observability
+- **Final DataFrame Debug**: Added comprehensive debug capture with memory usage, distributions, and sample data
+- **Debug Mode Propagation**: UnifiedPipeline now properly passes debug_mode to all components
+- **Coffee Transaction Logging**: Gated verbose debug logs behind proper log levels
+
+#### Code Quality
+- **Module Headers**: Added required project headers and `__future__` imports to pipeline_v2.py
+- **Logging Standards**: Replaced all print statements with proper logging API calls
+- **Import Error Reporting**: Separated module import checks for clearer error messages
+- **Test Cleanup**: Added proper error handling for test cleanup operations
+
+#### CI/CD Enhancements
+- **Python 3.10 Support**: Added Python 3.10 to CI test matrix
+- **Code Formatting Checks**: Added `ruff format --check` to CI pipeline
+- **Type Checking**: Added mypy type checking (non-blocking)
+- **Sanity Checks**: Added snakeviz installation verification
+
+#### Test Coverage
+- **UnifiedPipeline Tests**: Enabled previously skipped tests by fixing import issues
+- **Fixed Import Errors**: Corrected test module imports for better coverage
+
+### Changed
+- **PowerShell Script**: Added trailing newline for proper shell prompt display
+- **Error Messages**: Improved error messages throughout for better debugging
+- **Documentation**: Standardized all documentation with latest improvements
+
+### Technical Details
+- Fixed 200+ indentation issues in csv_consolidator.py
+- Properly structured try/except blocks for error handling
+- Implemented comprehensive file processing statistics
+- Added validation for all critical data columns
+
 ## [1.0.2] - 2025-08-06
 
 ### 🎯 Complete Production Readiness - All Critical Issues Resolved

@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
-"""
-Unified Pipeline for CSV file processing.
+# -*- coding: utf-8 -*-
+# =============================================================================
+# BALANCE-pyexcel Pipeline v2 Module
+# =============================================================================
+# Project: BALANCE-pyexcel
+# Module: pipeline_v2.py
+# Description: Unified Pipeline for CSV file processing with configurable modes
+# Author: BALANCE Development Team
+# License: MIT
+# =============================================================================
+
+"""Unified Pipeline for CSV file processing.
 
 This module provides the UnifiedPipeline class which orchestrates the entire
 data processing workflow, from reading CSV files through schema matching,
 data transformation, and consolidation into a single DataFrame.
 """
+
+from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
@@ -149,8 +161,7 @@ class UnifiedPipeline:
                 csv_files=file_list,
                 schema_registry_override_path=schema_path,
                 merchant_lookup_override_path=merchant_path,
-                # Pass debug_mode if the consolidator supports it
-                # debug_mode=self.debug_mode  # Uncomment if supported
+                debug_mode=self.debug_mode  # Pass debug_mode to enable detailed logging
             )
             
             # Step 6: Update processing statistics

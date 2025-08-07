@@ -79,13 +79,34 @@ try {
         "process" {
             Write-Host "📊 Processing CSV files..." -ForegroundColor Yellow
             
-            $cmd = "poetry run balance-pipe process `"$InputPath/**/*.csv`""
-            if ($Format -ne "powerbi") { $cmd += " --format $Format" }
-            if ($OutputPath -ne "output") { $cmd += " --output $OutputPath" }
-            if ($Debug) { $cmd += " --debug" }
+            # Validate input path exists
+            if (-not (Test-Path $InputPath)) {
+                Write-Host "❌ Error: Input path '$InputPath' does not exist." -ForegroundColor Red
+                exit 1
+            }
             
-            Write-Host "Executing: $cmd" -ForegroundColor Gray
-            Invoke-Expression $cmd
+            # Build command arguments safely without string concatenation
+            $arguments = @("run", "balance-pipe", "process", "$InputPath/**/*.csv")
+            
+            if ($Format -ne "powerbi") {
+                $arguments += @("--format", $Format)
+            }
+            if ($OutputPath -ne "output") {
+                $arguments += @("--output", $OutputPath)
+            }
+            if ($Debug) {
+                $arguments += "--debug"
+            }
+            
+            Write-Host "Executing: poetry $($arguments -join ' ')" -ForegroundColor Gray
+            
+            # Use Start-Process or & operator for safer execution
+            & poetry @arguments
+            
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "❌ Processing failed with exit code $LASTEXITCODE" -ForegroundColor Red
+                exit $LASTEXITCODE
+            }
             
             Write-Host "✅ Processing complete!" -ForegroundColor Green
         }
@@ -132,12 +153,17 @@ try {
                 Write-Host "❌ Poetry: Error" -ForegroundColor Red
             }
             
-            # Check Python modules
+            # Check Python modules separately for better error reporting
             try {
                 poetry run python -c "import balance_pipeline; print('✅ balance_pipeline: OK')"
+            } catch {
+                Write-Host "❌ balance_pipeline module: Error - $_" -ForegroundColor Red
+            }
+            
+            try {
                 poetry run python -c "import baseline_analyzer; print('✅ baseline_analyzer: OK')"
             } catch {
-                Write-Host "❌ Python modules: Error" -ForegroundColor Red
+                Write-Host "❌ baseline_analyzer module: Error - $_" -ForegroundColor Red
             }
             
             # Check input/output directories
@@ -201,3 +227,4 @@ try {
 
 Write-Host ""
 Write-Host "🎯 Pipeline operation completed successfully!" -ForegroundColor Green
+Write-Host ""

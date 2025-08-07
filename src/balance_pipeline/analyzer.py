@@ -3625,31 +3625,30 @@ class EnhancedSharedExpenseAnalyzer:
         if not master_ledger_export.empty:
             ledger_path = output_dir / "master_ledger_v2.3.csv"
 
-            # DEBUG: Inspect coffee transaction before writing to CSV
-            logger.info(
-                "DEBUG: Coffee transaction in master_ledger_export before CSV write:"
-            )
-            coffee_debug_pre_csv = master_ledger_export[
-                master_ledger_export["Description"].str.contains(
-                    "coffee", na=False, case=False
-                )
-            ]
-            if not coffee_debug_pre_csv.empty:
-                logger.info(
-                    coffee_debug_pre_csv[
-                        [
-                            "Date",
-                            "Description",
-                            "ActualAmount",
-                            "AllowedAmount",
-                            "Shared_Amount_Display",
-                        ]
-                    ].to_string()
-                )
-            else:
-                logger.info(
-                    "DEBUG: Coffee transaction not found in master_ledger_export before CSV write."
-                )
+            # Debug logging for coffee transactions (only in debug mode)
+            if logger.isEnabledFor(logging.DEBUG):
+                coffee_debug_pre_csv = master_ledger_export[
+                    master_ledger_export["Description"].str.contains(
+                        "coffee", na=False, case=False
+                    )
+                ]
+                if not coffee_debug_pre_csv.empty:
+                    logger.debug(
+                        "Coffee transaction found in master_ledger_export before CSV write: %s",
+                        coffee_debug_pre_csv[
+                            [
+                                "Date",
+                                "Description",
+                                "ActualAmount",
+                                "AllowedAmount",
+                                "Shared_Amount_Display",
+                            ]
+                        ].to_string()
+                    )
+                else:
+                    logger.debug(
+                        "Coffee transaction not found in master_ledger_export before CSV write."
+                    )
 
             master_ledger_export.to_csv(
                 ledger_path, index=False
