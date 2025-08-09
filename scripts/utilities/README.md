@@ -1,6 +1,69 @@
 # BALANCE Utility Scripts
 
-This directory contains utility scripts for data processing and analysis tasks.
+This directory contains utility scripts for data processing, analysis, and dispute investigation tasks.
+
+## 🎯 Quick Reference
+
+| Script | Purpose | Interface |
+|--------|---------|-----------|
+| `dispute_analyzer_gui.py` | **Dispute & refund analysis** | Modern GUI |
+| `dispute_analyzer.py` | Dispute & refund analysis | Command-line |
+| `quick_powerbi_prep.py` | Data preparation with deduplication | Command-line |
+
+---
+
+## Dispute Analyzer GUI (`dispute_analyzer_gui.py`) - **RECOMMENDED**
+
+**Purpose**: Professional graphical interface for comprehensive dispute analysis and refund verification.
+
+### Features
+- 🎨 **Modern Dark Theme** - Professional UI with customtkinter
+- 📊 **Interactive Dashboard** - Real-time metrics and visualizations
+- 🔍 **Smart Search** - Find refunds by merchant with date filtering
+- 👥 **Duplicate Detection** - Identify potential double charges
+- ✅ **Refund Verification** - Check if specific charges were refunded
+- 📈 **Dispute Analysis** - Comprehensive reports with top merchants
+- 💾 **Excel Export** - One-click export for any data view
+
+### Usage
+```bash
+python scripts/utilities/dispute_analyzer_gui.py
+```
+
+### Requirements
+- **customtkinter** - Auto-installs on first run
+- **pandas, numpy** - From main project requirements
+- **tkinter** - Included with Python
+
+### GUI Sections
+1. **Dashboard** - Overview with key metrics cards
+2. **Find Refunds** - Search by merchant with visual results
+3. **Duplicate Charges** - Detect with configurable day window
+4. **Check Refund Status** - Verify specific charge refunds
+5. **Dispute Analysis** - Statistical analysis with merchant rankings
+6. **Advanced Search** - Multi-filter search capabilities
+7. **Export Data** - Pre-configured and custom export options
+
+---
+
+## Dispute Analyzer CLI (`dispute_analyzer.py`)
+
+**Purpose**: Command-line interface for dispute analysis (use GUI version for better experience).
+
+### Features
+- Interactive menu system
+- Search refunds by merchant
+- Find duplicate charges
+- Check refund status
+- Export to Excel
+- Custom pandas queries
+
+### Usage
+```bash
+python scripts/utilities/dispute_analyzer.py
+```
+
+---
 
 ## Quick Power BI Prep (`quick_powerbi_prep.py`) - **ENHANCED VERSION**
 

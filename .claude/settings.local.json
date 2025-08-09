@@ -24,7 +24,8 @@
       "Bash(git rm:*)",
       "Bash(poetry run pytest:*)",
       "Bash(poetry run mypy:*)",
-      "Bash(poetry run python:*)"
+      "Bash(poetry run python:*)",
+      "Bash(pip install:*)"
     ],
     "deny": []
   }
