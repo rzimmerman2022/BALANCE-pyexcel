@@ -1,13 +1,58 @@
 # Power BI Integration Guide
 
-This page shows two ways to bring **BALANCE-pyexcel** data into Power BI:
+This page shows three ways to bring **BALANCE** transaction data into Power BI for dispute analysis, refund verification, and financial reporting:
 
-1. **Folder import** – combine raw CSVs directly (fastest to set up).  
-2. **DuckDB + Parquet** – query the canonical `balance_final.parquet` (cleaner for large data & Stage-2 users).
+1. **Quick Power BI Prep** – Use our custom script for combined/mixed data (recommended for dispute analysis)
+2. **Folder import** – combine raw CSVs directly (fastest to set up)
+3. **DuckDB + Parquet** – query the canonical `balance_final.parquet` (cleaner for large data)
 
 ---
 
-## 1  Decide where the CSVs live
+## Method 1: Quick Power BI Prep Script (Recommended for Mixed Data)
+
+**Best for**: Combined Ryan & Jordyn data, dispute analysis, transaction searching
+
+### Step 1: Prepare Your Data
+1. Place your combined CSV files in `csv_inbox/`:
+   ```
+   csv_inbox/
+   ├── ryan&jordyn-monarch-020250809.csv
+   └── ryan&jordyn-rocket-020250809.csv
+   ```
+
+2. Run the preparation script:
+   ```bash
+   python quick_powerbi_prep.py
+   ```
+
+### Step 2: What You Get
+The script creates three files in `output/`:
+- **`.parquet`** - Most efficient for Power BI (recommended)
+- **`.xlsx`** - Good for manual review before importing
+- **`.csv`** - Simple import option
+
+### Step 3: Key Features for Dispute Analysis
+- **Automatic deduplication** - Removes duplicate transactions
+- **Standardized merchant names** - Groups similar merchants
+- **Pre-flagged disputes** - `potential_refund` column identifies refunds, returns, disputes
+- **Enhanced metadata** - Date components, expense/income flags, transaction IDs
+
+### Step 4: Load into Power BI
+1. Open Power BI Desktop
+2. **Get Data → Parquet** (recommended)
+3. Select: `output/transactions_for_powerbi_[timestamp].parquet`
+4. **Load** - ready for analysis!
+
+### Key Columns for Analysis
+- `potential_refund` - Pre-flagged for dispute review (TRUE/FALSE)
+- `merchant_standardized` - Clean merchant names for filtering
+- `amount` / `amount_abs` - Transaction amounts
+- `is_expense` / `is_income` - Quick transaction type filters
+- `date` / `year` / `month` / `quarter` - Time-based analysis
+
+---
+
+## Method 2: Traditional CSV Folder Import
 
 | Layout | Pick this when… | Typical path | Setup notes |
 |--------|-----------------|--------------|-------------|

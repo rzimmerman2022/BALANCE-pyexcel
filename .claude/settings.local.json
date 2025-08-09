@@ -23,7 +23,8 @@
       "Bash(poetry run ruff:*)",
       "Bash(git rm:*)",
       "Bash(poetry run pytest:*)",
-      "Bash(poetry run mypy:*)"
+      "Bash(poetry run mypy:*)",
+      "Bash(poetry run python:*)"
     ],
     "deny": []
   }
