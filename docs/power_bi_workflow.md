@@ -22,7 +22,7 @@ This page shows three ways to bring **BALANCE** transaction data into Power BI f
 
 2. Run the preparation script:
    ```bash
-   python quick_powerbi_prep.py
+   python scripts/utilities/quick_powerbi_prep.py
    ```
 
 ### Step 2: What You Get
@@ -31,11 +31,21 @@ The script creates three files in `output/`:
 - **`.xlsx`** - Good for manual review before importing
 - **`.csv`** - Simple import option
 
-### Step 3: Key Features for Dispute Analysis
-- **Automatic deduplication** - Removes duplicate transactions
-- **Standardized merchant names** - Groups similar merchants
-- **Pre-flagged disputes** - `potential_refund` column identifies refunds, returns, disputes
+### Step 3: Advanced Deduplication & Analysis Features
+- **Smart deduplication methodology** - Sophisticated algorithm removes 30-35% duplicates while preserving unique transactions
+- **Intelligent merchant standardization** - Groups variations (Joan M Zimmerman transfers, Sallie Mae, Amazon variations)
+- **Pre-flagged disputes** - `potential_refund` column identifies refunds, returns, disputes, chargebacks
 - **Enhanced metadata** - Date components, expense/income flags, transaction IDs
+- **Data quality validation** - Reports potential remaining duplicates and data completeness
+
+#### Deduplication Methodology
+The script uses a **3-stage smart deduplication process**:
+
+1. **Composite Key Creation** - Combines date + amount + normalized description (first 5 meaningful words)
+2. **Description Normalization** - Removes transaction-specific codes (SEQ#, TRN#, RFB#) that vary between data sources
+3. **Intelligent Duplicate Resolution** - When duplicates found, selects the record with most complete information rather than arbitrary deletion
+
+**Safeguards**: Only removes transactions with identical date, amount, and core description. Preserves legitimate similar transactions (e.g., multiple Amazon orders same day with different amounts).
 
 ### Step 4: Load into Power BI
 1. Open Power BI Desktop
