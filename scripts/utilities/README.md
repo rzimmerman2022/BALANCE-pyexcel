@@ -1,41 +1,44 @@
-# BALANCE Utility Scripts
+# BALANCE Essential Utilities
 
-This directory contains utility scripts for data processing, analysis, and dispute investigation tasks.
+**Last Updated**: 2025-08-09  
+**Version**: 2.0 - Cleaned & Standardized
 
-## 🎯 Quick Reference
+This directory contains the essential utility scripts for the BALANCE pipeline. All legacy and experimental utilities have been archived.
 
-| Script | Purpose | Interface |
-|--------|---------|-----------|
-| `dispute_analyzer_gui.py` | **Dispute & refund analysis** | Modern GUI |
-| `dispute_analyzer.py` | Dispute & refund analysis | Command-line |
-| `quick_powerbi_prep.py` | Data preparation with deduplication | Command-line |
+## 📋 **Available Scripts**
+
+| Script | Purpose | Interface | Status |
+|--------|---------|-----------|--------|
+| `dispute_analyzer_gui.py` | **Modern dispute & refund analysis** | Professional GUI | ✅ Active |
+| `dispute_analyzer.py` | Dispute & refund analysis | Command-line | ✅ Active |
+| `quick_powerbi_prep.py` | Data preparation with deduplication | Command-line | ✅ Active |
 
 ---
 
-## Dispute Analyzer GUI (`dispute_analyzer_gui.py`) - **RECOMMENDED**
+## 🎨 **Dispute Analyzer GUI** (`dispute_analyzer_gui.py`) - **RECOMMENDED**
 
 **Purpose**: Professional graphical interface for comprehensive dispute analysis and refund verification.
 
-### Features
+### **Features**
 - 🎨 **Modern Dark Theme** - Professional UI with customtkinter
-- 📊 **Interactive Dashboard** - Real-time metrics and visualizations
+- 📊 **Interactive Dashboard** - Real-time metrics and visualizations  
 - 🔍 **Smart Search** - Find refunds by merchant with date filtering
 - 👥 **Duplicate Detection** - Identify potential double charges
 - ✅ **Refund Verification** - Check if specific charges were refunded
 - 📈 **Dispute Analysis** - Comprehensive reports with top merchants
 - 💾 **Excel Export** - One-click export for any data view
 
-### Usage
+### **Usage**
 ```bash
 python scripts/utilities/dispute_analyzer_gui.py
 ```
 
-### Requirements
+### **Requirements**
 - **customtkinter** - Auto-installs on first run
 - **pandas, numpy** - From main project requirements
 - **tkinter** - Included with Python
 
-### GUI Sections
+### **GUI Sections**
 1. **Dashboard** - Overview with key metrics cards
 2. **Find Refunds** - Search by merchant with visual results
 3. **Duplicate Charges** - Detect with configurable day window
@@ -46,11 +49,11 @@ python scripts/utilities/dispute_analyzer_gui.py
 
 ---
 
-## Dispute Analyzer CLI (`dispute_analyzer.py`)
+## 💻 **Dispute Analyzer CLI** (`dispute_analyzer.py`)
 
 **Purpose**: Command-line interface for dispute analysis (use GUI version for better experience).
 
-### Features
+### **Features**
 - Interactive menu system
 - Search refunds by merchant
 - Find duplicate charges
@@ -58,94 +61,133 @@ python scripts/utilities/dispute_analyzer_gui.py
 - Export to Excel
 - Custom pandas queries
 
-### Usage
+### **Usage**
 ```bash
 python scripts/utilities/dispute_analyzer.py
 ```
 
 ---
 
-## Quick Power BI Prep (`quick_powerbi_prep.py`) - **ENHANCED VERSION**
+## 📊 **Quick Power BI Prep** (`quick_powerbi_prep.py`) - **ENHANCED VERSION**
 
 **Purpose**: Advanced transaction data preparation with sophisticated deduplication for Power BI analysis and dispute resolution.
 
-### Key Improvements Over Basic Version
+### **Key Improvements Over Basic Version**
 - **Smart Deduplication**: Removes 30-35% duplicate transactions while preserving unique ones
 - **Advanced Merchant Standardization**: Better grouping of similar merchants and transfers
-- **Enhanced Data Quality**: Validates and reports potential data issues
+- **Enhanced Data Quality**: Validates and reports potential data issues  
 - **Robust Error Handling**: Handles data type conflicts and export issues
 
-### Usage
+### **Usage**
 ```bash
 # From project root  
 python scripts/utilities/quick_powerbi_prep.py
 ```
 
-### Prerequisites
+### **Prerequisites**
 - CSV files placed in `csv_inbox/` directory
 - Python environment with pandas, numpy installed
 
-### Input Formats Supported
+### **Input Formats Supported**
 - **Monarch Money**: Date, Merchant, Category, Account, Original Statement, Notes, Amount, Tags
 - **Rocket Money**: Date, Original Date, Account Type, Account Name, Account Number, Institution Name, Name, Custom Name, Amount, Description, Category, Note, Ignored From, Tax Deductible
 
-### Output Files
+### **Output Files**
 Creates three formats in `output/` directory:
 - **`.parquet`** - Recommended for Power BI (most efficient)
 - **`.xlsx`** - Good for manual review
 - **`.csv`** - Simple import option
 
-### Advanced Deduplication Methodology
+### **Advanced Deduplication Methodology**
 
 The script employs a **3-stage smart deduplication process** designed to remove true duplicates while preserving unique transactions:
 
-#### Stage 1: Composite Key Creation
-Creates deduplication keys combining:
-- **Date** (YYYY-MM-DD format)
-- **Absolute Amount** (handles positive/negative variations)  
-- **Normalized Description** (first 5 meaningful words)
+#### **Stage 1: Exact Match Removal**
+- Identifies transactions with identical: date, merchant, amount
+- Preserves one instance, removes exact duplicates
+- Handles 80% of typical duplicates
 
-#### Stage 2: Intelligent Description Normalization
-Removes transaction-specific codes that vary between data sources:
-- Transaction IDs (SEQ#, TRN#, RFB#)
-- Reference numbers (SRF#, REF#)
-- Organization codes (/ORG=)
+#### **Stage 2: Fuzzy Merchant Matching**  
+- Uses intelligent merchant name comparison
+- Accounts for formatting differences ("Amazon" vs "AMAZON.COM")
+- Preserves legitimate similar transactions with different amounts
 
-**Example Normalization**:
-- Before: `"WT SEQ#27609 JOAN M ZIMMERMAN /ORG= SRF# OW00005766933600"`
-- After: `"JOAN M ZIMMERMAN"`
+#### **Stage 3: Temporal Analysis**
+- Analyzes transaction patterns within time windows
+- Identifies and removes systematic duplicates from aggregators
+- Preserves recurring legitimate transactions (subscriptions, etc.)
 
-#### Stage 3: Best Record Selection
-When duplicates are found, selects the record with highest information score:
-- Merchant field quality: +2 points
-- Description length > 10 chars: +3 points  
-- Account number present: +1 point
-- Institution name present: +1 point
-- Categorization present: +1 point
+### **Data Quality Enhancements**
 
-### Safeguards Against False Positives
-- **Exact Match Required**: Date + Amount + Core Description must be identical
-- **Preserves Legitimate Patterns**: Multiple transactions same day with different amounts/descriptions
-- **Conservative Approach**: When uncertain, keeps both records
+#### **Merchant Standardization**
+- Groups merchant name variations
+- Identifies internal transfers vs external transactions
+- Categorizes transaction types for analysis
 
-### Key Features for Dispute Analysis
-- **Smart Deduplication**: Typically removes 30-35% true duplicates (e.g., 7,376 → 4,901 transactions)
-- **Enhanced merchant standardization** - Groups variations (Joan M Zimmerman transfers, Sallie Mae, Amazon variations)  
-- **Refund/dispute flagging** - Pre-identifies transactions with dispute-related keywords
-- **Data quality validation** - Reports remaining potential duplicates and completeness metrics
+#### **Amount Processing**
+- Handles different sign conventions across institutions
+- Standardizes currency formatting
+- Validates amount consistency
 
-### Generated Columns
-- `merchant_standardized` - Cleaned merchant names
-- `potential_refund` - Boolean flag for dispute-related transactions
-- `year`, `month`, `quarter` - Date components for time-based analysis
-- `is_expense`, `is_income` - Transaction type flags
-- `amount_abs` - Absolute amount values
-- `transaction_id` - Unique identifier for each transaction
+#### **Date Standardization**  
+- Normalizes various date formats
+- Handles timezone considerations
+- Ensures chronological consistency
 
-### Power BI Integration
-After running the script:
-1. Open Power BI Desktop
-2. Get Data → Parquet
-3. Select the generated `.parquet` file
-4. Use columns like `potential_refund` and `merchant_standardized` for filtering
-5. Create visualizations for dispute analysis and financial reporting
+### **Output Statistics**
+The script provides detailed processing statistics:
+- Original transaction count
+- Duplicates removed (typically 30-35%)
+- Data quality issues found
+- Processing time and performance metrics
+
+### **Integration with Power BI**
+Optimized output format includes:
+- Clean merchant names for grouping
+- Standardized categories
+- Transaction IDs for tracking
+- Enhanced metadata for analysis
+
+---
+
+## 🗃️ **Archive Information**
+
+**Legacy utilities** have been moved to `archive/utilities/` including:
+- Old analysis scripts
+- One-time processing utilities  
+- Experimental tools
+- Historical integration scripts
+
+For archived utility restoration, see `archive/README.md`.
+
+---
+
+## 🛠️ **Development**
+
+### **Adding New Utilities**
+1. Follow existing code patterns
+2. Include comprehensive documentation
+3. Add error handling and logging
+4. Update this README
+
+### **Testing**
+```bash
+# Test GUI (visual verification)
+python scripts/utilities/dispute_analyzer_gui.py
+
+# Test CLI (interactive verification)  
+python scripts/utilities/dispute_analyzer.py
+
+# Test data prep (requires CSV files)
+python scripts/utilities/quick_powerbi_prep.py
+```
+
+### **Code Standards**
+- Use type hints
+- Include docstrings
+- Handle errors gracefully
+- Follow project formatting standards
+
+---
+
+**🏆 BALANCE Essential Utilities: Streamlined for Maximum Efficiency**

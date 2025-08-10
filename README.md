@@ -197,10 +197,12 @@ graph TD
 
 ### **Root Directory Structure**
 ```text
-BALANCE-pyexcel/
+BALANCE/
 ├── 🚀 pipeline.ps1               # MASTER ENTRY POINT
 ├── 📄 README.md                  # This comprehensive guide
 ├── 📄 PIPELINE_COMMANDS.md       # Command reference
+├── 📄 CHANGELOG.md              # Version history
+├── 📄 LICENSE                   # MIT License
 ├── 📄 pyproject.toml            # Python project configuration
 ├── 📄 poetry.lock               # Dependency lock file
 ├── 📄 pytest.ini               # Test configuration
@@ -218,14 +220,14 @@ BALANCE-pyexcel/
 │   │   ├── config.py            # Configuration management
 │   │   └── ...                  # Additional modules
 │   └── 📁 baseline_analyzer/    # Balance analysis tools
-├── 📁 scripts/                  # Utility scripts organized by function
-│   ├── 📁 analysis/            # Data analysis scripts
-│   ├── 📁 corrections/         # Data correction utilities
-│   ├── 📁 investigations/      # Issue investigation tools
+├── 📁 scripts/                  # Essential utility scripts
 │   ├── 📁 powershell/          # PowerShell utility scripts
-│   └── 📁 utilities/           # General utility scripts
+│   ├── 📁 utilities/           # Key utility scripts (GUI, analyzers)
+│   ├── run_baseline.py         # Baseline analysis runner
+│   └── quick_check.py          # Quick system check
 ├── 📁 config/                   # Configuration files
 │   ├── balance_analyzer.yaml   # Analysis settings
+│   ├── business_rules.yml      # External business rules
 │   └── ...                     # Additional config files
 ├── 📁 rules/                    # Schema and mapping definitions
 │   ├── schema_registry.yml     # Bank CSV format definitions
@@ -237,8 +239,12 @@ BALANCE-pyexcel/
 ├── 📁 output/                   # Generated output files
 ├── 📁 docs/                     # Comprehensive documentation
 ├── 📁 tests/                    # Test suite
-├── 📁 tools/                    # Development tools
-└── 📁 workbook/                 # Excel templates and outputs
+├── 📁 workbook/                 # Excel templates and outputs
+└── 📁 archive/                  # Archived legacy content
+    ├── 📁 legacy/              # Old archive directories
+    ├── 📁 analysis/            # Historical analysis scripts
+    ├── 📁 investigations/      # Past investigation tools
+    └── 📁 generated/           # Old generated files
 ```
 
 ### **Key Configuration Files**
@@ -421,8 +427,8 @@ python scripts/utilities/debug_bad_rows.py path/to/file.csv
 # Run baseline analysis
 .\pipeline.ps1 baseline -Debug
 
-# Check for data quality issues
-python scripts/investigations/investigate_imbalance.py
+# Use dispute analyzer for investigation
+python scripts/utilities/dispute_analyzer_gui.py
 ```
 
 ### **Log Files**
@@ -559,10 +565,10 @@ new_bank_format:
 
 ### **Advanced Analysis Scripts**
 ```powershell
-# Run specific analysis scripts directly
-poetry run python scripts/analysis/deep_analysis.py
-poetry run python scripts/investigations/critical_issue_investigator.py
-poetry run python scripts/utilities/comprehensive_audit_trail.py
+# Run essential utility scripts
+poetry run python scripts/utilities/dispute_analyzer_gui.py
+poetry run python scripts/utilities/quick_powerbi_prep.py
+poetry run python scripts/run_baseline.py
 ```
 
 ### **Audit Analysis Workflow**
@@ -588,8 +594,8 @@ csv_inbox/Ryan/Aggregated/Ryan - Rocket Money - 2025.csv
 # Generate Power BI optimized datasets
 .\pipeline.ps1 process -Format powerbi
 
-# Refresh Power BI data (if connected)
-poetry run python scripts/utilities/powerbi_data_refresh.py
+# Prepare data for Power BI
+poetry run python scripts/utilities/quick_powerbi_prep.py
 ```
 
 ### **Custom Configuration**
