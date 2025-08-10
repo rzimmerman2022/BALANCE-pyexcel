@@ -28,7 +28,9 @@
       "Bash(pip install:*)",
       "Bash(git checkout:*)",
       "Bash(git mv:*)",
-      "Bash(./pipeline.ps1 help)"
+      "Bash(./pipeline.ps1 help)",
+      "Bash(.pipeline.ps1 status)",
+      "Bash(pwsh:*)"
     ],
     "deny": []
   }
