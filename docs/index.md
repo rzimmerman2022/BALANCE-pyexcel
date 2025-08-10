@@ -1,4 +1,8 @@
-# BALANCE-pyexcel
+# BALANCE Documentation
+
+**Last Updated**: 2025-08-09  
+**Version**: 2.0 - Repository Cleanup & Modernization  
+**Project**: Professional Financial Analysis Pipeline
 
 *The open-source pipeline that turns messy bank CSVs into clean Parquet, SQLite, and Power-BI dashboards.*
 
@@ -29,12 +33,18 @@ Happy balancing!  Feel free to open issues or PRs on GitHub if you hit a snag or
 
 ---
 
-## Recent Updates
+## Recent Updates - Version 2.0
 
-- **Modern GUI Dispute Analyzer**: Professional interface for dispute investigation with dark theme and export capabilities
+### 🏗️ **Repository Cleanup & Modernization** (2025-08-09)
+- **Major Repository Reorganization**: 90% of non-essential files archived to organized `/archive/` structure
+- **Modern GUI v2.0**: Enhanced dispute analyzer with professional dark theme, gradient colors, and animated navigation
+- **Streamlined Structure**: Reduced from 40+ root files to 10 core files, 50+ scripts to 5 essential utilities
+- **Documentation Standardization**: Consistent formatting across all markdown files with timestamps and version info
+- **Entry Point Validation**: All documented commands tested and functional
+
+### 🚀 **Previous Major Features**
 - **Advanced Deduplication**: 3-stage algorithm removes 30-35% duplicates while preserving unique transactions
 - **Power BI Integration**: Three methods for data import with comprehensive documentation
 - **External Business Rules Configuration**: Configure settlement keywords, payer splits, and merchant categories via `config/business_rules.yml`
 - **Enhanced Test Coverage**: Expanded CSV consolidator test scenarios
 - **Production Ready**: All identified production readiness issues resolved
-- **Comprehensive Documentation**: Standardized formatting and updated guides

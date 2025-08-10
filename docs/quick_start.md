@@ -1,172 +1,216 @@
-# Quick Start Guide
+# BALANCE Quick Start Guide
 
-Get BALANCE-pyexcel up and running with your financial data in minutes.
+**Last Updated**: 2025-08-09  
+**Version**: 2.0 - Post-Cleanup  
+**Target Time**: 5-10 minutes to first results
+
+Get BALANCE up and running with your financial data in minutes using the streamlined repository structure.
+
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Installation](#1-clone--install)
+- [Setup](#2-create-csv-inbox-structure)
+- [First Run](#3-first-run)
+- [Verification](#4-verify-results)
+- [GUI Usage](#5-modern-gui-recommended)
+- [Next Steps](#next-steps)
 
 ---
 
 ## Prerequisites
 
-- Python 3.11+ installed
-- Poetry package manager
-- Git for version control
+**Required:**
+- **Python 3.11+** installed and in PATH
+- **Poetry** package manager ([installation guide](https://python-poetry.org/docs/#installation))
+- **Git** for version control
+
+**Optional:**
+- **PowerShell** (Windows) or **pwsh** (cross-platform) for `pipeline.ps1`
+- **Excel** for viewing generated reports
+- **Power BI Desktop** for advanced analytics
 
 ---
 
 ## 1. Clone & Install
 
 ```bash
-git clone https://github.com/<your-github-handle>/BALANCE-pyexcel.git
-cd BALANCE-pyexcel
-poetry install --with dev         # installs main + dev/test dependencies
+# Clone the repository
+git clone https://github.com/<your-github-handle>/BALANCE.git
+cd BALANCE
+
+# Install dependencies
+poetry install --no-root --with dev
+
+# Verify installation
+poetry run python src/balance_pipeline/main.py --help
 ```
 
 ## 2. Create CSV Inbox Structure
 
-Create organized folders for your bank export files:
+The repository already includes the CSV inbox structure. Simply add your bank export files:
 
 ```text
 csv_inbox/
-   ├── Jordyn/          # Owner 1's bank exports
-   └── Ryan/            # Owner 2's bank exports
+   ├── Ryan/
+   │   ├── Aggregated/     # Monarch Money, Rocket Money exports
+   │   ├── Checking/       # Direct bank exports
+   │   ├── CreditCard/
+   │   └── Investment/
+   └── Jordyn/
+       ├── Checking/
+       ├── CreditCard/
+       └── Investment/
 ```
 
-Drop your raw bank CSV files into the matching owner folder.
+**Add your CSV files** to the appropriate subdirectories.
 
-## 3. Run the Pipeline
+## 3. First Run
 
-### Option A: CLI Command (Recommended)
-
+### Option A: Python CLI (Always Works)
 ```bash
-# Process all CSV files and generate output
-poetry run balance-pipe process "csv_inbox/**.csv" \
-    --output-type powerbi \
-    --schema-mode flexible
+# Process all CSV files in csv_inbox/
+poetry run python scripts/utilities/quick_powerbi_prep.py
 ```
 
-### Option B: PowerShell Scripts
-
+### Option B: PowerShell Pipeline (If Available)
 ```powershell
-# Run comprehensive analysis
-.\Run-ComprehensiveAnalyzer.ps1
+# Main pipeline command
+.\pipeline.ps1 process
 
-# Or run basic analysis
-.\Run-Analysis.ps1
+# Or with debug output
+.\pipeline.ps1 process -Debug
 ```
 
-## 4. Review Output
+### What Happens
+- Automatically detects CSV formats
+- Removes duplicates (typically 30-35% reduction)
+- Standardizes merchant names
+- Creates multiple output formats
 
-The pipeline generates:
+## 4. Verify Results
 
-- **Parquet files**: `output/unified_pipeline/<timestamp>.parquet`
-- **Excel workbooks**: `output/balance_data.xlsx`
-- **Analysis reports**: `analysis_output/` directory
-- **Audit trails**: `audit_reports/` directory
+Check the `output/` directory for generated files:
 
-## 5. Power BI Integration
+```text
+output/
+├── transactions_cleaned_YYYYMMDD_HHMMSS.csv     # Human-readable
+├── transactions_cleaned_YYYYMMDD_HHMMSS.xlsx    # Excel format
+└── transactions_cleaned_YYYYMMDD_HHMMSS.parquet # Power BI format
+```
 
-1. Open Power BI Desktop
-2. Connect to the generated `.parquet` file
-3. Use the pre-built data model for instant analytics
+**Success indicators:**
+- Files generated in `output/`
+- Console shows processing statistics
+- No error messages in output
 
-## 6. Excel Integration
+## 5. Modern GUI (Recommended)
 
-Open the Excel template from `workbook/template/BALANCE-template.xlsm`:
-
-1. Configure data sources in the **Config** sheet
-2. Run the ETL process
-3. Review transactions in **Queue_Review** sheet
-4. Check balances in **Dashboard** sheet
-
----
-
-## Command Reference
-
-### Main Commands
+Launch the professional dispute analyzer interface:
 
 ```bash
-# Core pipeline processing
-poetry run balance-pipe process <pattern> [options]
-
-# Balance analysis
-poetry run balance-analyze --config config/balance_analyzer.yaml
-
-# Legacy CLI (backwards compatibility)
-poetry run balance-legacy-cli [options]
-
-# Merchant operations
-poetry run balance-merchant [options]
+python scripts/utilities/dispute_analyzer_gui.py
 ```
 
-### Development Commands
+### GUI Features
+- **Dashboard**: Real-time metrics and recent disputes
+- **Find Refunds**: Search by merchant with date filtering
+- **Duplicate Detection**: Identify potential double charges
+- **Refund Verification**: Check if specific charges were refunded
+- **Advanced Search**: Multi-filter capabilities
+- **Excel Export**: One-click export for any view
 
-```bash
-# Run tests
-poetry run pytest
+## Next Steps
 
-# Code quality checks
-poetry run ruff check .
-poetry run mypy src/balance_pipeline
+### For Basic Analysis
+1. **Open Excel file** from `output/` directory
+2. **Filter and sort** to find specific transactions
+3. **Use pivot tables** for spending analysis
 
-# Build documentation
-poetry run mkdocs build
-```
+### For Advanced Analytics
+1. **Open Power BI Desktop**
+2. **Import parquet file** from `output/`
+3. **Create visualizations** and dashboards
 
----
-
-## Configuration
-
-### Environment Variables
-
-```bash
-export BALANCE_CSV_INBOX="csv_inbox"
-export BALANCE_OUTPUT_DIR="output"  
-export BALANCE_SCHEMA_MODE="flexible"
-export BALANCE_LOG_LEVEL="INFO"
-```
-
-### Key Configuration Files
-
-- `config/balance_analyzer.yaml` - Analysis settings
-- `rules/schema_registry.yml` - CSV schema definitions
-- `rules/merchant_lookup.csv` - Merchant mapping rules
+### For Ongoing Use
+1. **Add new CSV files** to `csv_inbox/` as needed
+2. **Re-run processing** to include new data
+3. **Use GUI tools** for dispute investigation
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
-
-1. **Import errors**: Ensure you're in the project directory and poetry shell is active
-2. **Schema validation failures**: Check your CSV files match expected formats in `rules/schema_registry.yml`
-3. **Permission errors**: Ensure write access to output directories
-
-### Debug Tools
-
+### Installation Issues
 ```bash
-# Run with verbose logging
-poetry run balance-pipe process "csv_inbox/**.csv" -vv
+# Check Python version
+python --version  # Should be 3.11+
 
-# Use diagnostic tools
-python tools/diagnose_analyzer.py
-python tools/debug_runner.py
+# Check Poetry
+poetry --version
+
+# Reinstall dependencies
+poetry install --no-root --with dev
+```
+
+### Processing Errors
+```bash
+# Run with debug output
+poetry run python scripts/utilities/quick_powerbi_prep.py
+
+# Check for error messages in console output
+# Ensure CSV files are properly formatted
+```
+
+### GUI Won't Launch
+```bash
+# Install required package
+pip install customtkinter
+
+# Or try CLI version
+python scripts/utilities/dispute_analyzer.py
 ```
 
 ---
 
-## Next Steps
+## Supported Formats
 
-1. **Customize schemas**: Edit `rules/schema_registry.yml` for your bank formats
-2. **Automated workflows**: Set up CI/CD with GitHub Actions
-3. **Advanced analytics**: Explore Power BI integration
-4. **Custom scripts**: Use utilities in `scripts/` directory
+### Bank CSV Formats
+- **Chase Bank**: Checking accounts
+- **Discover Card**: Credit card statements  
+- **Wells Fargo**: Credit cards
+- **Monarch Money**: Aggregated transaction exports
+- **Rocket Money**: Aggregated transaction exports
+
+### Adding New Formats
+Edit `rules/schema_registry.yml` to add new bank CSV patterns and column mappings.
 
 ---
 
-## Getting Help
+## Common Use Cases
 
-- 📚 **Documentation**: See `docs/` directory
-- 🔧 **Scripts Guide**: `docs/scripts_guide.md`
-- 🏗️ **Architecture**: `docs/ARCHITECTURE.md`
-- 🐛 **Issues**: Check GitHub issues or create new ones
+### Monthly Review
+1. Export new statements from banks
+2. Add CSV files to appropriate folders
+3. Run processing pipeline
+4. Review results in Excel or Power BI
 
-Happy balancing! 🎯
+### Dispute Investigation
+1. Launch GUI dispute analyzer
+2. Search for merchant refunds
+3. Check for duplicate charges
+4. Export findings to Excel
+
+### Power BI Dashboard
+1. Process CSV files regularly
+2. Import parquet files to Power BI
+3. Create ongoing financial dashboards
+4. Set up automated refresh
+
+---
+
+**🎉 You're ready to go! Your financial data is now processed and ready for analysis.**
+
+For more advanced features, see:
+- **[Pipeline Commands](../PIPELINE_COMMANDS.md)** - Full command reference
+- **[Utilities Guide](../scripts/utilities/README.md)** - GUI and analysis tools
+- **[Architecture](architecture.md)** - How the system works

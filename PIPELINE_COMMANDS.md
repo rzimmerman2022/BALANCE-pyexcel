@@ -1,10 +1,22 @@
-# BALANCE-pyexcel Pipeline Commands Reference
+# BALANCE Pipeline Commands Reference
 
+**Last Updated**: 2025-08-09  
+**Version**: 2.0 - Post-Cleanup  
 **Single Entry Point**: `pipeline.ps1` - All operations go through this master script
+
+## Table of Contents
+- [Main Operations](#-main-operations)
+- [Utility Operations](#-utility-operations)
+- [Advanced Options](#-advanced-options)
+- [Essential Utilities](#-essential-utilities)
+- [Python CLI Alternative](#-python-cli-alternative)
+- [Troubleshooting](#-troubleshooting)
 
 ---
 
 ## 🚀 Main Operations
+
+> **Note**: All commands assume you're in the project root directory
 
 ### Process CSV Files (Main Pipeline)
 ```powershell
@@ -48,122 +60,245 @@
 ```
 - Cleans temporary files
 - Organizes repository structure
+- Safe cleanup of generated files
 
 ### Help & Documentation
 ```powershell
 .\pipeline.ps1 help
 ```
 - Shows all available commands
-- Displays usage examples
-- Lists all options
+- Usage examples
+- Quick reference guide
 
 ---
 
-## ⚙️ Options & Customization
-
-### Input/Output Options
-```powershell
-# Custom input path
-.\pipeline.ps1 process -InputPath "data/*.csv"
-
-# Custom output path
-.\pipeline.ps1 process -OutputPath "reports"
-
-# Different output formats
-.\pipeline.ps1 process -Format excel      # Excel workbook
-.\pipeline.ps1 process -Format parquet    # Parquet files
-.\pipeline.ps1 process -Format csv        # CSV files
-.\pipeline.ps1 process -Format powerbi    # Power BI optimized (default)
-```
+## ⚙️ Advanced Options
 
 ### Debug Mode
 ```powershell
-# Enable detailed logging
+# Enable debug output for any command
 .\pipeline.ps1 process -Debug
 .\pipeline.ps1 analyze -Debug
 .\pipeline.ps1 baseline -Debug
 ```
 
----
-
-## 📁 File Organization
-
-All utility scripts are now organized in `scripts/powershell/`:
-- `Clean-Repository.ps1` - Repository cleanup
-- `Run-Analysis.ps1` - Legacy analysis runner  
-- `Check-RequiredFiles.ps1` - File validation
-- `Make-Previews.ps1` - Data previews
-- And more...
-
-**But you should use the master `pipeline.ps1` instead of calling these directly.**
-
----
-
-## 🎯 Common Workflows
-
-### Daily Processing
+### Custom Paths
 ```powershell
-# 1. Add new CSV files to csv_inbox/Ryan/ or csv_inbox/Jordyn/
-# 2. Run the pipeline
+# Custom input/output paths
+.\pipeline.ps1 process -InputPath "data/*.csv" -OutputPath "reports"
+```
+
+### Output Formats
+```powershell
+# Different output formats
+.\pipeline.ps1 process -Format powerbi    # Power BI optimized (default)
+.\pipeline.ps1 process -Format excel      # Excel workbook
+.\pipeline.ps1 process -Format parquet    # Parquet files
+.\pipeline.ps1 process -Format csv        # CSV output
+```
+
+---
+
+## 🛠️ Essential Utilities
+
+### Modern GUI Dispute Analyzer (Recommended)
+```powershell
+python scripts/utilities/dispute_analyzer_gui.py
+```
+- Professional graphical interface
+- Modern dark theme with enhanced visuals
+- Interactive dashboard and analysis tools
+- One-click Excel export
+
+### CLI Dispute Analyzer
+```powershell
+python scripts/utilities/dispute_analyzer.py
+```
+- Command-line interface for dispute analysis
+- Interactive menu system
+- Search refunds by merchant
+- Find duplicate charges
+
+### Power BI Data Preparation
+```powershell
+python scripts/utilities/quick_powerbi_prep.py
+```
+- Advanced deduplication (removes 30-35% duplicates)
+- Merchant standardization
+- Power BI optimized output formats
+
+### Baseline Analysis
+```powershell
+python scripts/run_baseline.py
+```
+- Calculate opening balances
+- Run balance reconciliation
+- Generate baseline reports
+
+### Quick System Check
+```powershell
+python scripts/quick_check.py
+```
+- Verify pipeline health
+- Check configuration files
+- Validate data integrity
+
+---
+
+## 🐍 Python CLI Alternative
+
+### Direct Python Usage
+```powershell
+# Process files directly with Python
+poetry run python src/balance_pipeline/main.py process file1.csv file2.csv
+
+# With custom schema and output
+poetry run python src/balance_pipeline/main.py process *.csv \
+  --schema-path custom_schema.yml \
+  --output processed.parquet \
+  --format parquet
+
+# Enable debug mode
+poetry run python src/balance_pipeline/main.py process *.csv --debug
+```
+
+### Python CLI Options
+- `-s, --schema-path`: Custom schema registry YAML file
+- `-m, --merchant-path`: Custom merchant lookup CSV file
+- `-o, --output`: Output file path (default: stdout)
+- `-f, --format`: Output format (csv, parquet, excel)
+- `-d, --debug`: Enable debug mode
+- `-v, --verbose`: Increase verbosity (can repeat: -v, -vv)
+
+---
+
+## 🔍 Troubleshooting
+
+### Pipeline Won't Start
+```powershell
+# Check status first
+.\pipeline.ps1 status
+
+# Verify Poetry installation
+poetry --version
+poetry check
+
+# Reinstall dependencies if needed
+poetry install --no-root --with dev
+```
+
+### CSV Processing Errors
+```powershell
+# Run with debug output
+.\pipeline.ps1 process -Debug
+
+# Check schema registry
+type rules\schema_registry.yml
+
+# Validate specific CSV
+python scripts/utilities/dispute_analyzer.py
+```
+
+### PowerShell Not Available
+```powershell
+# Use Python CLI directly
+poetry run python src/balance_pipeline/main.py process *.csv
+
+# Or run utilities directly
+python scripts/utilities/quick_powerbi_prep.py
+```
+
+### Check Log Files
+- Pipeline logs: `logs/pipeline_run.log`
+- Analysis logs: `logs/financial_analysis_audit.log`
+- Debug output: Console or log files in `logs/` directory
+
+---
+
+## 📁 File Locations
+
+### Input
+- **CSV Files**: Place in `csv_inbox/Ryan/` or `csv_inbox/Jordyn/`
+- **Configuration**: `config/` directory
+- **Schema Definitions**: `rules/` directory
+
+### Output
+- **Processed Data**: `output/` directory
+- **Reports**: Various formats in output directory
+- **Logs**: `logs/` directory (if exists)
+
+---
+
+## 🆘 Getting Help
+
+```powershell
+# Quick help
+.\pipeline.ps1 help
+
+# Python CLI help
+poetry run python src/balance_pipeline/main.py --help
+
+# Utility-specific help
+python scripts/utilities/dispute_analyzer_gui.py  # GUI with built-in help
+```
+
+### Documentation
+- **Main Guide**: `README.md`
+- **Architecture**: `docs/ARCHITECTURE.md`
+- **Utilities Guide**: `scripts/utilities/README.md`
+- **Troubleshooting**: `docs/` directory
+
+### Common Workflows
+
+#### Daily Processing
+```powershell
+# 1. Add new CSV files to csv_inbox/
+# 2. Run processing
 .\pipeline.ps1 process
 
 # 3. Check results
 .\pipeline.ps1 status
 ```
 
-### Weekly Analysis
+#### Monthly Analysis
 ```powershell
-# Process + analyze in sequence
+# 1. Process all data
 .\pipeline.ps1 process
+
+# 2. Run comprehensive analysis
 .\pipeline.ps1 analyze
+
+# 3. Calculate balances
 .\pipeline.ps1 baseline
 ```
 
-### Troubleshooting
+#### Troubleshooting Workflow
 ```powershell
-# Check pipeline health
+# 1. Check pipeline health
 .\pipeline.ps1 status
 
-# Run with debug output
+# 2. Run with debug if issues
 .\pipeline.ps1 process -Debug
 
-# Clean and retry
+# 3. Clean and retry if needed
 .\pipeline.ps1 clean
 .\pipeline.ps1 process
 ```
 
 ---
 
-## 🏗️ Architecture
+## 📊 Output Files
 
-- **Entry Point**: `pipeline.ps1` (master script)
-- **Core Engine**: `src/balance_pipeline/` (Python package)
-- **CLI Commands**: `balance-pipe`, `balance-analyze`, `balance-baseline`
-- **Configuration**: `config/`, `rules/`
-- **Business Rules**: `config/business_rules.yml` (external configuration)
-- **Utilities**: `scripts/powershell/`
+### Standard Outputs
+- `output/transactions_cleaned_*.parquet` - Processed transactions
+- `output/balance_final.parquet` - Final balance calculations
+- `output/financial_analysis_report.xlsx` - Comprehensive reports
 
-The master pipeline script provides a unified interface to all underlying Python CLI commands and utilities.
+### Format Recommendations
+- **Parquet**: Best for Power BI (recommended)
+- **Excel**: Good for manual review
+- **CSV**: Simple import format
 
-## ⚙️ **Business Rules Configuration**
+---
 
-The pipeline now supports external business rules configuration through `config/business_rules.yml`:
-
-### **Customizing Business Rules**
-```powershell
-# Edit business rules without changing code
-notepad config/business_rules.yml
-
-# Modify settlement keywords, payer splits, merchant categories
-# Changes take effect on next pipeline run
-
-# Process with updated business rules
-.\pipeline.ps1 process
-```
-
-### **Business Rules Components**
-- **Settlement Keywords**: Configure payment method detection
-- **Payer Splits**: Set shared expense allocation percentages  
-- **Merchant Categories**: Define transaction categorization rules
-- **Outlier Thresholds**: Set unusual transaction detection limits
-- **Risk Assessment**: Configure financial risk thresholds
+**🏆 BALANCE Pipeline: Professional Financial Analysis Made Simple**

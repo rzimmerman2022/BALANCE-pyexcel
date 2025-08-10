@@ -1,9 +1,75 @@
-# Changelog
+# BALANCE Changelog
 
-All notable changes to the BALANCE-pyexcel project will be documented in this file.
+**Last Updated**: 2025-08-09  
+**Project**: BALANCE - Financial Analysis Pipeline  
+**Versioning**: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to the BALANCE project are documented in this file following [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
+
+## Table of Contents
+- [Version 2.0.0](#200---2025-08-09) - **Repository Cleanup & Modernization**
+- [Version 1.0.4](#104---2025-08-07) - Performance & Security
+- [Version 1.0.3](#103---2025-08-07) - Production Validation  
+- [Version 1.0.2](#102---2025-08-06) - External Configuration
+- [Earlier Versions](#earlier-versions)
+
+---
+
+## [2.0.0] - 2025-08-09
+
+### 🏗️ **MAJOR REPOSITORY CLEANUP & MODERNIZATION**
+
+Comprehensive repository reorganization following industry best practices with modern GUI enhancements and complete documentation standardization.
+
+#### **Added**
+- **Modern Dispute Analyzer GUI v2.0**: Professional interface with enhanced visual aesthetics
+  - Gradient color palette with accent colors
+  - Enhanced typography using Segoe UI font family
+  - Animated navigation with button highlighting
+  - Enhanced metric cards with icons, trends, and gradient borders
+  - Modernized data tables with alternating row colors and status indicators
+  - Real-time update indicators and summary statistics
+- **Comprehensive Archive System**: Organized `/archive/` directory structure
+  - Logical categorization by purpose (legacy, analysis, investigations, corrections, generated)
+  - Complete documentation with restoration guides
+  - Retention policies for different content types
+- **Standardized Documentation**: Consistent formatting across all markdown files
+  - Table of contents for longer documents
+  - Version information and timestamps
+  - Code examples validation
+  - Clear prerequisite requirements
+
+#### **Changed**
+- **Repository Structure**: Streamlined from development workspace to production-ready
+  - Reduced root directory from 40+ files to 10 core files
+  - Streamlined scripts directory from 50+ files to 5 essential utilities
+  - Organized 200+ files into logical archive structure
+- **Documentation**: Comprehensive standardization and updates
+  - Updated README.md with clean directory structure
+  - Rewritten utility documentation with modern formatting
+  - Consistent markdown formatting across all files
+- **Entry Points**: Validated and documented all main entry points
+  - Python CLI: `poetry run python src/balance_pipeline/main.py`
+  - Essential utilities: GUI analyzer, CLI analyzer, PowerBI prep
+
+#### **Archived** 
+- **Legacy Content**: 90% of non-essential files moved to organized archive
+  - `scripts/analysis/` → `archive/analysis/` (7 files)
+  - `scripts/investigations/` → `archive/investigations/` (3 files)
+  - `scripts/corrections/` → `archive/corrections/` (6 files)
+  - Development tools, utilities, generated files organized by category
+- **Preserved Functionality**: 100% of core features maintained
+  - All documented commands still functional
+  - Complete test suite preserved
+  - Configuration and schema definitions intact
+
+#### **Technical Details**
+- **Backup Created**: `backup/pre-cleanup-20250809` branch for safety
+- **Archive Organization**: 200+ files categorized into logical structure
+- **Entry Point Testing**: All main entry points validated and functional
+- **Documentation Updates**: Consistent formatting and comprehensive guides
+
+---
 
 ## [1.0.4] - 2025-08-07
 
