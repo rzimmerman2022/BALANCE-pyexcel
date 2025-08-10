@@ -1,8 +1,8 @@
 # API Reference
 
 **Status**: ✅ **PRODUCTION READY**  
-**Version**: 0.3.2  
-**Last Updated**: 2025-07-31
+**Version**: 1.0.3  
+**Last Updated**: 2025-08-10
 
 ---
 
