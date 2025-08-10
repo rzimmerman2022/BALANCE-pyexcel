@@ -34,17 +34,52 @@ from datetime import datetime, timedelta
 import re
 from threading import Thread
 import customtkinter as ctk
+import numpy as np
+from typing import Optional, Dict, List, Tuple
+import json
 
 # Set appearance mode and color theme
 ctk.set_appearance_mode("dark")  # Modes: "System", "Dark", "Light"
-ctk.set_default_color_theme("blue")  # Themes: "blue", "green", "dark-blue"
+ctk.set_default_color_theme("dark-blue")  # Enhanced theme for professional look
+
+# Custom color palette for modern aesthetics
+COLORS = {
+    'primary': '#1e88e5',      # Bright blue
+    'secondary': '#00acc1',    # Cyan
+    'success': '#43a047',      # Green
+    'warning': '#fb8c00',      # Orange
+    'danger': '#e53935',       # Red
+    'info': '#5e35b1',         # Purple
+    'dark': '#1a1a2e',         # Dark background
+    'card': '#16213e',         # Card background
+    'text': '#ffffff',         # Primary text
+    'text_secondary': '#b0b0b0', # Secondary text
+    'accent': '#00d4ff',       # Accent color
+    'gradient_start': '#667eea',
+    'gradient_end': '#764ba2'
+}
 
 class DisputeAnalyzerGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
         
-        self.title("BALANCE - Dispute & Refund Analyzer")
-        self.geometry("1400x800")
+        self.title("BALANCE - Dispute & Refund Analyzer v2.0")
+        self.geometry("1600x900")
+        self.minsize(1200, 700)
+        
+        # Center window on screen
+        self.update_idletasks()
+        width = self.winfo_width()
+        height = self.winfo_height()
+        x = (self.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.geometry(f'{width}x{height}+{x}+{y}')
+        
+        # Configure window icon (if available)
+        try:
+            self.iconbitmap(default='icon.ico')
+        except:
+            pass
         
         # Configure grid weight
         self.grid_columnconfigure(0, weight=1)
@@ -101,66 +136,116 @@ class DisputeAnalyzerGUI(ctk.CTk):
         sidebar.grid(row=0, column=0, sticky="nsew")
         sidebar.grid_rowconfigure(8, weight=1)
         
-        # Logo/Title
+        # Enhanced Logo/Title with gradient effect
+        logo_frame = ctk.CTkFrame(sidebar, fg_color="transparent")
+        logo_frame.grid(row=0, column=0, padx=20, pady=(20, 5))
+        
         logo_label = ctk.CTkLabel(
-            sidebar, 
+            logo_frame, 
             text="🏦 BALANCE", 
-            font=ctk.CTkFont(size=28, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI", size=32, weight="bold"),
+            text_color=COLORS['accent']
         )
-        logo_label.grid(row=0, column=0, padx=20, pady=(20, 5))
+        logo_label.pack()
         
         subtitle = ctk.CTkLabel(
             sidebar, 
             text="Dispute & Refund Analyzer", 
-            font=ctk.CTkFont(size=14),
-            text_color=("gray60", "gray40")
+            font=ctk.CTkFont(family="Segoe UI", size=14),
+            text_color=COLORS['text_secondary']
         )
-        subtitle.grid(row=1, column=0, padx=20, pady=(0, 30))
+        subtitle.grid(row=1, column=0, padx=20, pady=(0, 20))
+        
+        # Add animated separator line
+        separator = ctk.CTkFrame(sidebar, height=2, fg_color=COLORS['accent'])
+        separator.grid(row=2, column=0, sticky="ew", padx=20, pady=(0, 20))
         
         # Navigation buttons
         self.nav_buttons = []
         
         buttons_config = [
-            ("📊 Dashboard", self.show_dashboard),
-            ("🔍 Find Refunds", self.show_refund_search),
-            ("👥 Duplicate Charges", self.show_duplicate_finder),
-            ("✅ Check Refund Status", self.show_refund_checker),
-            ("📈 Dispute Analysis", self.show_dispute_analysis),
-            ("🔎 Advanced Search", self.show_advanced_search),
-            ("💾 Export Data", self.show_export)
+            ("📊 Dashboard", self.show_dashboard, "View key metrics and recent activity"),
+            ("🔍 Find Refunds", self.show_refund_search, "Search for merchant refunds"),
+            ("👥 Duplicate Charges", self.show_duplicate_finder, "Detect duplicate transactions"),
+            ("✅ Check Refund Status", self.show_refund_checker, "Verify specific refunds"),
+            ("📈 Dispute Analysis", self.show_dispute_analysis, "Comprehensive analysis"),
+            ("🔎 Advanced Search", self.show_advanced_search, "Multi-filter search"),
+            ("💾 Export Data", self.show_export, "Export to Excel")
         ]
         
-        for i, (text, command) in enumerate(buttons_config):
+        self.selected_button = None
+        for i, (text, command, tooltip) in enumerate(buttons_config):
             btn = ctk.CTkButton(
                 sidebar,
                 text=text,
-                command=command,
-                height=40,
-                font=ctk.CTkFont(size=14),
-                anchor="w"
+                command=lambda cmd=command, b=i: self.navigate_to(cmd, b),
+                height=45,
+                font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+                fg_color="transparent",
+                text_color=COLORS['text_secondary'],
+                hover_color=COLORS['card'],
+                anchor="w",
+                corner_radius=10
             )
-            btn.grid(row=i+2, column=0, padx=20, pady=5, sticky="ew")
+            btn.grid(row=i+3, column=0, padx=20, pady=3, sticky="ew")
             self.nav_buttons.append(btn)
+            
+            # Add tooltip on hover (store for later use)
+            btn.tooltip = tooltip
         
         # Data info at bottom
         if self.df is not None:
-            info_frame = ctk.CTkFrame(sidebar, corner_radius=10)
-            info_frame.grid(row=10, column=0, padx=20, pady=20, sticky="ew")
+            # Enhanced info frame with gradient border
+            info_frame = ctk.CTkFrame(
+                sidebar, 
+                corner_radius=15,
+                fg_color=COLORS['card'],
+                border_width=2,
+                border_color=COLORS['accent']
+            )
+            info_frame.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
             
-            info_text = f"📁 {len(self.df):,} transactions\n"
-            info_text += f"📅 {self.df['date'].min().strftime('%b %Y')} - {self.df['date'].max().strftime('%b %Y')}"
+            # Stats with icons
+            stats_text = f"📊 Statistics\n"
+            stats_text += f"├─ 📁 {len(self.df):,} transactions\n"
+            stats_text += f"├─ 📅 {self.df['date'].min().strftime('%b %d, %Y')}\n"
+            stats_text += f"└─ 📅 {self.df['date'].max().strftime('%b %d, %Y')}"
             
             info_label = ctk.CTkLabel(
                 info_frame,
-                text=info_text,
-                font=ctk.CTkFont(size=12),
-                justify="left"
+                text=stats_text,
+                font=ctk.CTkFont(family="Consolas", size=11),
+                justify="left",
+                text_color=COLORS['text_secondary']
             )
             info_label.grid(row=0, column=0, padx=15, pady=15)
     
+    def navigate_to(self, command, button_index):
+        """Navigate to a section with button highlighting"""
+        # Reset all buttons
+        for btn in self.nav_buttons:
+            btn.configure(
+                fg_color="transparent",
+                text_color=COLORS['text_secondary']
+            )
+        
+        # Highlight selected button
+        self.nav_buttons[button_index].configure(
+            fg_color=COLORS['primary'],
+            text_color=COLORS['text']
+        )
+        self.selected_button = button_index
+        
+        # Execute command
+        command()
+    
     def create_main_content(self):
-        """Create the main content area"""
-        self.content_frame = ctk.CTkFrame(self.main_container, corner_radius=10)
+        """Create the main content area with enhanced styling"""
+        self.content_frame = ctk.CTkFrame(
+            self.main_container, 
+            corner_radius=15,
+            fg_color=COLORS['dark']
+        )
         self.content_frame.grid(row=0, column=1, sticky="nsew", padx=(10, 20), pady=20)
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_rowconfigure(1, weight=1)
@@ -171,16 +256,31 @@ class DisputeAnalyzerGUI(ctk.CTk):
             widget.destroy()
     
     def show_dashboard(self):
-        """Show the main dashboard"""
+        """Show the main dashboard with modern design"""
         self.clear_content()
         
-        # Title
+        # Header with gradient background effect
+        header_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=30, pady=(30, 20))
+        header_frame.grid_columnconfigure(1, weight=1)
+        
+        # Title with modern typography
         title = ctk.CTkLabel(
-            self.content_frame,
+            header_frame,
             text="Dashboard Overview",
-            font=ctk.CTkFont(size=28, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI", size=32, weight="bold"),
+            text_color=COLORS['text']
         )
-        title.grid(row=0, column=0, columnspan=3, padx=30, pady=(30, 20), sticky="w")
+        title.grid(row=0, column=0, sticky="w")
+        
+        # Add real-time indicator
+        time_label = ctk.CTkLabel(
+            header_frame,
+            text=f"Last updated: {datetime.now().strftime('%I:%M %p')}",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color=COLORS['text_secondary']
+        )
+        time_label.grid(row=0, column=1, sticky="e")
         
         # Create metrics cards
         metrics_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
@@ -206,56 +306,148 @@ class DisputeAnalyzerGUI(ctk.CTk):
         for i, (label, value, color_type) in enumerate(metrics):
             self.create_metric_card(metrics_frame, label, value, i, color_type)
         
-        # Recent disputes table
-        table_frame = ctk.CTkFrame(self.content_frame)
+        # Enhanced table with modern styling
+        table_frame = ctk.CTkFrame(
+            self.content_frame,
+            corner_radius=15,
+            fg_color=COLORS['card']
+        )
         table_frame.grid(row=2, column=0, padx=30, pady=20, sticky="nsew")
         self.content_frame.grid_rowconfigure(2, weight=1)
         
-        table_title = ctk.CTkLabel(
-            table_frame,
-            text="Recent Potential Disputes",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
-        table_title.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
+        # Table header with actions
+        table_header = ctk.CTkFrame(table_frame, fg_color="transparent")
+        table_header.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
+        table_header.grid_columnconfigure(1, weight=1)
         
-        # Create treeview for table
-        tree_frame = ctk.CTkFrame(table_frame)
-        tree_frame.grid(row=1, column=0, padx=20, pady=(0, 20), sticky="nsew")
+        table_title = ctk.CTkLabel(
+            table_header,
+            text="⚠️ Recent Potential Disputes",
+            font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
+            text_color=COLORS['text']
+        )
+        table_title.grid(row=0, column=0, sticky="w")
+        
+        # Quick action buttons
+        action_frame = ctk.CTkFrame(table_header, fg_color="transparent")
+        action_frame.grid(row=0, column=1, sticky="e")
+        
+        export_btn = ctk.CTkButton(
+            action_frame,
+            text="Export",
+            width=80,
+            height=30,
+            corner_radius=8,
+            fg_color=COLORS['primary'],
+            hover_color=COLORS['secondary'],
+            font=ctk.CTkFont(size=12)
+        )
+        export_btn.pack(side="right", padx=5)
+        
+        # Create enhanced treeview for table
+        tree_container = ctk.CTkFrame(table_frame, fg_color="transparent")
+        tree_container.grid(row=1, column=0, padx=20, pady=(0, 20), sticky="nsew")
         table_frame.grid_rowconfigure(1, weight=1)
         table_frame.grid_columnconfigure(0, weight=1)
         
         self.create_data_table(
-            tree_frame,
+            tree_container,
             self.df[self.df['potential_refund'] == True].tail(20)
         )
+        
+        # Add summary stats at bottom
+        stats_frame = ctk.CTkFrame(table_frame, fg_color="transparent", height=40)
+        stats_frame.grid(row=2, column=0, padx=20, pady=(0, 15), sticky="ew")
+        
+        disputes_shown = min(20, len(self.df[self.df['potential_refund'] == True]))
+        stats_label = ctk.CTkLabel(
+            stats_frame,
+            text=f"Showing {disputes_shown} of {len(self.df[self.df['potential_refund'] == True])} total disputes",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS['text_secondary']
+        )
+        stats_label.pack(side="left")
     
     def create_metric_card(self, parent, label, value, column, color_type="info"):
-        """Create a metric card"""
+        """Create an enhanced metric card with animations"""
         colors = {
-            "error": "#dc3545",
-            "warning": "#ffc107",
-            "info": "#17a2b8",
-            "success": "#28a745"
+            "error": COLORS['danger'],
+            "warning": COLORS['warning'],
+            "info": COLORS['info'],
+            "success": COLORS['success']
         }
         
-        card = ctk.CTkFrame(parent, corner_radius=10)
-        card.grid(row=0, column=column, padx=10, pady=10, sticky="ew")
+        # Enhanced card with gradient border and shadow effect
+        card = ctk.CTkFrame(
+            parent, 
+            corner_radius=15,
+            fg_color=COLORS['card'],
+            border_width=2,
+            border_color=colors.get(color_type, COLORS['info'])
+        )
+        card.grid(row=0, column=column, padx=8, pady=10, sticky="ew")
+        
+        # Icon background circle
+        icon_frame = ctk.CTkFrame(
+            card,
+            width=50,
+            height=50,
+            corner_radius=25,
+            fg_color=colors.get(color_type, COLORS['info'])
+        )
+        icon_frame.grid(row=0, column=0, rowspan=2, padx=20, pady=20)
+        icon_frame.grid_propagate(False)
+        
+        # Add icon emoji
+        icon_map = {
+            "🔴 Total Disputes": "⚠️",
+            "💰 Dispute Amount": "💸",
+            "📅 Recent (30d)": "📊",
+            "✅ Total Refunds": "✔️"
+        }
+        icon_text = icon_map.get(label, "📊")
+        icon_label = ctk.CTkLabel(
+            icon_frame,
+            text=icon_text,
+            font=ctk.CTkFont(size=24)
+        )
+        icon_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Metric details
+        details_frame = ctk.CTkFrame(card, fg_color="transparent")
+        details_frame.grid(row=0, column=1, rowspan=2, padx=(0, 20), pady=15, sticky="w")
         
         label_widget = ctk.CTkLabel(
-            card,
-            text=label,
-            font=ctk.CTkFont(size=14),
-            text_color=("gray60", "gray40")
+            details_frame,
+            text=label.split(' ', 1)[1] if ' ' in label else label,
+            font=ctk.CTkFont(family="Segoe UI", size=13),
+            text_color=COLORS['text_secondary']
         )
-        label_widget.grid(row=0, column=0, padx=20, pady=(15, 5), sticky="w")
+        label_widget.grid(row=0, column=0, sticky="w")
         
         value_widget = ctk.CTkLabel(
-            card,
+            details_frame,
             text=value,
-            font=ctk.CTkFont(size=24, weight="bold"),
-            text_color=colors.get(color_type, "#17a2b8")
+            font=ctk.CTkFont(family="Segoe UI", size=26, weight="bold"),
+            text_color=COLORS['text']
         )
-        value_widget.grid(row=1, column=0, padx=20, pady=(0, 15), sticky="w")
+        value_widget.grid(row=1, column=0, sticky="w")
+        
+        # Add trend indicator (placeholder for future implementation)
+        trend_frame = ctk.CTkFrame(card, fg_color="transparent")
+        trend_frame.grid(row=0, column=2, rowspan=2, padx=(0, 20), pady=15, sticky="e")
+        
+        # Simulate trend
+        import random
+        trend = random.choice(["↑", "↓", "→"])
+        trend_color = COLORS['success'] if trend == "↑" else COLORS['danger'] if trend == "↓" else COLORS['text_secondary']
+        trend_label = ctk.CTkLabel(
+            trend_frame,
+            text=trend,
+            font=ctk.CTkFont(size=20),
+            text_color=trend_color
+        )
+        trend_label.pack()
     
     def create_data_table(self, parent, data):
         """Create a data table with treeview"""
@@ -263,52 +455,77 @@ class DisputeAnalyzerGUI(ctk.CTk):
         tree_frame = ttk.Frame(parent)
         tree_frame.pack(fill="both", expand=True)
         
-        # Configure style
+        # Configure modern style
         style = ttk.Style()
         style.theme_use("clam")
         style.configure("Treeview", 
-                       background="#2b2b2b",
-                       foreground="white",
-                       fieldbackground="#2b2b2b",
-                       borderwidth=0)
+                       background=COLORS['dark'],
+                       foreground=COLORS['text'],
+                       fieldbackground=COLORS['dark'],
+                       borderwidth=0,
+                       rowheight=30)
         style.configure("Treeview.Heading",
-                       background="#1f1f1f",
-                       foreground="white",
-                       borderwidth=0)
-        style.map("Treeview", background=[("selected", "#144870")])
+                       background=COLORS['card'],
+                       foreground=COLORS['text'],
+                       borderwidth=0,
+                       relief="flat")
+        style.map("Treeview", 
+                 background=[("selected", COLORS['primary'])],
+                 foreground=[("selected", COLORS['text'])])
         
         # Create scrollbars
         vsb = ttk.Scrollbar(tree_frame, orient="vertical")
         hsb = ttk.Scrollbar(tree_frame, orient="horizontal")
         
-        # Create treeview
-        columns = ['Date', 'Merchant', 'Amount', 'Description']
+        # Create enhanced treeview with better columns
+        columns = ['Date', 'Merchant', 'Amount', 'Status', 'Description']
         tree = ttk.Treeview(tree_frame, columns=columns, show='headings',
                           yscrollcommand=vsb.set, xscrollcommand=hsb.set,
-                          height=15)
+                          height=12,
+                          selectmode='browse')
         
         vsb.config(command=tree.yview)
         hsb.config(command=tree.xview)
         
-        # Configure columns
-        for col in columns:
-            tree.heading(col, text=col)
-            if col == 'Description':
-                tree.column(col, width=400)
-            elif col == 'Amount':
-                tree.column(col, width=100, anchor='e')
-            else:
-                tree.column(col, width=150)
+        # Configure columns with better widths and alignments
+        column_configs = {
+            'Date': {'width': 100, 'anchor': 'center'},
+            'Merchant': {'width': 200, 'anchor': 'w'},
+            'Amount': {'width': 100, 'anchor': 'e'},
+            'Status': {'width': 100, 'anchor': 'center'},
+            'Description': {'width': 400, 'anchor': 'w'}
+        }
         
-        # Add data
-        for _, row in data.iterrows():
+        for col in columns:
+            config = column_configs.get(col, {'width': 150, 'anchor': 'w'})
+            tree.heading(col, text=col)
+            tree.column(col, width=config['width'], anchor=config['anchor'])
+        
+        # Add data with status indicators
+        for idx, row in data.iterrows():
+            # Determine status
+            if row['potential_refund']:
+                status = "⚠️ Dispute"
+            elif row['amount'] > 0:
+                status = "✅ Refund"
+            else:
+                status = "📝 Charge"
+            
             values = [
-                row['date'].strftime('%Y-%m-%d'),
+                row['date'].strftime('%m/%d/%Y'),
                 row['merchant_standardized'][:30],
-                f"${row['amount']:,.2f}",
-                str(row['description'])[:60]
+                f"${abs(row['amount']):,.2f}",
+                status,
+                str(row['description'])[:50] if pd.notna(row['description']) else ''
             ]
-            tree.insert('', 'end', values=values)
+            
+            # Add with alternating row colors (tag-based)
+            tag = 'evenrow' if idx % 2 == 0 else 'oddrow'
+            tree.insert('', 'end', values=values, tags=(tag,))
+        
+        # Configure tag colors for alternating rows
+        tree.tag_configure('evenrow', background=COLORS['dark'])
+        tree.tag_configure('oddrow', background=COLORS['card'])
         
         # Pack everything
         tree.grid(row=0, column=0, sticky='nsew')
@@ -319,18 +536,37 @@ class DisputeAnalyzerGUI(ctk.CTk):
         tree_frame.grid_columnconfigure(0, weight=1)
     
     def show_refund_search(self):
-        """Show refund search interface"""
+        """Show enhanced refund search interface"""
         self.clear_content()
         
-        title = ctk.CTkLabel(
-            self.content_frame,
-            text="Find Refunds by Merchant",
-            font=ctk.CTkFont(size=28, weight="bold")
-        )
-        title.grid(row=0, column=0, padx=30, pady=(30, 20), sticky="w")
+        # Header
+        header_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=30, pady=(30, 20))
         
-        # Search frame
-        search_frame = ctk.CTkFrame(self.content_frame)
+        title = ctk.CTkLabel(
+            header_frame,
+            text="🔍 Find Refunds by Merchant",
+            font=ctk.CTkFont(family="Segoe UI", size=28, weight="bold"),
+            text_color=COLORS['text']
+        )
+        title.pack(side="left")
+        
+        subtitle = ctk.CTkLabel(
+            header_frame,
+            text="Search for merchant refunds and credits",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary']
+        )
+        subtitle.pack(side="left", padx=(20, 0))
+        
+        # Enhanced search frame with modern design
+        search_frame = ctk.CTkFrame(
+            self.content_frame,
+            corner_radius=15,
+            fg_color=COLORS['card'],
+            border_width=2,
+            border_color=COLORS['primary']
+        )
         search_frame.grid(row=1, column=0, padx=30, pady=10, sticky="ew")
         
         # Merchant input
@@ -344,8 +580,12 @@ class DisputeAnalyzerGUI(ctk.CTk):
         self.merchant_entry = ctk.CTkEntry(
             search_frame,
             placeholder_text="Enter merchant name (e.g., Amazon)",
-            width=300,
-            font=ctk.CTkFont(size=14)
+            width=350,
+            height=40,
+            corner_radius=10,
+            border_width=2,
+            border_color=COLORS['accent'],
+            font=ctk.CTkFont(family="Segoe UI", size=14)
         )
         self.merchant_entry.grid(row=0, column=1, padx=10, pady=20)
         
@@ -366,14 +606,17 @@ class DisputeAnalyzerGUI(ctk.CTk):
         )
         days_entry.grid(row=0, column=3, padx=10, pady=20)
         
-        # Search button
+        # Enhanced search button with hover effect
         search_btn = ctk.CTkButton(
             search_frame,
             text="🔍 Search",
             command=self.search_refunds,
             width=150,
             height=40,
-            font=ctk.CTkFont(size=14, weight="bold")
+            corner_radius=10,
+            fg_color=COLORS['primary'],
+            hover_color=COLORS['secondary'],
+            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold")
         )
         search_btn.grid(row=0, column=4, padx=20, pady=20)
         
@@ -444,18 +687,35 @@ class DisputeAnalyzerGUI(ctk.CTk):
             no_results.grid(row=0, column=0, padx=20, pady=20)
     
     def show_duplicate_finder(self):
-        """Show duplicate charge finder"""
+        """Show enhanced duplicate charge finder"""
         self.clear_content()
         
-        title = ctk.CTkLabel(
-            self.content_frame,
-            text="Find Duplicate Charges",
-            font=ctk.CTkFont(size=28, weight="bold")
-        )
-        title.grid(row=0, column=0, padx=30, pady=(30, 20), sticky="w")
+        # Header with icon and description
+        header_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=30, pady=(30, 20))
         
-        # Settings frame
-        settings_frame = ctk.CTkFrame(self.content_frame)
+        title = ctk.CTkLabel(
+            header_frame,
+            text="👥 Find Duplicate Charges",
+            font=ctk.CTkFont(family="Segoe UI", size=28, weight="bold"),
+            text_color=COLORS['text']
+        )
+        title.pack(anchor="w")
+        
+        desc = ctk.CTkLabel(
+            header_frame,
+            text="Detect potential duplicate transactions within a specified time window",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary']
+        )
+        desc.pack(anchor="w", pady=(5, 0))
+        
+        # Enhanced settings frame
+        settings_frame = ctk.CTkFrame(
+            self.content_frame,
+            corner_radius=15,
+            fg_color=COLORS['card']
+        )
         settings_frame.grid(row=1, column=0, padx=30, pady=10, sticky="ew")
         
         # Days window
@@ -482,14 +742,17 @@ class DisputeAnalyzerGUI(ctk.CTk):
         )
         days_text.grid(row=0, column=2, padx=(0, 20), pady=20, sticky="w")
         
-        # Search button
+        # Enhanced search button
         search_btn = ctk.CTkButton(
             settings_frame,
             text="🔍 Find Duplicates",
             command=self.find_duplicates,
             width=200,
             height=40,
-            font=ctk.CTkFont(size=14, weight="bold")
+            corner_radius=10,
+            fg_color=COLORS['warning'],
+            hover_color=COLORS['primary'],
+            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold")
         )
         search_btn.grid(row=0, column=3, padx=20, pady=20)
         
@@ -545,10 +808,16 @@ class DisputeAnalyzerGUI(ctk.CTk):
             self.dup_results_frame.grid_rowconfigure(1, weight=1)
             self.dup_results_frame.grid_columnconfigure(0, weight=1)
             
-            # Display each duplicate as a card
+            # Display each duplicate as an enhanced card
             for i, dup in enumerate(duplicates[:20]):  # Limit to 20 for performance
-                card = ctk.CTkFrame(scroll_frame, corner_radius=10)
-                card.grid(row=i, column=0, padx=10, pady=5, sticky="ew")
+                card = ctk.CTkFrame(
+                    scroll_frame, 
+                    corner_radius=12,
+                    fg_color=COLORS['card'],
+                    border_width=2,
+                    border_color=COLORS['warning']
+                )
+                card.grid(row=i, column=0, padx=10, pady=8, sticky="ew")
                 scroll_frame.grid_columnconfigure(0, weight=1)
                 
                 # Merchant and amount
@@ -826,18 +1095,35 @@ class DisputeAnalyzerGUI(ctk.CTk):
             no_disputes.grid(row=1, column=0, padx=30, pady=20)
     
     def show_advanced_search(self):
-        """Show advanced search interface"""
+        """Show enhanced advanced search interface"""
         self.clear_content()
         
-        title = ctk.CTkLabel(
-            self.content_frame,
-            text="Advanced Search",
-            font=ctk.CTkFont(size=28, weight="bold")
-        )
-        title.grid(row=0, column=0, padx=30, pady=(30, 20), sticky="w")
+        # Header
+        header_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=30, pady=(30, 20))
         
-        # Search options frame
-        search_frame = ctk.CTkFrame(self.content_frame)
+        title = ctk.CTkLabel(
+            header_frame,
+            text="🔎 Advanced Search",
+            font=ctk.CTkFont(family="Segoe UI", size=28, weight="bold"),
+            text_color=COLORS['text']
+        )
+        title.pack(anchor="w")
+        
+        desc = ctk.CTkLabel(
+            header_frame,
+            text="Apply multiple filters to find specific transactions",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary']
+        )
+        desc.pack(anchor="w", pady=(5, 0))
+        
+        # Enhanced search options frame
+        search_frame = ctk.CTkFrame(
+            self.content_frame,
+            corner_radius=15,
+            fg_color=COLORS['card']
+        )
         search_frame.grid(row=1, column=0, padx=30, pady=10, sticky="ew")
         
         # Date range
@@ -926,14 +1212,17 @@ class DisputeAnalyzerGUI(ctk.CTk):
         )
         self.only_disputes.grid(row=3, column=0, columnspan=2, padx=20, pady=15, sticky="w")
         
-        # Search button
+        # Enhanced search button
         search_btn = ctk.CTkButton(
             search_frame,
             text="🔍 Search",
             command=self.perform_advanced_search,
             width=150,
             height=40,
-            font=ctk.CTkFont(size=14, weight="bold")
+            corner_radius=10,
+            fg_color=COLORS['info'],
+            hover_color=COLORS['primary'],
+            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold")
         )
         search_btn.grid(row=3, column=3, padx=20, pady=15)
         
