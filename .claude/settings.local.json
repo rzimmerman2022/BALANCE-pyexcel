@@ -31,7 +31,8 @@
       "Bash(./pipeline.ps1 help)",
       "Bash(.pipeline.ps1 status)",
       "Bash(pwsh:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(touch:*)"
     ],
     "deny": []
   }

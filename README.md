@@ -25,7 +25,7 @@
 🏗️ **Architecture:** ✅ **GOLD STANDARD** - Industry best practices, clean structure  
 🧪 **Testing:** ✅ **100% PASSING** - All test suites validated, improved coverage  
 📈 **Code Quality:** ✅ **PRISTINE** - Professional logging, secure command execution  
-🚀 **Last Update:** ✅ **2025-08-07** - Critical reliability & security improvements v1.0.3  
+🚀 **Last Update:** ✅ **2025-08-14** - Dispute Analyzer GUI v2.0.1 rebuild + docs updates  
 
 ---
 
@@ -156,6 +156,14 @@ mkdir -p csv_inbox/Ryan csv_inbox/Jordyn
 .\pipeline.ps1 process -Debug
 .\pipeline.ps1 analyze -Debug
 ```
+
+### GUI: Dispute & Refund Analyzer
+Run the modern GUI to explore disputes, refunds, and duplicates interactively.
+
+```powershell
+python .\scripts\utilities\dispute_analyzer_gui.py
+```
+Requires output data produced by the pipeline. The GUI auto-loads the most recent CSV/Parquet in `output/` and expects columns: `date`, `amount`, `merchant_standardized`, `description`, `potential_refund`.
 
 ### **Complete Command Reference**
 See [`PIPELINE_COMMANDS.md`](PIPELINE_COMMANDS.md) for comprehensive command documentation.

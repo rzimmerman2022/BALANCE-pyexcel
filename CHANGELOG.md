@@ -15,6 +15,22 @@ All notable changes to the BALANCE project are documented in this file following
 
 ---
 
+## [2.0.1] - 2025-08-14
+
+### Dispute Analyzer GUI Rebuild + Documentation Updates
+
+#### Fixed
+- Rebuilt `scripts/utilities/dispute_analyzer_gui.py` to resolve indentation/syntax corruption
+- Corrected sorting, dashboard metrics, boolean logic, and table rendering
+- Lint cleanups (imports ordering, dict.fromkeys, unused loop vars)
+
+#### Added
+- Updated README with GUI run instructions and latest status date
+- Updated `docs/dispute_analyzer_guide.md` with PowerShell examples and data source details
+
+#### Notes
+- GUI auto-loads the newest CSV/Parquet from `output/` and validates required columns
+
 ## [2.0.0] - 2025-08-09
 
 ### 🏗️ **MAJOR REPOSITORY CLEANUP & MODERNIZATION**

@@ -163,6 +163,7 @@ python-dotenv = "^1.1.0"
 PyYAML = "^6.0.1"
 structlog = "^24.1.0" # For structured logging
 rich = "^13.7.0"
+customtkinter = "^5.2.2" # Modern Tkinter-based UI framework used by dispute_analyzer_gui
 
 # python-dateutil: Powerful extensions to the standard datetime module
 # Used for: Advanced date parsing, timezone handling, and complex recurrences

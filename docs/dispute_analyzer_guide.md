@@ -7,9 +7,9 @@ The BALANCE Dispute & Refund Analyzer provides powerful tools for investigating 
 ## Quick Start
 
 ### GUI Version (Recommended)
-```bash
+```powershell
 cd C:\Projects\BALANCE
-python scripts\utilities\dispute_analyzer_gui.py
+python .\scripts\utilities\dispute_analyzer_gui.py
 ```
 
 ### Command-Line Version
@@ -129,9 +129,9 @@ Result: Complete dispute list for accounting review
 ## Technical Details
 
 ### Data Source
-- Reads from `output/transactions_cleaned_*.parquet`
-- Automatically loads most recent file
-- Supports 2+ years of transaction history
+- Scans `output/` for the most recent Parquet or CSV
+- Validates required columns: `date`, `amount`, `merchant_standardized`, `description`, `potential_refund`
+- Coerces `date` to datetime and derives `amount_abs`
 
 ### Performance
 - Handles 5,000+ transactions smoothly
@@ -147,13 +147,13 @@ Result: Complete dispute list for accounting review
 ## Troubleshooting
 
 ### GUI Won't Launch
-```bash
-pip install customtkinter
+```powershell
+poetry run pip install customtkinter
 ```
 
 ### No Data Found
-```bash
-python scripts/utilities/quick_powerbi_prep.py
+```powershell
+python .\scripts\utilities\quick_powerbi_prep.py
 ```
 
 ### Export Fails
