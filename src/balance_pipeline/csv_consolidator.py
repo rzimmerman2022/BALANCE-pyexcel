@@ -61,6 +61,7 @@ from .config import MERCHANT_LOOKUP_PATH, SCHEMA_REGISTRY_PATH  # Default paths
 from .constants import MASTER_SCHEMA_COLUMNS  # Added import
 from .errors import RecoverableFileError
 
+
 # Verify consistency between foundation and config for core columns
 def _validate_core_columns_consistency():
     """Validate that core column definitions are consistent across modules."""
@@ -73,13 +74,15 @@ def _validate_core_columns_consistency():
         )
         raise ValueError(error_msg)
 
+
 # Validate at module load time
 _validate_core_columns_consistency()
+
 
 def get_required_columns_for_mode() -> list[str]:
     """
     Returns the list of columns that must be present based on the current schema mode.
-    
+
     In 'strict' mode: Returns all 25 columns from MASTER_SCHEMA_COLUMNS
     In 'flexible' mode: Returns only the core required columns
     """
@@ -93,22 +96,22 @@ def identify_relevant_column_groups(df: pd.DataFrame) -> set[str]:
     """
     Analyzes a DataFrame to determine which optional column groups are relevant
     based on the presence of data in those columns.
-    
+
     This function helps us understand what type of data source we're dealing with
     by looking at which optional columns actually contain data.
-    
+
     Returns:
         Set of column group names that should be retained
     """
     relevant_groups = set()
-    
+
     for group_name, columns in config.OPTIONAL_COLUMN_GROUPS.items():
         # Check if any column in this group exists and has non-null data
         for col in columns:
             if col in df.columns and not df[col].isna().all():
                 relevant_groups.add(group_name)
                 break  # One non-empty column is enough to include the group
-                
+
     return relevant_groups
 
 
@@ -117,21 +120,21 @@ def get_columns_to_retain(df: pd.DataFrame) -> list[str]:
     Determines which columns should be retained in the final output based on:
     1. The current schema mode
     2. Which columns actually contain data
-    
+
     In 'strict' mode: Returns all MASTER_SCHEMA_COLUMNS
     In 'flexible' mode: Returns core columns + relevant optional columns
     """
     if config.SCHEMA_MODE == "strict":
         return MASTER_SCHEMA_COLUMNS
-    
+
     # Start with core required columns
     columns_to_retain = config.CORE_REQUIRED_COLUMNS.copy()
-    
+
     # Add columns from relevant groups
     relevant_groups = identify_relevant_column_groups(df)
     for group_name in relevant_groups:
         columns_to_retain.extend(config.OPTIONAL_COLUMN_GROUPS[group_name])
-    
+
     # Remove duplicates while preserving order - Fixed the set.add issue
     seen: set[str] = set()
     unique_columns: list[str] = []
@@ -142,34 +145,36 @@ def get_columns_to_retain(df: pd.DataFrame) -> list[str]:
     return unique_columns
 
 
-def remove_empty_columns(df: pd.DataFrame, preserve_columns: list[str] | None = None) -> pd.DataFrame:
+def remove_empty_columns(
+    df: pd.DataFrame, preserve_columns: list[str] | None = None
+) -> pd.DataFrame:
     """
     Removes columns that are entirely empty (all NA/null/empty string) from a DataFrame.
-    
+
     Args:
         df: The DataFrame to clean
         preserve_columns: List of column names that should never be removed,
                          even if empty (defaults to CORE_REQUIRED_COLUMNS)
-    
+
     Returns:
         DataFrame with empty columns removed (except preserved ones)
     """
     if preserve_columns is None:
         preserve_columns = config.CORE_REQUIRED_COLUMNS
-    
+
     columns_to_drop = []
-    
+
     for col in df.columns:
         # Skip if this is a preserved column
         if col in preserve_columns:
             continue
-            
+
         # Check if column is entirely empty
         # Consider a column empty if all values are NA, None, or empty string
         if col in df.columns:
             # First check if all values are NA/null
             is_all_na = df[col].isna().all()
-            
+
             if is_all_na:
                 columns_to_drop.append(col)
             else:
@@ -177,18 +182,21 @@ def remove_empty_columns(df: pd.DataFrame, preserve_columns: list[str] | None = 
                 if not is_numeric_dtype(df[col]):
                     try:
                         # Only check for empty strings on non-numeric columns
-                        is_all_empty_string = (df[col] == '').all()
+                        is_all_empty_string = (df[col] == "").all()
                         if is_all_empty_string:
                             columns_to_drop.append(col)
                     except (TypeError, ValueError):
                         # If comparison fails, column is not empty
                         pass
-    
+
     if columns_to_drop:
-        log.info(f"Removing {len(columns_to_drop)} empty columns in flexible mode: {columns_to_drop}")
+        log.info(
+            f"Removing {len(columns_to_drop)} empty columns in flexible mode: {columns_to_drop}"
+        )
         return df.drop(columns=columns_to_drop)
-    
+
     return df
+
 
 # --- Setup Logger ---
 log = logging.getLogger(__name__)
@@ -198,7 +206,7 @@ log = logging.getLogger(__name__)
 # This is essentially the same as CORE_REQUIRED_COLUMNS minus sharing_status
 MANDATORY_MASTER_COLS = [
     "TxnID",
-    "Owner", 
+    "Owner",
     "Date",
     "Amount",
     "Merchant",
@@ -207,6 +215,7 @@ MANDATORY_MASTER_COLS = [
 ]
 # Note: This could be replaced with config.CORE_REQUIRED_COLUMNS[:-1] if order matches
 
+
 # --- PipelineDebugTracer Class ---
 class PipelineDebugTracer:
     def __init__(self, filename: str):
@@ -214,22 +223,26 @@ class PipelineDebugTracer:
         self.stages: list[dict[str, Any]] = []
         log.debug(f"[DebugTracer] Initialized for file: {self.filename}")
 
-    def capture_stage(self, 
-                      stage_name: str, 
-                      df: pd.DataFrame, 
-                      sample_rows: int = 3, 
-                      focus_columns: list[str] | None = None) -> None:
+    def capture_stage(
+        self,
+        stage_name: str,
+        df: pd.DataFrame,
+        sample_rows: int = 3,
+        focus_columns: list[str] | None = None,
+    ) -> None:
         """Capture the state of data at a specific stage"""
         if df is None:
-            log.warning(f"[DebugTracer] DataFrame is None for stage: {stage_name}. Skipping capture.")
+            log.warning(
+                f"[DebugTracer] DataFrame is None for stage: {stage_name}. Skipping capture."
+            )
             stage_data: dict[str, Any] = {
-                'stage_name': stage_name,
-                'status': 'DataFrame was None',
-                'row_count': 0,
-                'columns': [],
-                'dtypes': {},
-                'null_counts': {},
-                'sample_data': {}
+                "stage_name": stage_name,
+                "status": "DataFrame was None",
+                "row_count": 0,
+                "columns": [],
+                "dtypes": {},
+                "null_counts": {},
+                "sample_data": {},
             }
             self.stages.append(stage_data)
             return
@@ -237,23 +250,24 @@ class PipelineDebugTracer:
         log.debug(f"[DebugTracer] Capturing stage: {stage_name} for {self.filename}")
         try:
             stage_data = {
-                'stage_name': stage_name,
-                'row_count': len(df),
-                'columns': list(df.columns),
-                'dtypes': {col: str(df[col].dtype) for col in df.columns if col in df}, # Check col in df for safety
-                'null_counts': df.isnull().sum().to_dict() if not df.empty else {},
-                'sample_data': {}
+                "stage_name": stage_name,
+                "row_count": len(df),
+                "columns": list(df.columns),
+                "dtypes": {
+                    col: str(df[col].dtype) for col in df.columns if col in df
+                },  # Check col in df for safety
+                "null_counts": df.isnull().sum().to_dict() if not df.empty else {},
+                "sample_data": {},
             }
-            
+
             # Capture sample data for key columns or all if not specified
             # If focus_columns is empty list, sample nothing. If None, sample first 10.
             cols_to_sample = []
-            if focus_columns is None: # Sample first 10 if no focus specified
-                 cols_to_sample = [col for col in df.columns[:10] if col in df]
-            elif focus_columns: # If focus_columns is not empty list
-                 cols_to_sample = [col for col in focus_columns if col in df]
+            if focus_columns is None:  # Sample first 10 if no focus specified
+                cols_to_sample = [col for col in df.columns[:10] if col in df]
+            elif focus_columns:  # If focus_columns is not empty list
+                cols_to_sample = [col for col in focus_columns if col in df]
             # If focus_columns is an empty list, cols_to_sample remains empty, no samples taken.
-
 
             for col in cols_to_sample:
                 # Ensure column exists before trying to access it
@@ -265,52 +279,65 @@ class PipelineDebugTracer:
                         sanitized_sample_list: list[str | None] = []
                         for item in sample_list:
                             if pd.isna(item):
-                                sanitized_sample_list.append(None)  # Represent NaN/NaT as None
+                                sanitized_sample_list.append(
+                                    None
+                                )  # Represent NaN/NaT as None
                             elif isinstance(item, (datetime, pd.Timestamp)):
                                 sanitized_sample_list.append(item.isoformat())
                             else:
-                                sanitized_sample_list.append(str(item))  # Convert to string
-                        stage_data['sample_data'][col] = sanitized_sample_list
+                                sanitized_sample_list.append(
+                                    str(item)
+                                )  # Convert to string
+                        stage_data["sample_data"][col] = sanitized_sample_list
                     except Exception as e:
-                        stage_data['sample_data'][col] = f"Error sampling column {col}: {e}"
+                        stage_data["sample_data"][col] = (
+                            f"Error sampling column {col}: {e}"
+                        )
                 else:
-                    stage_data['sample_data'][col] = "Column not found in DataFrame"
-            
+                    stage_data["sample_data"][col] = "Column not found in DataFrame"
+
             self.stages.append(stage_data)
         except Exception as e:
-            log.error(f"[DebugTracer] Error during capture_stage '{stage_name}': {e}\n{traceback.format_exc()}")
+            log.error(
+                f"[DebugTracer] Error during capture_stage '{stage_name}': {e}\n{traceback.format_exc()}"
+            )
             # Add a placeholder stage indicating error
-            self.stages.append({
-                'stage_name': stage_name,
-                'status': f'Error during capture: {e}',
-                'error_trace': traceback.format_exc()
-            })
-
+            self.stages.append(
+                {
+                    "stage_name": stage_name,
+                    "status": f"Error during capture: {e}",
+                    "error_trace": traceback.format_exc(),
+                }
+            )
 
     def generate_report(self) -> str:
         """Generate a comprehensive debug report as a string"""
         report_parts = [f"=== PIPELINE DEBUG REPORT for {self.filename} ==="]
         for stage in self.stages:
-            report_parts.append(f"\n--- STAGE: {stage.get('stage_name', 'Unknown Stage')} ---")
-            if 'status' in stage and 'Error' in stage['status']: # Handle error stages
+            report_parts.append(
+                f"\n--- STAGE: {stage.get('stage_name', 'Unknown Stage')} ---"
+            )
+            if "status" in stage and "Error" in stage["status"]:  # Handle error stages
                 report_parts.append(f"  Status: {stage['status']}")
-                if 'error_trace' in stage:
+                if "error_trace" in stage:
                     report_parts.append(f"  Trace: {stage['error_trace']}")
                 continue
 
             report_parts.append(f"  Row Count: {stage.get('row_count', 'N/A')}")
             report_parts.append(f"  Columns: {stage.get('columns', 'N/A')}")
             # report_parts.append(f"  dtypes: {stage.get('dtypes', 'N/A')}") # Can be very verbose
-            report_parts.append(f"  Null Counts: {json.dumps(stage.get('null_counts', {}), indent=2)}")
-            
-            sample_data = stage.get('sample_data', {})
+            report_parts.append(
+                f"  Null Counts: {json.dumps(stage.get('null_counts', {}), indent=2)}"
+            )
+
+            sample_data = stage.get("sample_data", {})
             if sample_data:
                 report_parts.append("  Sample Data (first few rows):")
                 for col, values in sample_data.items():
                     report_parts.append(f"    {col}: {values}")
             else:
                 report_parts.append("  Sample Data: None captured or specified.")
-        
+
         return "\n".join(report_parts)
 
     def save_report(self, output_dir: Path = Path("debug_reports")) -> None:
@@ -318,18 +345,23 @@ class PipelineDebugTracer:
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
             # Sanitize filename from self.filename to avoid issues with special characters
-            safe_report_filename_base = re.sub(r'[^\w\.-]', '_', Path(self.filename).stem)
+            safe_report_filename_base = re.sub(
+                r"[^\w\.-]", "_", Path(self.filename).stem
+            )
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             report_filename = f"debug_{safe_report_filename_base}_{timestamp}.txt"
             filepath = output_dir / report_filename
-            
+
             report_content = self.generate_report()
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(report_content)
-            
+
             log.info(f"[DebugTracer] Debug report saved to: {filepath}")
         except Exception as e:
-            log.error(f"[DebugTracer] Failed to save debug report for {self.filename}: {e}\n{traceback.format_exc()}")
+            log.error(
+                f"[DebugTracer] Failed to save debug report for {self.filename}: {e}\n{traceback.format_exc()}"
+            )
+
 
 # Placeholder for main processing function and helpers
 # These will be implemented in subsequent steps.
@@ -386,7 +418,7 @@ def _normalize_csv_header(
         header = str(header)  # Attempt to convert to string if not already
 
     # Ensure header is treated as str for subsequent operations
-    processed_header = cast(str, header) # cast is already imported
+    processed_header = cast(str, header)  # cast is already imported
     # Convert to lowercase
     normalized = processed_header.lower()
     # Remove special characters except spaces, then strip leading/trailing whitespace
@@ -398,24 +430,24 @@ def _normalize_csv_header(
     # Note: The conflicting description<->merchant swap has been removed
     # as it could cause data confusion. Now we preserve the original meaning.
     alias_map = {
-        'txn date': 'date',
-        'transaction date': 'date',
-        'trans date': 'date',
-        'posting date': 'postdate',
-        'post date': 'postdate',
-        'account name': 'account',
-        'account number': 'account',
-        'running balance': 'balance',
-        'current balance': 'balance',
-        'transaction amount': 'amount',
-        'debit': 'amount',
-        'credit': 'amount',
-        'vendor': 'merchant',
-        'payee': 'merchant',
-        'transaction description': 'description',
-        'memo': 'description',
-        'transaction category': 'category',
-        'trans category': 'category',
+        "txn date": "date",
+        "transaction date": "date",
+        "trans date": "date",
+        "posting date": "postdate",
+        "post date": "postdate",
+        "account name": "account",
+        "account number": "account",
+        "running balance": "balance",
+        "current balance": "balance",
+        "transaction amount": "amount",
+        "debit": "amount",
+        "credit": "amount",
+        "vendor": "merchant",
+        "payee": "merchant",
+        "transaction description": "description",
+        "memo": "description",
+        "transaction category": "category",
+        "trans category": "category",
     }
 
     return alias_map.get(normalized, normalized)
@@ -428,7 +460,12 @@ def _normalize_csv_header(
 # For simplicity and alignment with existing normalize.py, let's define the cols needed for hashing here.
 # These are the *target* master schema column names after mapping.
 # Removed PostDate and Institution as they are not reliably available across all sources.
-TXN_ID_HASH_COLS = ["Date", "Amount", "Description", "Account"] # Changed OriginalDescription to Description
+TXN_ID_HASH_COLS = [
+    "Date",
+    "Amount",
+    "Description",
+    "Account",
+]  # Changed OriginalDescription to Description
 
 
 def _generate_txn_id(row: pd.Series[Any]) -> str:  # Updated type hint
@@ -444,7 +481,7 @@ def _generate_txn_id(row: pd.Series[Any]) -> str:  # Updated type hint
     for col in TXN_ID_HASH_COLS:
         val = row.get(col)
         if col == "Description":
-            desc = val # val is row.get("Description") from the current iteration
+            desc = val  # val is row.get("Description") from the current iteration
             desc_part = str(desc)[:20] if pd.notna(desc) else "NoDesc"
             parts.append(desc_part)
         elif pd.isna(val):  # Handles None, pd.NaT, np.nan
@@ -468,7 +505,7 @@ def apply_schema_transformations(
     schema_rules: dict[str, Any],
     merchant_lookup_rules: list[tuple[re.Pattern[str], str]],  # Updated type hint
     filename: str,  # Added filename parameter
-    debug_tracer: PipelineDebugTracer | None = None  # Added debug_tracer parameter
+    debug_tracer: PipelineDebugTracer | None = None,  # Added debug_tracer parameter
 ) -> pd.DataFrame:
     """
     Applies all transformations defined by a schema to a DataFrame.
@@ -488,10 +525,21 @@ def apply_schema_transformations(
     log.debug(
         f"[APPLY_SCHEMA_STATE] File: {filename} | Schema: {schema_id} | Stage: Before Transformations | Columns: {list(df.columns)}"
     )
-    
+
     if debug_tracer:
-        debug_tracer.capture_stage("1_RAW_CSV_LOADED", df, 
-                                   focus_columns=['Date', 'Amount', 'Description', 'Merchant', 'Original Statement', 'Transaction Date', 'Details']) # Added more potential raw cols
+        debug_tracer.capture_stage(
+            "1_RAW_CSV_LOADED",
+            df,
+            focus_columns=[
+                "Date",
+                "Amount",
+                "Description",
+                "Merchant",
+                "Original Statement",
+                "Transaction Date",
+                "Details",
+            ],
+        )  # Added more potential raw cols
 
     transformed_df = df.copy()
 
@@ -554,18 +602,41 @@ def apply_schema_transformations(
             )
 
     transformed_df = transformed_df.rename(columns=rename_dict)
-    log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Column Mapping | Details: Renamed columns {rename_dict}")
+    log.debug(
+        f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Column Mapping | Details: Renamed columns {rename_dict}"
+    )
 
     if debug_tracer:
-        debug_tracer.capture_stage("2_AFTER_COLUMN_MAPPING", transformed_df,
-                                   focus_columns=['Date', 'Amount', 'OriginalDescription', 'Merchant', 'Description', 'Account'])
+        debug_tracer.capture_stage(
+            "2_AFTER_COLUMN_MAPPING",
+            transformed_df,
+            focus_columns=[
+                "Date",
+                "Amount",
+                "OriginalDescription",
+                "Merchant",
+                "Description",
+                "Account",
+            ],
+        )
         # Capture merchant-related columns specifically
-        relevant_merchant_cols = ['Merchant', 'OriginalMerchant', 'Description', 'OriginalDescription', 'Details', 'Original Statement']
-        existing_merchant_cols = [col for col in relevant_merchant_cols if col in transformed_df.columns]
-        if existing_merchant_cols: # Only capture if any relevant columns exist
-             debug_tracer.capture_stage("2A_MERCHANT_RELATED_COLUMNS_POST_MAP", transformed_df, 
-                                   focus_columns=existing_merchant_cols)
-
+        relevant_merchant_cols = [
+            "Merchant",
+            "OriginalMerchant",
+            "Description",
+            "OriginalDescription",
+            "Details",
+            "Original Statement",
+        ]
+        existing_merchant_cols = [
+            col for col in relevant_merchant_cols if col in transformed_df.columns
+        ]
+        if existing_merchant_cols:  # Only capture if any relevant columns exist
+            debug_tracer.capture_stage(
+                "2A_MERCHANT_RELATED_COLUMNS_POST_MAP",
+                transformed_df,
+                focus_columns=existing_merchant_cols,
+            )
 
     # 3. Handle 'Extras' (unmapped columns)
     # Unmapped columns are those original columns not in rename_dict.keys()
@@ -620,12 +691,20 @@ def apply_schema_transformations(
             if debug_tracer:
                 # Capture raw date values before parsing for this specific column
                 # Make sure to use a unique stage name if looping, or capture all relevant date columns at once
-                debug_tracer.capture_stage(f"3A_BEFORE_DATE_PARSE_{col_name.replace(' ', '_')}", 
-                                          transformed_df, 
-                                          focus_columns=[col_name])
-                sample_dates = transformed_df[col_name].head(5).tolist() # Use a local var for sample_dates
-                log.info(f"[DATE_DEBUG] File: {filename} | Column '{col_name}' raw values: {sample_dates}")
-                log.info(f"[DATE_DEBUG] File: {filename} | Attempting to parse '{col_name}' with format: {fmt_str if fmt_str else 'inferred'}")
+                debug_tracer.capture_stage(
+                    f"3A_BEFORE_DATE_PARSE_{col_name.replace(' ', '_')}",
+                    transformed_df,
+                    focus_columns=[col_name],
+                )
+                sample_dates = (
+                    transformed_df[col_name].head(5).tolist()
+                )  # Use a local var for sample_dates
+                log.info(
+                    f"[DATE_DEBUG] File: {filename} | Column '{col_name}' raw values: {sample_dates}"
+                )
+                log.info(
+                    f"[DATE_DEBUG] File: {filename} | Attempting to parse '{col_name}' with format: {fmt_str if fmt_str else 'inferred'}"
+                )
 
             try:
                 # Ensure the column is string type before parsing, if it's not already datetime
@@ -651,8 +730,11 @@ def apply_schema_transformations(
             )
 
     if debug_tracer:
-        debug_tracer.capture_stage("3B_AFTER_ALL_DATE_PARSING", transformed_df,
-                                   focus_columns=potential_date_cols_in_df) # potential_date_cols_in_df was defined earlier
+        debug_tracer.capture_stage(
+            "3B_AFTER_ALL_DATE_PARSING",
+            transformed_df,
+            focus_columns=potential_date_cols_in_df,
+        )  # potential_date_cols_in_df was defined earlier
 
     # 5. Amount Sign Standardization & Numeric Conversion
     amount_col_name = "Amount"  # Assuming 'Amount' is the canonical name after mapping
@@ -680,7 +762,9 @@ def apply_schema_transformations(
         transformed_df[amount_col_name] = pd.to_numeric(
             transformed_df[amount_col_name], errors="coerce"
         )
-        log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount ToNumeric | Column: {amount_col_name}")
+        log.debug(
+            f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount ToNumeric | Column: {amount_col_name}"
+        )
 
         sign_rule_from_schema = schema_rules.get("sign_rule")
 
@@ -689,7 +773,9 @@ def apply_schema_transformations(
         # Determine the effective sign rule. If not specified in schema, it defaults to "as_is".
         # This effective rule is used for validation. The original sign_rule_from_schema (which can be None)
         # is used for the actual sign application logic.
-        effective_sign_rule_for_validation = sign_rule_from_schema if sign_rule_from_schema is not None else "as_is"
+        effective_sign_rule_for_validation = (
+            sign_rule_from_schema if sign_rule_from_schema is not None else "as_is"
+        )
 
         if effective_sign_rule_for_validation not in ALLOWED_SIGN_RULES:
             sorted_allowed_rules_str = ", ".join(sorted(list(ALLOWED_SIGN_RULES)))
@@ -699,8 +785,10 @@ def apply_schema_transformations(
             )
         # --- END VALIDATION GUARD ---
 
-        if sign_rule_from_schema: # Log only if a rule is actually applied
-            log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Column: {amount_col_name} | Rule: {sign_rule_from_schema}")
+        if sign_rule_from_schema:  # Log only if a rule is actually applied
+            log.debug(
+                f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Column: {amount_col_name} | Rule: {sign_rule_from_schema}"
+            )
 
         # Apply the rule using the original value from schema (sign_rule_from_schema)
         if sign_rule_from_schema == "flip_if_positive":
@@ -736,14 +824,21 @@ def apply_schema_transformations(
                     f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Rule: flip_if_withdrawal | Detail: 'Category' column not found. Rule not applied."
                 )
         elif sign_rule_from_schema == "as_is":
-            pass # No change, already logged the rule
+            pass  # No change, already logged the rule
         elif (
-            isinstance(sign_rule_from_schema, dict) # Check the original value from schema
+            isinstance(
+                sign_rule_from_schema, dict
+            )  # Check the original value from schema
             and sign_rule_from_schema.get("type") == "flip_if_column_value_matches"
         ):
-            rule_col_name = sign_rule_from_schema.get("column") # Changed sign_rule to sign_rule_from_schema
+            rule_col_name = sign_rule_from_schema.get(
+                "column"
+            )  # Changed sign_rule to sign_rule_from_schema
             debit_values = [
-                str(v).lower() for v in sign_rule_from_schema.get("debit_values", []) # Changed sign_rule to sign_rule_from_schema
+                str(v).lower()
+                for v in sign_rule_from_schema.get(
+                    "debit_values", []
+                )  # Changed sign_rule to sign_rule_from_schema
             ]  # Normalize to lower string
 
             actual_col_to_check = None
@@ -802,7 +897,17 @@ def apply_schema_transformations(
                     f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule (Complex) | Detail: No 'debit_values' provided. Rule not applied effectively."
                 )
 
-        elif sign_rule_from_schema and sign_rule_from_schema not in ["as_is", "flip_if_positive", "flip_if_negative", "flip_always", "flip_if_withdrawal"]: # Unrecognized simple string rule, changed sign_rule to sign_rule_from_schema
+        elif (
+            sign_rule_from_schema
+            and sign_rule_from_schema
+            not in [
+                "as_is",
+                "flip_if_positive",
+                "flip_if_negative",
+                "flip_always",
+                "flip_if_withdrawal",
+            ]
+        ):  # Unrecognized simple string rule, changed sign_rule to sign_rule_from_schema
             log.warning(
                 f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Sign Rule | Detail: Unrecognized sign_rule '{sign_rule_from_schema}'. Amount signs may be incorrect."
             )
@@ -811,16 +916,21 @@ def apply_schema_transformations(
         transformed_df[amount_col_name] = transformed_df[amount_col_name].astype(
             float, errors="ignore"
         )
-        log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Astype Float | Column: {amount_col_name}")
+        log.debug(
+            f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Amount Astype Float | Column: {amount_col_name}"
+        )
 
     else:
         log.warning(
             f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Amount Processing | Detail: Amount column '{amount_col_name}' not found after mapping. Cannot apply sign rules or ensure numeric type."
         )
-    
+
     if debug_tracer:
-        debug_tracer.capture_stage("4_AFTER_AMOUNT_PROCESSING", transformed_df,
-                                   focus_columns=['Amount', 'Category']) # Category might influence sign
+        debug_tracer.capture_stage(
+            "4_AFTER_AMOUNT_PROCESSING",
+            transformed_df,
+            focus_columns=["Amount", "Category"],
+        )  # Category might influence sign
 
     # 6. Derived Columns
     derived_cfg = schema_rules.get(
@@ -838,47 +948,61 @@ def apply_schema_transformations(
                 )
                 transformed_df[new_col_name] = pd.NA
                 continue
-            
-            # Prioritize 'type' key for rule type, fallback to 'rule' for compatibility
-            rule_type = rule_cfg.get("type") 
-            if not rule_type:
-                rule_type = rule_cfg.get("rule") # Fallback for older 'rule:' syntax
 
-            rule_details = rule_cfg # rule_cfg itself contains parameters like 'value', 'column', 'pattern'
+            # Prioritize 'type' key for rule type, fallback to 'rule' for compatibility
+            rule_type = rule_cfg.get("type")
+            if not rule_type:
+                rule_type = rule_cfg.get("rule")  # Fallback for older 'rule:' syntax
+
+            rule_details = rule_cfg  # rule_cfg itself contains parameters like 'value', 'column', 'pattern'
 
             # Further fallback for very old structures if rule_type is still None
             # This part handles cases where rule_cfg might be {'static_value': 'ActualValue'}
             if not rule_type:
-                if "regex_extract" in rule_cfg and isinstance(rule_cfg["regex_extract"], dict):
+                if "regex_extract" in rule_cfg and isinstance(
+                    rule_cfg["regex_extract"], dict
+                ):
                     rule_type = "regex_extract"
-                    rule_details = rule_cfg["regex_extract"] # rule_details becomes the nested dict
-                elif "static_value" in rule_cfg: # This could be rule_cfg: {'static_value': 'ActualValue'} or {'static_value': {'value': 'ActualValue'}}
+                    rule_details = rule_cfg[
+                        "regex_extract"
+                    ]  # rule_details becomes the nested dict
+                elif (
+                    "static_value" in rule_cfg
+                ):  # This could be rule_cfg: {'static_value': 'ActualValue'} or {'static_value': {'value': 'ActualValue'}}
                     rule_type = "static_value"
                     # If rule_cfg['static_value'] is not a dict, rule_details remains rule_cfg, and 'value' is extracted from rule_details['static_value']
                     # If rule_cfg['static_value'] IS a dict (e.g. {'value': 'ActualValue'}), then rule_details should become that dict.
                     if isinstance(rule_cfg["static_value"], dict):
-                         rule_details = rule_cfg["static_value"]
+                        rule_details = rule_cfg["static_value"]
                     # else rule_details remains rule_cfg, and 'value' will be sought from rule_details['static_value']
 
-            if rule_type is None: # If still no rule_type, then it's an unknown configuration
+            if (
+                rule_type is None
+            ):  # If still no rule_type, then it's an unknown configuration
                 log.warning(
                     f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Detail: Unknown rule type or invalid rule structure. Config: {rule_cfg}. Skipping."
                 )
                 transformed_df[new_col_name] = pd.NA
                 continue
-            
+
             log_details_for_derived = f"Rule Type: {rule_type}"
             try:
                 if rule_type == "static_value":
                     # For static_value, the value can be directly under rule_details['value']
                     # or, for very old format, it might be rule_details['static_value']
                     static_val = rule_details.get("value")
-                    if static_val is None and rule_type == "static_value" and "static_value" in rule_details: # Check for old format like {'static_value': 'ActualValue'}
+                    if (
+                        static_val is None
+                        and rule_type == "static_value"
+                        and "static_value" in rule_details
+                    ):  # Check for old format like {'static_value': 'ActualValue'}
                         static_val = rule_details.get("static_value")
-                    
+
                     log_details_for_derived += f" | Value: {static_val}"
 
-                    if static_val is None: # After checking both .get('value') and .get('static_value') for static_value type
+                    if (
+                        static_val is None
+                    ):  # After checking both .get('value') and .get('static_value') for static_value type
                         log.warning(
                             f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column (static_value) | New Column: {new_col_name} | Detail: 'value' not found or is None in rule_details. Config: {rule_cfg}"
                         )
@@ -895,9 +1019,13 @@ def apply_schema_transformations(
                         transformed_df[new_col_name] = pd.NA
                         continue
 
-                    source_col = rule_details.get("column") # This is the source column for regex
+                    source_col = rule_details.get(
+                        "column"
+                    )  # This is the source column for regex
                     pattern_str = rule_details.get("pattern")
-                    log_details_for_derived += f" | Source Column: {source_col} | Pattern: {pattern_str}"
+                    log_details_for_derived += (
+                        f" | Source Column: {source_col} | Pattern: {pattern_str}"
+                    )
 
                     if not source_col or not pattern_str:
                         log.warning(
@@ -917,8 +1045,9 @@ def apply_schema_transformations(
                     capture_group_name = (
                         list(regex.groupindex.keys())[0] if regex.groupindex else None
                     )
-                    log_details_for_derived += f" | Capture Group: {capture_group_name or '1st unnamed'}"
-
+                    log_details_for_derived += (
+                        f" | Capture Group: {capture_group_name or '1st unnamed'}"
+                    )
 
                     def extract_with_regex(text_to_search: Any) -> Any:
                         if pd.isna(text_to_search):
@@ -938,14 +1067,16 @@ def apply_schema_transformations(
                         extract_with_regex
                     )
 
-                else: # Should have been caught by rule_type is None check earlier
+                else:  # Should have been caught by rule_type is None check earlier
                     log.warning(
                         f"[APPLY_SCHEMA_WARN] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Detail: Unknown rule type '{rule_type}'. Config: {rule_cfg}. Skipping."
                     )
                     transformed_df[new_col_name] = pd.NA
-                    continue # Skip the common log for this iteration
+                    continue  # Skip the common log for this iteration
 
-                log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Details: {log_details_for_derived}")
+                log.debug(
+                    f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Derived Column | New Column: {new_col_name} | Details: {log_details_for_derived}"
+                )
 
             except Exception as e:
                 log.error(
@@ -953,17 +1084,26 @@ def apply_schema_transformations(
                     exc_info=True,
                 )
                 transformed_df[new_col_name] = pd.NA
-    
+
     if debug_tracer:
         # Capture after all derived columns are processed
         derived_col_names = list(derived_cfg.keys()) if derived_cfg else []
         # Also include some key base columns to see context
-        focus_cols_for_derived = list(set(derived_col_names + ['Account', 'AccountLast4', 'Institution', 'Owner', 'DataSourceName']))
-        existing_focus_cols = [col for col in focus_cols_for_derived if col in transformed_df.columns]
-        if existing_focus_cols: # Only capture if any relevant columns exist
-            debug_tracer.capture_stage("5_AFTER_DERIVED_COLUMNS", transformed_df,
-                                   focus_columns=existing_focus_cols)
-
+        focus_cols_for_derived = list(
+            set(
+                derived_col_names
+                + ["Account", "AccountLast4", "Institution", "Owner", "DataSourceName"]
+            )
+        )
+        existing_focus_cols = [
+            col for col in focus_cols_for_derived if col in transformed_df.columns
+        ]
+        if existing_focus_cols:  # Only capture if any relevant columns exist
+            debug_tracer.capture_stage(
+                "5_AFTER_DERIVED_COLUMNS",
+                transformed_df,
+                focus_columns=existing_focus_cols,
+            )
 
     # Alias OriginalDescription to Description if Description is missing
     if (
@@ -1090,7 +1230,10 @@ def apply_schema_transformations(
 
     # 8. Populate DataSourceName (from schema['id']), only if not already set by derived_columns
     # Check if DataSourceName was already populated by derived_columns
-    if "DataSourceName" not in transformed_df.columns or transformed_df["DataSourceName"].isnull().all():
+    if (
+        "DataSourceName" not in transformed_df.columns
+        or transformed_df["DataSourceName"].isnull().all()
+    ):
         ds_name_val = schema_rules.get("id", "UnknownSchema")
         transformed_df["DataSourceName"] = ds_name_val
         log.debug(
@@ -1106,24 +1249,34 @@ def apply_schema_transformations(
     if extra_static_cols:
         for col_name, static_value in extra_static_cols.items():
             transformed_df[col_name] = static_value
-            log.debug(f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Static Column | Column: {col_name} | Value: {static_value}")
+            log.debug(
+                f"[APPLY_SCHEMA_TRANSFORM] File: {filename} | Schema: {schema_id} | Step: Static Column | Column: {col_name} | Value: {static_value}"
+            )
 
     # All transformations implemented:
     # - Complex sign_rule (e.g. based on another column's value) ✓ implemented above
     # - Specific source pre-processing ✓ handled via YAML configuration (placeholder at line 1054)
 
     # Verify apply_schema_transformations returns only canonical + extras
-    final_master_cols_missing = [col for col in MASTER_SCHEMA_COLUMNS if col not in transformed_df.columns]
+    final_master_cols_missing = [
+        col for col in MASTER_SCHEMA_COLUMNS if col not in transformed_df.columns
+    ]
     if final_master_cols_missing:
-        log.warning(f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | Missing Master Columns After Transformations: {final_master_cols_missing}")
+        log.warning(
+            f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | Missing Master Columns After Transformations: {final_master_cols_missing}"
+        )
     # else: # No need for an else if all are present, less noise
-        # log.debug(f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | All Master Columns Present After Transformations.")
+    # log.debug(f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | All Master Columns Present After Transformations.")
 
     unexpected_survivors = [
-        col for col in transformed_df.columns if col not in MASTER_SCHEMA_COLUMNS and col != "Extras"
+        col
+        for col in transformed_df.columns
+        if col not in MASTER_SCHEMA_COLUMNS and col != "Extras"
     ]
     if unexpected_survivors:
-        log.warning(f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | Unexpected columns survived mapping: {unexpected_survivors}")
+        log.warning(
+            f"[APPLY_SCHEMA_INTEGRITY] File: {filename} | Schema: {schema_id} | Unexpected columns survived mapping: {unexpected_survivors}"
+        )
 
     log.debug(
         f"[APPLY_SCHEMA_STATE] File: {filename} | Schema: {schema_id} | Stage: After Transformations | Columns: {list(transformed_df.columns)}"
@@ -1138,7 +1291,7 @@ def process_csv_files(
     debug_mode: bool = False,  # Added debug_mode parameter
     use_streaming: bool | None = None,  # Auto-detect if None
     streaming_chunk_size: int = 10000,  # Rows per chunk when streaming
-    memory_threshold_mb: float = 500.0  # Threshold for auto-detection
+    memory_threshold_mb: float = 500.0,  # Threshold for auto-detection
 ) -> pd.DataFrame:
     """
     Main public function to ingest, process, and consolidate multiple CSV files.
@@ -1179,11 +1332,11 @@ def process_csv_files(
     files_processed = 0
     files_skipped = 0
     files_failed = []
-    
+
     for csv_file_path_obj in [Path(p) for p in csv_files]:
         filename_for_logs = csv_file_path_obj.name
         log.info(f"[PROCESS_FILE_START] File: {filename_for_logs}")
-        
+
         debug_tracer_instance: PipelineDebugTracer | None = None
         if debug_mode:
             debug_tracer_instance = PipelineDebugTracer(filename_for_logs)
@@ -1193,23 +1346,27 @@ def process_csv_files(
         if should_stream is None:
             # Auto-detect based on file size
             from .csv_streaming import should_use_streaming
+
             should_stream = should_use_streaming(csv_file_path_obj, memory_threshold_mb)
-        
+
         try:
             if should_stream:
                 # Use streaming for large files
                 from .csv_streaming import process_csv_file_streaming
-                log.info(f"[PROCESS_FILE_START] File: {filename_for_logs} | Mode: Streaming (chunk_size={streaming_chunk_size})")
-                
+
+                log.info(
+                    f"[PROCESS_FILE_START] File: {filename_for_logs} | Mode: Streaming (chunk_size={streaming_chunk_size})"
+                )
+
                 def process_chunk(chunk_df):
                     # Convert all columns to string for consistency
                     return chunk_df.astype(str)
-                
+
                 raw_df = process_csv_file_streaming(
                     csv_file_path_obj,
                     process_chunk,
                     chunk_size=streaming_chunk_size,
-                    encoding='utf-8'
+                    encoding="utf-8",
                 )
             else:
                 # Standard read for smaller files
@@ -1217,16 +1374,22 @@ def process_csv_files(
                     csv_file_path_obj, dtype=str
                 )  # Read all as string initially
             if raw_df.empty:
-                log.warning(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: CSV file is empty.")
+                log.warning(
+                    f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: CSV file is empty."
+                )
                 continue
         except Exception as exc:
             # Log and track the error, but continue processing other files
-            log.error(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Failed | Reason: Failed to read CSV: {exc}")
+            log.error(
+                f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Failed | Reason: Failed to read CSV: {exc}"
+            )
             files_failed.append(filename_for_logs)
             files_skipped += 1
             continue  # Skip to next file instead of raising
-        
-        log.debug(f"[SCHEMA_MATCH_INPUT] File: {filename_for_logs} | Headers: {list(raw_df.columns)}")
+
+        log.debug(
+            f"[SCHEMA_MATCH_INPUT] File: {filename_for_logs} | Headers: {list(raw_df.columns)}"
+        )
 
         # Infer Owner (e.g., from subfolder name "Jordyn"/"Ryan")
         wanted_owners_map = {
@@ -1268,8 +1431,10 @@ def process_csv_files(
 
         if owner is None:
             owner = "UnknownOwner"
-        log.debug(f"[PROCESS_FILE_DETAIL] File: {filename_for_logs} | Detail: Inferred Owner '{owner}' from path.")
-        
+        log.debug(
+            f"[PROCESS_FILE_DETAIL] File: {filename_for_logs} | Detail: Inferred Owner '{owner}' from path."
+        )
+
         # Wrap the rest of file processing in a try-catch to handle recoverable errors
         try:
             # DataSourceDate (file modification date)
@@ -1280,7 +1445,9 @@ def process_csv_files(
                     f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Detail: Could not get file modification date: {e}. Using current time."
                 )
                 ds_date = datetime.now()
-            log.debug(f"[PROCESS_FILE_DETAIL] File: {filename_for_logs} | Detail: DataSourceDate set to {ds_date}")
+            log.debug(
+                f"[PROCESS_FILE_DETAIL] File: {filename_for_logs} | Detail: DataSourceDate set to {ds_date}"
+            )
 
             # Identify Schema
             # Use raw_df.columns.tolist() for header matching
@@ -1296,27 +1463,40 @@ def process_csv_files(
                 log.error(
                     f"[SCHEMA_RESULT] File: {filename_for_logs} | Selected schema: None | Reason: No schema could be determined by _find_schema. Skipping file."
                 )
-                log.info(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: No schema determined.")
+                log.info(
+                    f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: No schema determined."
+                )
                 continue
 
             match_result = cast(MatchResult, match_result_union)
             schema_object = match_result.schema
             rules_dict = match_result.rules
-            missing_required = match_result.missing # This is a set
-            extra_unknown = match_result.extras # This is a set
+            missing_required = match_result.missing  # This is a set
+            extra_unknown = match_result.extras  # This is a set
 
-            if debug_mode and debug_tracer_instance: # Log schema matching details
+            if debug_mode and debug_tracer_instance:  # Log schema matching details
                 debug_schema_info = {
-                'schema_id': schema_object.name if schema_object else 'None',
-                'match_score': match_result.score if hasattr(match_result, 'score') else 'N/A', # If using new schema engine
-                'missing_required_in_csv': list(missing_required) if missing_required else [],
-                'extra_csv_headers_not_in_schema': list(extra_unknown) if extra_unknown else [],
-                'original_csv_headers': list(raw_df.columns)
-            }
-            log.info(f"[SCHEMA_DEBUG] File: {filename_for_logs} | Details: {json.dumps(debug_schema_info, indent=2)}")
+                    "schema_id": schema_object.name if schema_object else "None",
+                    "match_score": match_result.score
+                    if hasattr(match_result, "score")
+                    else "N/A",  # If using new schema engine
+                    "missing_required_in_csv": list(missing_required)
+                    if missing_required
+                    else [],
+                    "extra_csv_headers_not_in_schema": list(extra_unknown)
+                    if extra_unknown
+                    else [],
+                    "original_csv_headers": list(raw_df.columns),
+                }
+            log.info(
+                f"[SCHEMA_DEBUG] File: {filename_for_logs} | Details: {json.dumps(debug_schema_info, indent=2)}"
+            )
             # Capture raw_df state just after schema identification, before transformations
-            debug_tracer_instance.capture_stage("0_SCHEMA_IDENTIFIED_PRE_TRANSFORM", raw_df,
-                                                focus_columns=list(raw_df.columns[:5])) # Sample first 5 raw columns
+            debug_tracer_instance.capture_stage(
+                "0_SCHEMA_IDENTIFIED_PRE_TRANSFORM",
+                raw_df,
+                focus_columns=list(raw_df.columns[:5]),
+            )  # Sample first 5 raw columns
 
             if schema_object.name == "generic_csv":
                 log.warning(
@@ -1328,119 +1508,229 @@ def process_csv_files(
                 )
             schema_ids_found.append(schema_object.name)
 
-            processed_df = apply_schema_transformations(raw_df, rules_dict, merchant_rules, filename_for_logs, debug_tracer_instance)
+            processed_df = apply_schema_transformations(
+                raw_df,
+                rules_dict,
+                merchant_rules,
+                filename_for_logs,
+                debug_tracer_instance,
+            )
 
             # Ensure OriginalDescription and OriginalMerchant are populated for the cleaner
             # if they are missing but their non-original counterparts (Description, Merchant) exist
             # and likely contain the raw data from source mapping.
-            if 'Description' in processed_df.columns and 'OriginalDescription' not in processed_df.columns:
-                processed_df['OriginalDescription'] = processed_df['Description']
-                log.debug(f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Copied 'Description' to 'OriginalDescription' for cleaner input.")
-            elif 'Description' in processed_df.columns and 'OriginalDescription' in processed_df.columns and processed_df['OriginalDescription'].isna().all():
+            if (
+                "Description" in processed_df.columns
+                and "OriginalDescription" not in processed_df.columns
+            ):
+                processed_df["OriginalDescription"] = processed_df["Description"]
+                log.debug(
+                    f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Copied 'Description' to 'OriginalDescription' for cleaner input."
+                )
+            elif (
+                "Description" in processed_df.columns
+                and "OriginalDescription" in processed_df.columns
+                and processed_df["OriginalDescription"].isna().all()
+            ):
                 # If OriginalDescription exists but is all NA, and Description has data, prefer Description's content as raw.
-                processed_df['OriginalDescription'] = processed_df['OriginalDescription'].fillna(processed_df['Description'])
-                log.debug(f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Filled NA 'OriginalDescription' with 'Description' content for cleaner input.")
+                processed_df["OriginalDescription"] = processed_df[
+                    "OriginalDescription"
+                ].fillna(processed_df["Description"])
+                log.debug(
+                    f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Filled NA 'OriginalDescription' with 'Description' content for cleaner input."
+                )
 
-            if 'Merchant' in processed_df.columns and 'OriginalMerchant' not in processed_df.columns:
-                processed_df['OriginalMerchant'] = processed_df['Merchant']
-                log.debug(f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Copied 'Merchant' to 'OriginalMerchant' for cleaner input.")
-            elif 'Merchant' in processed_df.columns and 'OriginalMerchant' in processed_df.columns and processed_df['OriginalMerchant'].isna().all():
-                processed_df['OriginalMerchant'] = processed_df['OriginalMerchant'].fillna(processed_df['Merchant'])
-                log.debug(f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Filled NA 'OriginalMerchant' with 'Merchant' content for cleaner input.")
+            if (
+                "Merchant" in processed_df.columns
+                and "OriginalMerchant" not in processed_df.columns
+            ):
+                processed_df["OriginalMerchant"] = processed_df["Merchant"]
+                log.debug(
+                    f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Copied 'Merchant' to 'OriginalMerchant' for cleaner input."
+                )
+            elif (
+                "Merchant" in processed_df.columns
+                and "OriginalMerchant" in processed_df.columns
+                and processed_df["OriginalMerchant"].isna().all()
+            ):
+                processed_df["OriginalMerchant"] = processed_df[
+                    "OriginalMerchant"
+                ].fillna(processed_df["Merchant"])
+                log.debug(
+                    f"[PROCESS_FILE_PRE_CLEAN] File: {filename_for_logs} | Filled NA 'OriginalMerchant' with 'Merchant' content for cleaner input."
+                )
 
             # Populate initial metadata fields
             processed_df["Owner"] = owner
-            log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate Owner | Value: {owner}")
+            log.debug(
+                f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate Owner | Value: {owner}"
+            )
             processed_df["DataSourceDate"] = ds_date
-            log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate DataSourceDate | Value: {ds_date}")
+            log.debug(
+                f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate DataSourceDate | Value: {ds_date}"
+            )
 
             # Apply Comprehensive Cleaning (replaces old merchant cleaning)
             if debug_mode and debug_tracer_instance:
-                debug_tracer_instance.capture_stage("6_BEFORE_MERCHANT_CLEANING", processed_df,
-                                                focus_columns=['Merchant', 'OriginalMerchant', 'Description', 'OriginalDescription'])
-            
+                debug_tracer_instance.capture_stage(
+                    "6_BEFORE_MERCHANT_CLEANING",
+                    processed_df,
+                    focus_columns=[
+                        "Merchant",
+                        "OriginalMerchant",
+                        "Description",
+                        "OriginalDescription",
+                    ],
+                )
+
             if "Merchant" in processed_df.columns and not processed_df.empty:
                 pre_clean_blanks = processed_df["Merchant"].isna().sum()
-                pre_clean_perc = (pre_clean_blanks / len(processed_df)) * 100 if len(processed_df) > 0 else 0
-                log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks before clean: {pre_clean_blanks} ({pre_clean_perc:.2f}%)")
+                pre_clean_perc = (
+                    (pre_clean_blanks / len(processed_df)) * 100
+                    if len(processed_df) > 0
+                    else 0
+                )
+                log.info(
+                    f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks before clean: {pre_clean_blanks} ({pre_clean_perc:.2f}%)"
+                )
             elif not processed_df.empty:
-                log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant column not present before clean.")
-            
-            log.info(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Applying Comprehensive Cleaning")
+                log.info(
+                    f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant column not present before clean."
+                )
+
+            log.info(
+                f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Applying Comprehensive Cleaning"
+            )
 
             # Initialize the cleaner with your analysis results
-            analysis_path = Path('transaction_analysis_results')  # Or 'comprehensive_analysis_results'
+            analysis_path = Path(
+                "transaction_analysis_results"
+            )  # Or 'comprehensive_analysis_results'
             processed_df = apply_comprehensive_cleaning(
-            processed_df, 
-            analysis_path=analysis_path
+                processed_df, analysis_path=analysis_path
             )
-            
-            if debug_mode and debug_tracer_instance:
-                debug_tracer_instance.capture_stage("7_AFTER_MERCHANT_CLEANING", processed_df,
-                                                focus_columns=['Merchant', 'OriginalMerchant', 'Description', 'OriginalDescription', 'Category'])
 
+            if debug_mode and debug_tracer_instance:
+                debug_tracer_instance.capture_stage(
+                    "7_AFTER_MERCHANT_CLEANING",
+                    processed_df,
+                    focus_columns=[
+                        "Merchant",
+                        "OriginalMerchant",
+                        "Description",
+                        "OriginalDescription",
+                        "Category",
+                    ],
+                )
 
             # Log the improvements
             if "OriginalMerchant" in processed_df.columns:
-                log.info(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Created OriginalMerchant column")
-            if "Description" in processed_df.columns and "OriginalDescription" in processed_df.columns:
-                desc_changed = (processed_df["Description"] != processed_df["OriginalDescription"]).sum()
-            log.info(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Cleaned {desc_changed} descriptions")
+                log.info(
+                    f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Created OriginalMerchant column"
+                )
+            if (
+                "Description" in processed_df.columns
+                and "OriginalDescription" in processed_df.columns
+            ):
+                desc_changed = (
+                    processed_df["Description"] != processed_df["OriginalDescription"]
+                ).sum()
+            log.info(
+                f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Cleaned {desc_changed} descriptions"
+            )
 
             if "Merchant" in processed_df.columns and not processed_df.empty:
                 blanks = processed_df["Merchant"].isna().sum()
-            percentage_blanks = (blanks / len(processed_df)) * 100 if len(processed_df) > 0 else 0
-            log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks after clean: {blanks} ({percentage_blanks:.2f}%)")
+            percentage_blanks = (
+                (blanks / len(processed_df)) * 100 if len(processed_df) > 0 else 0
+            )
+            log.info(
+                f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks after clean: {blanks} ({percentage_blanks:.2f}%)"
+            )
 
             # Fallback for Merchant if still largely NA after cleaning
-            if blanks > 0 and (blanks / len(processed_df)) > 0.5: # Example threshold: if more than 50% are blank
-                log.warning(f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Merchant column has {blanks} NAs after cleaning. Attempting fallback.")
+            if (
+                blanks > 0 and (blanks / len(processed_df)) > 0.5
+            ):  # Example threshold: if more than 50% are blank
+                log.warning(
+                    f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Merchant column has {blanks} NAs after cleaning. Attempting fallback."
+                )
                 merchant_na_mask = processed_df["Merchant"].isna()
                 if "Description" in processed_df.columns:
-                    processed_df.loc[merchant_na_mask, "Merchant"] = processed_df.loc[merchant_na_mask, "Description"]
-                    log.info(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Merchant Fallback: Used 'Description' for {merchant_na_mask.sum()} NA Merchants.")
+                    processed_df.loc[merchant_na_mask, "Merchant"] = processed_df.loc[
+                        merchant_na_mask, "Description"
+                    ]
+                    log.info(
+                        f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Merchant Fallback: Used 'Description' for {merchant_na_mask.sum()} NA Merchants."
+                    )
                     # Re-check NAs if Description was used
-                    merchant_na_mask = processed_df["Merchant"].isna() 
-                
-                if merchant_na_mask.any() and "OriginalDescription" in processed_df.columns:
-                     processed_df.loc[merchant_na_mask, "Merchant"] = processed_df.loc[merchant_na_mask, "OriginalDescription"]
-                     log.info(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Merchant Fallback: Used 'OriginalDescription' for {merchant_na_mask.sum()} NA Merchants.")
-                
+                    merchant_na_mask = processed_df["Merchant"].isna()
+
+                if (
+                    merchant_na_mask.any()
+                    and "OriginalDescription" in processed_df.columns
+                ):
+                    processed_df.loc[merchant_na_mask, "Merchant"] = processed_df.loc[
+                        merchant_na_mask, "OriginalDescription"
+                    ]
+                    log.info(
+                        f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Merchant Fallback: Used 'OriginalDescription' for {merchant_na_mask.sum()} NA Merchants."
+                    )
+
                 final_blanks_after_fallback = processed_df["Merchant"].isna().sum()
-                log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks after fallback: {final_blanks_after_fallback}")
+                log.info(
+                    f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks after fallback: {final_blanks_after_fallback}"
+                )
 
             elif processed_df.empty:
-                log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks after clean: N/A (empty DataFrame)")
-            else: # Merchant column not found
-                log.info(f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant column not found after clean, cannot count blanks.")
-
+                log.info(
+                    f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant blanks after clean: N/A (empty DataFrame)"
+                )
+            else:  # Merchant column not found
+                log.info(
+                    f"[PROCESS_FILE_STATS] File: {filename_for_logs} | Stat: Merchant column not found after clean, cannot count blanks."
+                )
 
             # Generate TxnID
             processed_df["TxnID"] = processed_df.apply(_generate_txn_id, axis=1)
-            log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: TxnID Generation")
+            log.debug(
+                f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: TxnID Generation"
+            )
             if processed_df["TxnID"].isnull().any():
                 log.warning(
-                f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Detail: Some TxnIDs are null (this might be due to all hashable fields being empty/NA for a row)."
-            )
-            
-            if debug_mode and debug_tracer_instance:
-                debug_tracer_instance.capture_stage("8_AFTER_TXNID_GENERATION", processed_df,
-                                                focus_columns=['TxnID', 'Date', 'Amount', 'OriginalDescription', 'Account'])
+                    f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Detail: Some TxnIDs are null (this might be due to all hashable fields being empty/NA for a row)."
+                )
 
+            if debug_mode and debug_tracer_instance:
+                debug_tracer_instance.capture_stage(
+                    "8_AFTER_TXNID_GENERATION",
+                    processed_df,
+                    focus_columns=[
+                        "TxnID",
+                        "Date",
+                        "Amount",
+                        "OriginalDescription",
+                        "Account",
+                    ],
+                )
 
             # Populate Remaining Master Schema Fields (Defaults)
-            log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate Default Master Fields (Currency, SharedFlag, etc.)")
+            log.debug(
+                f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Populate Default Master Fields (Currency, SharedFlag, etc.)"
+            )
             processed_df["Currency"] = "USD"
             if "SharedFlag" not in processed_df.columns:
-                processed_df["SharedFlag"] = '?'  # Compatibility: Initialize with '?'
+                processed_df["SharedFlag"] = "?"  # Compatibility: Initialize with '?'
             if "SplitPercent" not in processed_df.columns:
-                processed_df["SplitPercent"] = pd.NA  # Compatibility: Initialize with pd.NA
+                processed_df["SplitPercent"] = (
+                    pd.NA
+                )  # Compatibility: Initialize with pd.NA
 
             # Ensure required columns exist based on schema mode
             required_columns = get_required_columns_for_mode()
             cols_added_for_required = []
             missing_required_columns = []
-            
+
             # In flexible mode, only add core required columns
             # In strict mode, add all master columns as before
             for col in required_columns:
@@ -1448,7 +1738,7 @@ def process_csv_files(
                     missing_required_columns.append(col)
                     cols_added_for_required.append(col)
                     processed_df[col] = pd.NA
-            
+
             # In strict mode, enforce that all required columns are present
             if config.SCHEMA_MODE == "strict" and missing_required_columns:
                 # This is a validation failure in strict mode
@@ -1459,46 +1749,52 @@ def process_csv_files(
                 )
                 log.error(error_msg)
                 raise RecoverableFileError(error_msg)
-                
+
             if cols_added_for_required:
                 if config.SCHEMA_MODE == "flexible":
-                    log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Ensure Core Columns | Added missing core columns: {cols_added_for_required}")
+                    log.debug(
+                        f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Ensure Core Columns | Added missing core columns: {cols_added_for_required}"
+                    )
                 else:
-                    log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Ensure Master Columns | Added missing master columns: {cols_added_for_required}")
+                    log.debug(
+                        f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Ensure Master Columns | Added missing master columns: {cols_added_for_required}"
+                    )
             # else: # No need to log if all were present, less noise
             # log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Ensure Master Columns | All master columns already present.")
-            
-            log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Data Type Coercion for Master Schema")
+
+            log.debug(
+                f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Data Type Coercion for Master Schema"
+            )
             dtype_map = {
-            "TxnID": str,
-            "Owner": str,
-            "Date": "datetime64[ns]",
-            "PostDate": "datetime64[ns]",
-            "OriginalDescription": str,
-            "Description": str,
-            "OriginalMerchant": str,
-            "Merchant": str,
-            "Category": str,
-            "Amount": float,
-            "Tags": str,
-            "Institution": str,
-            "Account": str,
-            "AccountLast4": str,
-            "AccountType": str,
-            "SharedFlag": bool,
-            "SplitPercent": float,
-            "StatementStart": "datetime64[ns]",
-            "StatementEnd": "datetime64[ns]",
-            "StatementPeriodDesc": str,
-            "DataSourceName": str,
-            "DataSourceDate": "datetime64[ns]",
-            "ReferenceNumber": str,
-            "Note": str,
-            "IgnoredFrom": str,
-            "TaxDeductible": bool,
-            "CustomName": str,
-            "Currency": str,
-            "Extras": str,
+                "TxnID": str,
+                "Owner": str,
+                "Date": "datetime64[ns]",
+                "PostDate": "datetime64[ns]",
+                "OriginalDescription": str,
+                "Description": str,
+                "OriginalMerchant": str,
+                "Merchant": str,
+                "Category": str,
+                "Amount": float,
+                "Tags": str,
+                "Institution": str,
+                "Account": str,
+                "AccountLast4": str,
+                "AccountType": str,
+                "SharedFlag": bool,
+                "SplitPercent": float,
+                "StatementStart": "datetime64[ns]",
+                "StatementEnd": "datetime64[ns]",
+                "StatementPeriodDesc": str,
+                "DataSourceName": str,
+                "DataSourceDate": "datetime64[ns]",
+                "ReferenceNumber": str,
+                "Note": str,
+                "IgnoredFrom": str,
+                "TaxDeductible": bool,
+                "CustomName": str,
+                "Currency": str,
+                "Extras": str,
             }
             for col, dtype_str in dtype_map.items():
                 if col in processed_df.columns:
@@ -1516,15 +1812,26 @@ def process_csv_files(
                             processed_df[col] = coerce_bool(processed_df[col])
 
                         elif dtype_str == float:
-                            processed_df[col] = pd.to_numeric(processed_df[col], errors="coerce")
+                            processed_df[col] = pd.to_numeric(
+                                processed_df[col], errors="coerce"
+                            )
                             if not pd.api.types.is_float_dtype(processed_df[col]):
                                 processed_df[col] = processed_df[col].astype(float)
-                        else: # str or int
+                        else:  # str or int
                             if dtype_str == int:
-                                processed_df[col] = pd.to_numeric(processed_df[col], errors="coerce").astype("Int64")
-                            else: # str
-                                processed_df[col] = processed_df[col].astype(str, errors="ignore").fillna(pd.NA)
-                                processed_df.loc[processed_df[col].astype(str).str.lower() == "nan", col] = pd.NA
+                                processed_df[col] = pd.to_numeric(
+                                    processed_df[col], errors="coerce"
+                                ).astype("Int64")
+                            else:  # str
+                                processed_df[col] = (
+                                    processed_df[col]
+                                    .astype(str, errors="ignore")
+                                    .fillna(pd.NA)
+                                )
+                                processed_df.loc[
+                                    processed_df[col].astype(str).str.lower() == "nan",
+                                    col,
+                                ] = pd.NA
                     except Exception as e:
                         log.warning(
                             f"[PROCESS_FILE_WARN] File: {filename_for_logs} | Detail: Could not coerce column '{col}' to type '{dtype_str}': {e}. Column may have mixed types or errors."
@@ -1533,7 +1840,9 @@ def process_csv_files(
             if config.SCHEMA_MODE == "strict":
                 # Preserve original behavior in strict mode
                 # Preserve original behavior in strict mode
-                log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Reindex to Master Schema Columns (Strict Mode)")
+                log.debug(
+                    f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Reindex to Master Schema Columns (Strict Mode)"
+                )
                 processed_df = processed_df.reindex(
                     columns=MASTER_SCHEMA_COLUMNS,
                     fill_value=None,
@@ -1542,78 +1851,98 @@ def process_csv_files(
                 # In flexible mode, only reorder to ensure consistent column order
                 # but don't add columns that don't exist
                 columns_to_retain = get_columns_to_retain(processed_df)
-            
+
             # Also include any columns not in our predefined lists (like derived columns)
-            extra_columns = [col for col in processed_df.columns if col not in columns_to_retain]
-            
+            extra_columns = [
+                col for col in processed_df.columns if col not in columns_to_retain
+            ]
+
             final_column_order = existing_columns + extra_columns
             processed_df = processed_df[final_column_order]
-            
-            log.debug(f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Reorder Columns (Flexible Mode) | Retained {len(final_column_order)} columns")
+
+            log.debug(
+                f"[PROCESS_FILE_TRANSFORM] File: {filename_for_logs} | Step: Reorder Columns (Flexible Mode) | Retained {len(final_column_order)} columns"
+            )
 
             all_processed_dfs.append(processed_df)
             files_processed += 1
-            
+
             # Save the debug report for the current file if a tracer exists
             if debug_tracer_instance:
                 debug_tracer_instance.save_report()
-                
-            log.info(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Success | Rows processed: {len(processed_df)}")
-            
+
+            log.info(
+                f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Success | Rows processed: {len(processed_df)}"
+            )
+
         except RecoverableFileError as e:
             # Specific recoverable error - log and continue
-            log.warning(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: {str(e)}")
+            log.warning(
+                f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Skipped | Reason: {str(e)}"
+            )
             files_failed.append(filename_for_logs)
             files_skipped += 1
             continue
         except Exception as e:
             # Unexpected error - log but continue processing other files
-            log.error(f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Failed | Unexpected error: {str(e)}")
+            log.error(
+                f"[PROCESS_FILE_END] File: {filename_for_logs} | Status: Failed | Unexpected error: {str(e)}"
+            )
             files_failed.append(filename_for_logs)
             files_skipped += 1
             continue
 
     # Log processing statistics
-    log.info(f"[PROCESS_SUMMARY] Files processed: {files_processed}, Files skipped: {files_skipped}")
+    log.info(
+        f"[PROCESS_SUMMARY] Files processed: {files_processed}, Files skipped: {files_skipped}"
+    )
     if files_failed:
         log.warning(f"[PROCESS_SUMMARY] Failed files: {files_failed}")
-    
+
     if not all_processed_dfs:
-        log.warning("[PROCESS_SUMMARY] No CSV files were processed successfully. Returning an empty DataFrame.")
-        log.info(f"[PROCESS_SUMMARY] Schema matching counts: {Counter(schema_ids_found)}")
+        log.warning(
+            "[PROCESS_SUMMARY] No CSV files were processed successfully. Returning an empty DataFrame."
+        )
+        log.info(
+            f"[PROCESS_SUMMARY] Schema matching counts: {Counter(schema_ids_found)}"
+        )
         return pd.DataFrame(columns=MASTER_SCHEMA_COLUMNS)
 
     log.info(f"[PROCESS_SUMMARY] Schema matching counts: {Counter(schema_ids_found)}")
     final_df = pd.concat(all_processed_dfs, ignore_index=True)
-    log.info(f"[PROCESS_SUMMARY] Consolidated {len(all_processed_dfs)} CSV files into DataFrame with {len(final_df)} total rows.")
-    
+    log.info(
+        f"[PROCESS_SUMMARY] Consolidated {len(all_processed_dfs)} CSV files into DataFrame with {len(final_df)} total rows."
+    )
+
     # Validate output DataFrame
     validation_errors = []
     required_columns = get_required_columns_for_mode()
-    
+
     # Check for missing required columns
     missing_columns = [col for col in required_columns if col not in final_df.columns]
     if missing_columns:
         error_msg = f"[OUTPUT_VALIDATION_ERROR] Missing required columns in final DataFrame: {missing_columns}"
         validation_errors.append(error_msg)
         log.error(error_msg)
-    
+
     # Check for data quality issues
     if not final_df.empty:
         # Check if critical columns have all null values
-        critical_columns = ['Date', 'Amount', 'Owner']
+        critical_columns = ["Date", "Amount", "Owner"]
         for col in critical_columns:
             if col in final_df.columns and final_df[col].isna().all():
                 error_msg = f"[OUTPUT_VALIDATION_ERROR] Critical column '{col}' contains only null values"
                 validation_errors.append(error_msg)
                 log.error(error_msg)
-        
+
         # Check if DataFrame has no valid data rows
-        if final_df.dropna(how='all').empty:
-            error_msg = "[OUTPUT_VALIDATION_ERROR] Final DataFrame contains only empty rows"
+        if final_df.dropna(how="all").empty:
+            error_msg = (
+                "[OUTPUT_VALIDATION_ERROR] Final DataFrame contains only empty rows"
+            )
             validation_errors.append(error_msg)
             log.error(error_msg)
-    
+
     # In strict mode, validation errors should fail the pipeline
     if config.SCHEMA_MODE == "strict" and validation_errors:
         error_summary = f"Output validation failed with {len(validation_errors)} errors in strict mode"
@@ -1622,12 +1951,20 @@ def process_csv_files(
 
     if not final_df.empty and "Merchant" in final_df.columns:
         total_merchant_blanks = final_df["Merchant"].isna().sum()
-        total_percentage_blanks = (total_merchant_blanks / len(final_df)) * 100 if len(final_df) > 0 else 0
-        log.info(f"[PROCESS_SUMMARY_STATS] Total merchant blanks in final_df: {total_merchant_blanks} ({total_percentage_blanks:.2f}%)")
+        total_percentage_blanks = (
+            (total_merchant_blanks / len(final_df)) * 100 if len(final_df) > 0 else 0
+        )
+        log.info(
+            f"[PROCESS_SUMMARY_STATS] Total merchant blanks in final_df: {total_merchant_blanks} ({total_percentage_blanks:.2f}%)"
+        )
     elif final_df.empty:
-        log.info("[PROCESS_SUMMARY_STATS] Total merchant blanks in final_df: N/A (final DataFrame is empty)")
-    else: # Merchant column not found
-        log.info("[PROCESS_SUMMARY_STATS] Merchant column not found in final_df, cannot count total blanks.")
+        log.info(
+            "[PROCESS_SUMMARY_STATS] Total merchant blanks in final_df: N/A (final DataFrame is empty)"
+        )
+    else:  # Merchant column not found
+        log.info(
+            "[PROCESS_SUMMARY_STATS] Merchant column not found in final_df, cannot count total blanks."
+        )
 
     log.debug("[PROCESS_SUMMARY] Sorting final DataFrame.")
     final_df = final_df.sort_values(
@@ -1638,41 +1975,71 @@ def process_csv_files(
 
     # Capture final_df state before sharing_status derivation (tied to last file's tracer)
     if debug_mode and debug_tracer_instance and not final_df.empty:
-        debug_tracer_instance.capture_stage("FINAL_DF_PRE_SHARING_STATUS", final_df,
-                                            focus_columns=['Date', 'Amount', 'Merchant', 'SharedFlag', 'SplitPercent', 'Owner'])
+        debug_tracer_instance.capture_stage(
+            "FINAL_DF_PRE_SHARING_STATUS",
+            final_df,
+            focus_columns=[
+                "Date",
+                "Amount",
+                "Merchant",
+                "SharedFlag",
+                "SplitPercent",
+                "Owner",
+            ],
+        )
 
     # Derive 'sharing_status' column
     log.info(f"[PROCESS_SUMMARY] Creating sharing_status for {len(final_df)} rows")
-    
-    if debug_mode: # Check debug_mode, not debug_tracer_instance as it's per-file
+
+    if debug_mode:  # Check debug_mode, not debug_tracer_instance as it's per-file
         # These logs are for the final_df, so they run once after concat
-        if 'SharedFlag' in final_df.columns:
-            log.info(f"[SHARING_DEBUG] Final DF SharedFlag dtype: {final_df['SharedFlag'].dtype}")
-            log.info(f"[SHARING_DEBUG] Final DF SharedFlag unique values: {final_df['SharedFlag'].unique() if not final_df['SharedFlag'].empty else 'Column is empty'}")
+        if "SharedFlag" in final_df.columns:
+            log.info(
+                f"[SHARING_DEBUG] Final DF SharedFlag dtype: {final_df['SharedFlag'].dtype}"
+            )
+            log.info(
+                f"[SHARING_DEBUG] Final DF SharedFlag unique values: {final_df['SharedFlag'].unique() if not final_df['SharedFlag'].empty else 'Column is empty'}"
+            )
         else:
             log.info("[SHARING_DEBUG] Final DF SharedFlag column missing.")
-        if 'SplitPercent' in final_df.columns:
-            log.info(f"[SHARING_DEBUG] Final DF SplitPercent dtype: {final_df['SplitPercent'].dtype}")
-            log.info(f"[SHARING_DEBUG] Final DF SplitPercent unique values (sample): {final_df['SplitPercent'].dropna().unique()[:5] if final_df['SplitPercent'].notna().any() else 'All NA or empty'}")
+        if "SplitPercent" in final_df.columns:
+            log.info(
+                f"[SHARING_DEBUG] Final DF SplitPercent dtype: {final_df['SplitPercent'].dtype}"
+            )
+            log.info(
+                f"[SHARING_DEBUG] Final DF SplitPercent unique values (sample): {final_df['SplitPercent'].dropna().unique()[:5] if final_df['SplitPercent'].notna().any() else 'All NA or empty'}"
+            )
         else:
             log.info("[SHARING_DEBUG] Final DF SplitPercent column missing.")
 
     # Ensure SharedFlag and SplitPercent columns exist, creating them as NA-filled if not.
-    if 'SharedFlag' not in final_df.columns:
-        final_df['SharedFlag'] = pd.Series(pd.NA, index=final_df.index, dtype=pd.BooleanDtype())
-        log.warning("[PROCESS_SUMMARY_WARN] 'SharedFlag' column was missing. Added as all NA for 'sharing_status' derivation.")
+    if "SharedFlag" not in final_df.columns:
+        final_df["SharedFlag"] = pd.Series(
+            pd.NA, index=final_df.index, dtype=pd.BooleanDtype()
+        )
+        log.warning(
+            "[PROCESS_SUMMARY_WARN] 'SharedFlag' column was missing. Added as all NA for 'sharing_status' derivation."
+        )
     else:
         # Ensure it's BooleanDtype if it exists
-        if not isinstance(final_df['SharedFlag'].dtype, pd.BooleanDtype):
-            log.info(f"[PROCESS_SUMMARY_DETAIL] Coercing 'SharedFlag' (dtype: {final_df['SharedFlag'].dtype}) to BooleanDtype for sharing_status derivation.")
-            final_df['SharedFlag'] = coerce_bool(final_df['SharedFlag'])
+        if not isinstance(final_df["SharedFlag"].dtype, pd.BooleanDtype):
+            log.info(
+                f"[PROCESS_SUMMARY_DETAIL] Coercing 'SharedFlag' (dtype: {final_df['SharedFlag'].dtype}) to BooleanDtype for sharing_status derivation."
+            )
+            final_df["SharedFlag"] = coerce_bool(final_df["SharedFlag"])
 
-    if 'SplitPercent' not in final_df.columns:
-        final_df['SplitPercent'] = pd.Series(pd.NA, index=final_df.index, dtype=pd.Float64Dtype()) # Use nullable float type
-        log.warning("[PROCESS_SUMMARY_WARN] 'SplitPercent' column was missing. Added as all NA for 'sharing_status' derivation.")
+    if "SplitPercent" not in final_df.columns:
+        final_df["SplitPercent"] = pd.Series(
+            pd.NA, index=final_df.index, dtype=pd.Float64Dtype()
+        )  # Use nullable float type
+        log.warning(
+            "[PROCESS_SUMMARY_WARN] 'SplitPercent' column was missing. Added as all NA for 'sharing_status' derivation."
+        )
     else:
         # Ensure SplitPercent is numeric
-        final_df['SplitPercent'] = pd.to_numeric(final_df['SplitPercent'], errors='coerce')
+        final_df["SplitPercent"] = pd.to_numeric(
+            final_df["SplitPercent"], errors="coerce"
+        )
 
     # These logs were moved up to be conditional on debug_mode for the final_df
     # log.debug(f"[PROCESS_SUMMARY_DETAIL] SharedFlag distribution before sharing_status: {final_df['SharedFlag'].value_counts(dropna=False).to_dict()}")
@@ -1680,114 +2047,162 @@ def process_csv_files(
 
     # Define conditions for np.select, handling pd.NA from BooleanDtype comparisons
     # .fillna(False) ensures that NA in SharedFlag doesn't satisfy the condition
-    
+
     # Condition for 'split': SharedFlag is True AND SplitPercent is between 0 and 100 (exclusive)
     cond_split = (
-        final_df['SharedFlag'].eq(True).fillna(False) &
-        final_df['SplitPercent'].notna() &
-        (final_df['SplitPercent'] > 0) &
-        (final_df['SplitPercent'] < 100)
+        final_df["SharedFlag"].eq(True).fillna(False)
+        & final_df["SplitPercent"].notna()
+        & (final_df["SplitPercent"] > 0)
+        & (final_df["SplitPercent"] < 100)
     )
-    
+
     # Condition for 'shared': SharedFlag is True (and it's not a 'split' case)
     # This will be evaluated after cond_split.
-    cond_shared = final_df['SharedFlag'].eq(True).fillna(False)
-    
-    # Condition for 'individual': SharedFlag is False
-    cond_individual = final_df['SharedFlag'].eq(False).fillna(False)
+    cond_shared = final_df["SharedFlag"].eq(True).fillna(False)
 
-    conditions = [
-        cond_split,
-        cond_shared,
-        cond_individual
-    ]
-    choices = ['split', 'shared', 'individual']
-    
+    # Condition for 'individual': SharedFlag is False
+    cond_individual = final_df["SharedFlag"].eq(False).fillna(False)
+
+    conditions = [cond_split, cond_shared, cond_individual]
+    choices = ["split", "shared", "individual"]
+
     # Fixed: Convert pd.NA to None for np.select compatibility
-    final_df['sharing_status'] = pd.Series(
-        np.select(conditions, choices, default='pending'),  # Changed default to string 'pending'
+    final_df["sharing_status"] = pd.Series(
+        np.select(
+            conditions, choices, default="pending"
+        ),  # Changed default to string 'pending'
         dtype=pd.StringDtype(),  # Ensures nullable string type
-        index=final_df.index
+        index=final_df.index,
     )
-    
-    status_counts = final_df['sharing_status'].value_counts(dropna=False)
-    log.debug(f"[PROCESS_SUMMARY_STATS] 'sharing_status' counts: {status_counts.to_dict()}")
+
+    status_counts = final_df["sharing_status"].value_counts(dropna=False)
+    log.debug(
+        f"[PROCESS_SUMMARY_STATS] 'sharing_status' counts: {status_counts.to_dict()}"
+    )
 
     # Capture final_df state after sharing_status derivation (tied to last file's tracer)
-    if debug_mode and debug_tracer_instance and 'sharing_status' in final_df.columns and not final_df.empty:
-        debug_tracer_instance.capture_stage("FINAL_DF_POST_SHARING_STATUS", final_df,
-                                            focus_columns=['Date', 'Amount', 'Merchant', 'sharing_status', 'SharedFlag', 'SplitPercent', 'Owner'])
-    
+    if (
+        debug_mode
+        and debug_tracer_instance
+        and "sharing_status" in final_df.columns
+        and not final_df.empty
+    ):
+        debug_tracer_instance.capture_stage(
+            "FINAL_DF_POST_SHARING_STATUS",
+            final_df,
+            focus_columns=[
+                "Date",
+                "Amount",
+                "Merchant",
+                "sharing_status",
+                "SharedFlag",
+                "SplitPercent",
+                "Owner",
+            ],
+        )
+
     # Capture comprehensive debug information for the final consolidated DataFrame
     if debug_mode:
-        log.info("[DEBUG_FINAL_DF] Capturing final consolidated DataFrame debug information")
-        
+        log.info(
+            "[DEBUG_FINAL_DF] Capturing final consolidated DataFrame debug information"
+        )
+
         # Log DataFrame shape and memory usage
         log.debug(f"[DEBUG_FINAL_DF] Shape: {final_df.shape}")
-        log.debug(f"[DEBUG_FINAL_DF] Memory usage: {final_df.memory_usage(deep=True).sum() / 1024 / 1024:.2f} MB")
-        
+        log.debug(
+            f"[DEBUG_FINAL_DF] Memory usage: {final_df.memory_usage(deep=True).sum() / 1024 / 1024:.2f} MB"
+        )
+
         # Log column data types
         log.debug(f"[DEBUG_FINAL_DF] Column data types: {final_df.dtypes.to_dict()}")
-        
+
         # Log missing value statistics
         missing_stats = final_df.isnull().sum()
         missing_pct = (missing_stats / len(final_df) * 100).round(2)
-        log.debug(f"[DEBUG_FINAL_DF] Missing values by column: {missing_stats[missing_stats > 0].to_dict()}")
-        log.debug(f"[DEBUG_FINAL_DF] Missing percentages: {missing_pct[missing_pct > 0].to_dict()}")
-        
+        log.debug(
+            f"[DEBUG_FINAL_DF] Missing values by column: {missing_stats[missing_stats > 0].to_dict()}"
+        )
+        log.debug(
+            f"[DEBUG_FINAL_DF] Missing percentages: {missing_pct[missing_pct > 0].to_dict()}"
+        )
+
         # Log sample of data for key columns
-        key_columns = ['Date', 'Owner', 'Amount', 'Merchant', 'Category', 'SharedFlag', 'sharing_status']
+        key_columns = [
+            "Date",
+            "Owner",
+            "Amount",
+            "Merchant",
+            "Category",
+            "SharedFlag",
+            "sharing_status",
+        ]
         available_key_cols = [col for col in key_columns if col in final_df.columns]
         if not final_df.empty and available_key_cols:
             sample_df = final_df[available_key_cols].head(10)
-            log.debug(f"[DEBUG_FINAL_DF] Sample data (first 10 rows):\n{sample_df.to_string()}")
-        
+            log.debug(
+                f"[DEBUG_FINAL_DF] Sample data (first 10 rows):\n{sample_df.to_string()}"
+            )
+
         # Log value distributions for categorical columns
-        categorical_cols = ['Owner', 'Category', 'sharing_status', 'AccountType']
+        categorical_cols = ["Owner", "Category", "sharing_status", "AccountType"]
         for col in categorical_cols:
             if col in final_df.columns and not final_df[col].isna().all():
                 value_counts = final_df[col].value_counts().head(10)
-                log.debug(f"[DEBUG_FINAL_DF] Top 10 values for '{col}':\n{value_counts.to_dict()}")
-        
+                log.debug(
+                    f"[DEBUG_FINAL_DF] Top 10 values for '{col}':\n{value_counts.to_dict()}"
+                )
+
         # Log date range if Date column exists
-        if 'Date' in final_df.columns and not final_df['Date'].isna().all():
-            date_min = final_df['Date'].min()
-            date_max = final_df['Date'].max()
+        if "Date" in final_df.columns and not final_df["Date"].isna().all():
+            date_min = final_df["Date"].min()
+            date_max = final_df["Date"].max()
             log.debug(f"[DEBUG_FINAL_DF] Date range: {date_min} to {date_max}")
-        
+
         # Log amount statistics if Amount column exists
-        if 'Amount' in final_df.columns and not final_df['Amount'].isna().all():
-            amount_stats = final_df['Amount'].describe()
+        if "Amount" in final_df.columns and not final_df["Amount"].isna().all():
+            amount_stats = final_df["Amount"].describe()
             log.debug(f"[DEBUG_FINAL_DF] Amount statistics:\n{amount_stats.to_dict()}")
 
     # Ensure all columns have explicit, non-null data types for Power BI compatibility
     # This prevents PyArrow from writing columns as null type when all values are NA
     # and makes the data compatible with Power BI's stricter requirements.
-    log.info("[PROCESS_SUMMARY] Applying defensive data type management for Power BI compatibility.")
+    log.info(
+        "[PROCESS_SUMMARY] Applying defensive data type management for Power BI compatibility."
+    )
     for col in MASTER_SCHEMA_COLUMNS:
-        if col in final_df.columns: # Check if column exists in final_df
+        if col in final_df.columns:  # Check if column exists in final_df
             is_boolean_col = pd.api.types.is_bool_dtype(final_df[col])
 
             if final_df[col].isna().all():
-                if not is_boolean_col: # If it's all NA AND NOT boolean, then set to empty string
-                    final_df[col] = ''
+                if (
+                    not is_boolean_col
+                ):  # If it's all NA AND NOT boolean, then set to empty string
+                    final_df[col] = ""
                     log.debug(f"Set all-NA non-boolean column '{col}' to empty strings")
                 # else: If it IS boolean and all NA, do nothing. It remains BooleanDtype with pd.NA values,
                 # which is correctly handled by PyArrow and Power BI.
-            elif not is_numeric_dtype(final_df[col]) and not is_boolean_col: # If not numeric AND NOT boolean
+            elif (
+                not is_numeric_dtype(final_df[col]) and not is_boolean_col
+            ):  # If not numeric AND NOT boolean
                 # Cast to string to ensure clear typing for other non-numeric/non-boolean columns.
                 final_df[col] = final_df[col].astype(str)
-                log.debug(f"Cast non-numeric, non-boolean column '{col}' to string type")
+                log.debug(
+                    f"Cast non-numeric, non-boolean column '{col}' to string type"
+                )
         else:
-            log.warning(f"[PROCESS_SUMMARY_WARN] Column '{col}' from MASTER_SCHEMA_COLUMNS not found in final_df during defensive typing. Skipping.")
+            log.warning(
+                f"[PROCESS_SUMMARY_WARN] Column '{col}' from MASTER_SCHEMA_COLUMNS not found in final_df during defensive typing. Skipping."
+            )
 
-# MODIFICATION 3: Final DataFrame Processing (around line 1245)
-# Replace the defensive typing section with schema-aware logic:
+    # MODIFICATION 3: Final DataFrame Processing (around line 1245)
+    # Replace the defensive typing section with schema-aware logic:
 
     # At the end of process_csv_files(), before returning final_df:
-    
-    log.info("[PROCESS_SUMMARY] Applying defensive data type management for Power BI compatibility.")
-    
+
+    log.info(
+        "[PROCESS_SUMMARY] Applying defensive data type management for Power BI compatibility."
+    )
+
     if config.SCHEMA_MODE == "strict":
         # Original behavior - process all MASTER_SCHEMA_COLUMNS
         for col in MASTER_SCHEMA_COLUMNS:
@@ -1796,41 +2211,58 @@ def process_csv_files(
 
                 if final_df[col].isna().all():
                     if not is_boolean_col:
-                        final_df[col] = ''
-                        log.debug(f"Set all-NA non-boolean column '{col}' to empty strings")
+                        final_df[col] = ""
+                        log.debug(
+                            f"Set all-NA non-boolean column '{col}' to empty strings"
+                        )
                 elif not is_numeric_dtype(final_df[col]) and not is_boolean_col:
                     final_df[col] = final_df[col].astype(str)
-                    log.debug(f"Cast non-numeric, non-boolean column '{col}' to string type")
+                    log.debug(
+                        f"Cast non-numeric, non-boolean column '{col}' to string type"
+                    )
     else:
         # Flexible mode - remove entirely empty columns before type management
-        log.info("[PROCESS_SUMMARY] Flexible mode: Removing empty columns before final output")
-        
+        log.info(
+            "[PROCESS_SUMMARY] Flexible mode: Removing empty columns before final output"
+        )
+
         # First, ensure data types for columns we're keeping
         for col in final_df.columns:
             if col in config.CORE_REQUIRED_COLUMNS or not final_df[col].isna().all():
                 is_boolean_col = pd.api.types.is_bool_dtype(final_df[col])
-                
+
                 if final_df[col].isna().all() and not is_boolean_col:
-                    final_df[col] = ''
+                    final_df[col] = ""
                 elif not is_numeric_dtype(final_df[col]) and not is_boolean_col:
                     final_df[col] = final_df[col].astype(str)
-        
+
         # Then remove empty columns (except core required ones)
-        final_df = remove_empty_columns(final_df, preserve_columns=config.CORE_REQUIRED_COLUMNS)
-        
-        log.info(f"[PROCESS_SUMMARY] Final DataFrame in flexible mode has {len(final_df.columns)} columns: {list(final_df.columns)}")
+        final_df = remove_empty_columns(
+            final_df, preserve_columns=config.CORE_REQUIRED_COLUMNS
+        )
+
+        log.info(
+            f"[PROCESS_SUMMARY] Final DataFrame in flexible mode has {len(final_df.columns)} columns: {list(final_df.columns)}"
+        )
 
     # If debug_mode was on for any file, the debug_tracer_instance for the *last* file processed
     # will call save_report(). This is okay for now, as each report is per-file.
     # A summary report for final_df could be added if needed.
-    if debug_mode: # General check if debug mode was active for the run
-        log.info("[PROCESS_SUMMARY] Debug mode was active. Individual file reports may have been saved to 'debug_reports/'.")
+    if debug_mode:  # General check if debug mode was active for the run
+        log.info(
+            "[PROCESS_SUMMARY] Debug mode was active. Individual file reports may have been saved to 'debug_reports/'."
+        )
         # Example: Capture final_df state if debug_mode is on (simplified)
         if not final_df.empty:
-            log.debug(f"[DEBUG_FINAL_DF_SUMMARY] Final DF rows: {len(final_df)}, cols: {len(final_df.columns)}")
-            log.debug(f"[DEBUG_FINAL_DF_SUMMARY] Final DF Columns: {list(final_df.columns)}")
-            log.debug(f"[DEBUG_FINAL_DF_SUMMARY] Final DF Head:\n{final_df.head().to_string()}")
-
+            log.debug(
+                f"[DEBUG_FINAL_DF_SUMMARY] Final DF rows: {len(final_df)}, cols: {len(final_df.columns)}"
+            )
+            log.debug(
+                f"[DEBUG_FINAL_DF_SUMMARY] Final DF Columns: {list(final_df.columns)}"
+            )
+            log.debug(
+                f"[DEBUG_FINAL_DF_SUMMARY] Final DF Head:\n{final_df.head().to_string()}"
+            )
 
     return final_df
 

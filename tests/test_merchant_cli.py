@@ -91,8 +91,14 @@ def test_add_merchant_rule_invalid_regex(temp_rules_file: Path, capsys, caplog):
 
     assert excinfo.value.code == 1  # Check for sys.exit(1)
     captured = capsys.readouterr()
-    assert f"error: invalid regex pattern: '{invalid_pattern}'".lower() in captured.err.lower()
-    assert f"error: invalid regex pattern: {invalid_pattern}".lower() in caplog.text.lower()
+    assert (
+        f"error: invalid regex pattern: '{invalid_pattern}'".lower()
+        in captured.err.lower()
+    )
+    assert (
+        f"error: invalid regex pattern: {invalid_pattern}".lower()
+        in caplog.text.lower()
+    )
     assert not temp_rules_file.exists()  # File should not be created or modified
 
 

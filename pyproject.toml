@@ -286,6 +286,12 @@ mkdocstrings-python = "^1.9"
 # Usage: python -m cProfile -o profile.prof script.py && snakeviz profile.prof
 snakeviz = "^2.2.2"
 
+# ----------------------------------------------------------------------------
+# PLOTTING AND SCIENTIFIC COMPUTING (for tests)
+# ----------------------------------------------------------------------------
+matplotlib = "^3.8.0"
+scipy = "^1.12.0"
+
 # ============================================================================ #
 #                              COMMAND LINE SCRIPTS                            #
 # ============================================================================ #
@@ -342,7 +348,7 @@ build-backend = "poetry.core.masonry.api"
 # ----------------------------------------------------------------------------
 [tool.ruff]
 # Exclude legacy code from linting to focus on maintained code
-exclude = ["legacy_scripts/*"]
+exclude = ["legacy_scripts/*", "archive/*"]
 
 # Maximum line length (88 is Black's default)
 line-length = 88
@@ -350,6 +356,7 @@ line-length = 88
 # Minimum Python version to target for compatibility checks
 target-version = "py311"
 
+[tool.ruff.lint]
 # Enable additional rule sets for comprehensive linting
 # E: pycodestyle errors, F: pyflakes, I: isort, N: naming conventions
 # UP: pyupgrade, S: bandit (security), B: bugbear, A: builtins
@@ -402,6 +409,7 @@ extend-exclude = '''
 [tool.mypy]
 # Python version for type checking
 python_version = "3.11"
+mypy_path = "src"
 
 # Strict mode options for maximum type safety
 warn_return_any = true

@@ -140,9 +140,9 @@ def test_process_single_csv_file(csv_filename: str, params: dict):
 def test_normalize_csv_header_aliases():
     """Common header aliases should map to canonical names."""
     cases = {
-        'Txn Date': 'date',
-        'Account Name': 'account',
-        'running balance': 'balance',
+        "Txn Date": "date",
+        "Account Name": "account",
+        "running balance": "balance",
     }
 
     for raw, expected in cases.items():
@@ -153,11 +153,12 @@ def test_process_csv_with_invalid_schema():
     """Test handling of CSV that doesn't match any schema."""
     # Create a temporary CSV with unrecognized structure
     import tempfile
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as tf:
-        tf.write('UnknownColumn1,UnknownColumn2,UnknownColumn3\n')
-        tf.write('value1,value2,value3\n')
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tf:
+        tf.write("UnknownColumn1,UnknownColumn2,UnknownColumn3\n")
+        tf.write("value1,value2,value3\n")
         temp_path = Path(tf.name)
-    
+
     try:
         # This should not raise an error, but should handle gracefully
         df = process_csv_files([temp_path])
@@ -170,26 +171,26 @@ def test_process_csv_with_invalid_schema():
 def test_date_parsing_with_various_formats():
     """Test date parsing with different date formats."""
     import tempfile
-    
+
     # Create test CSV with various date formats
-    test_data = '''Date,Amount,Description,Account
+    test_data = """Date,Amount,Description,Account
 2024-01-15,100.00,"Test Transaction 1","Checking"
 01/16/2024,200.00,"Test Transaction 2","Savings"
 2024-01-17,300.00,"Test Transaction 3","Credit Card"
-'''
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as tf:
+"""
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tf:
         tf.write(test_data)
         temp_path = Path(tf.name)
-    
+
     try:
         df = process_csv_files([temp_path])
-        
+
         # Check that dates were parsed correctly
-        if 'Date' in df.columns:
-            assert pd.api.types.is_datetime64_any_dtype(df['Date'])
+        if "Date" in df.columns:
+            assert pd.api.types.is_datetime64_any_dtype(df["Date"])
             # All dates should be parsed successfully
-            assert df['Date'].notna().all()
+            assert df["Date"].notna().all()
     finally:
         temp_path.unlink()
 
@@ -197,25 +198,25 @@ def test_date_parsing_with_various_formats():
 def test_amount_transformation_with_signs():
     """Test amount transformation with positive and negative values."""
     import tempfile
-    
-    test_data = '''Date,Amount,Description,Account,Type
+
+    test_data = """Date,Amount,Description,Account,Type
 2024-01-15,-100.00,"Debit Transaction","Checking","debit"
 2024-01-16,200.00,"Credit Transaction","Checking","credit"
 2024-01-17,(50.00),"Parentheses negative","Checking","debit"
-'''
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as tf:
+"""
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tf:
         tf.write(test_data)
         temp_path = Path(tf.name)
-    
+
     try:
         df = process_csv_files([temp_path])
-        
-        if 'Amount' in df.columns:
+
+        if "Amount" in df.columns:
             # Check that amounts are numeric
-            assert pd.api.types.is_numeric_dtype(df['Amount'])
+            assert pd.api.types.is_numeric_dtype(df["Amount"])
             # Check specific values if processed correctly
-            amounts = df['Amount'].tolist()
+            amounts = df["Amount"].tolist()
             # The actual sign handling depends on the implementation
             assert len(amounts) == 3
     finally:
@@ -225,23 +226,23 @@ def test_amount_transformation_with_signs():
 def test_duplicate_transaction_detection():
     """Test that potential duplicate transactions are flagged."""
     import tempfile
-    
+
     # Create test data with potential duplicates
-    test_data = '''Date,Amount,Description,Account
+    test_data = """Date,Amount,Description,Account
 2024-01-15,100.00,"Same Transaction","Checking"
 2024-01-15,100.00,"Same Transaction","Checking"
 2024-01-16,100.00,"Different Day Same Amount","Checking"
-'''
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as tf:
+"""
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tf:
         tf.write(test_data)
         temp_path = Path(tf.name)
-    
+
     try:
         df = process_csv_files([temp_path])
-        
+
         # Check that TxnIDs are unique
-        if 'TxnID' in df.columns:
-            assert df['TxnID'].nunique() == len(df)
+        if "TxnID" in df.columns:
+            assert df["TxnID"].nunique() == len(df)
     finally:
         temp_path.unlink()

@@ -25,6 +25,7 @@ except ModuleNotFoundError:  # pragma: no cover
     # so the rest of this module remains importable without adding heavy deps.
     class BaseSettings:  # type: ignore
         """Very small subset replacement for Pydantic ``BaseSettings``."""
+
         # populated after subclass creation
         model_fields: dict[str, object] = {}
 
@@ -40,8 +41,10 @@ except ModuleNotFoundError:  # pragma: no cover
 
     class SettingsConfigDict(dict):  # minimal stub to appease type checkers
         """Stand-in for pydantic-settings’ SettingsConfigDict."""
+
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
+
 
 # Default YAML location: <repo_root>/config/balance_analyzer.yaml
 _DEFAULT_YAML: Path = Path(__file__).parents[2] / "config" / "balance_analyzer.yaml"

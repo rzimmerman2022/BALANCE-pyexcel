@@ -17,9 +17,9 @@ LOADER_REGISTRY = [
 ]
 
 __all__ = [
-    'load_expense_history',
-    'load_transaction_ledger', 
-    'load_rent_alloc',
-    'load_rent_history',
-    'LOADER_REGISTRY',
+    "load_expense_history",
+    "load_transaction_ledger",
+    "load_rent_alloc",
+    "load_rent_history",
+    "LOADER_REGISTRY",
 ]

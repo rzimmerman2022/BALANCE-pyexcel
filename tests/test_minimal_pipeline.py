@@ -1,6 +1,5 @@
-import os
-from pathlib import Path
 from src.minimal_pipeline import minimal_pipeline
+
 
 def test_file_reading_and_transformation(tmp_path):
     # Create a known input file
@@ -18,6 +17,7 @@ def test_file_reading_and_transformation(tmp_path):
     trace_file = tmp_path / "output.trace.json"
     assert trace_file.exists(), "Execution trace not created"
     import json
+
     trace = json.loads(trace_file.read_text(encoding="utf-8"))
     assert trace["input_size"] == len(input_content)
     assert trace["output_size"] == len(output_content)

@@ -1,6 +1,6 @@
 # This file makes src/balance_pipeline a Python package.
 
-# You can optionally import key classes/functions here to make them 
+# You can optionally import key classes/functions here to make them
 # available at the package level, e.g.:
 # from .config import AnalysisConfig
 # from .loaders import DataLoaderV23

@@ -39,7 +39,6 @@ from . import config  # Import config module to access constants
 # ==============================================================================
 # 1. CONFIGURATION & GLOBAL SETUP
 # ==============================================================================
-
 # --- Configure Logging ---
 # Use centralized logging configuration
 from .logging_config import get_logger
@@ -71,6 +70,7 @@ STANDARD_COLS = [
 # It's loaded lazily on first use to avoid I/O at import time.
 _SCHEMA_REGISTRY_PATH = config.SCHEMA_REGISTRY_PATH  # Use path from config
 _SCHEMAS: list[dict[str, Any]] | None = None  # Will be loaded on first use
+
 
 def _ensure_schemas_loaded() -> list[dict[str, Any]]:
     """Load schemas on first use."""

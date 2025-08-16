@@ -3,6 +3,7 @@
 Verifies that the placeholder implementation is a no-op that returns an
 identical DataFrame (values and index preserved).
 """
+
 from __future__ import annotations
 
 import pandas as pd
