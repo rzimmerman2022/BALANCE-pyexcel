@@ -9,6 +9,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+
 # --- Data Loader V2.3 (as in analyzer.py) ---
 class DataLoaderV23:
     """Handles loading and cleaning of all four CSV file types for v2.4"""

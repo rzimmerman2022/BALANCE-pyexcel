@@ -56,7 +56,7 @@ def reset_normalize_module_state(monkeypatch):
     normalize.reset_merchant_lookup_cache(new_path=original_path)
 
 
-def test_clean_merchant_with_csv_rule(tmp_path): # Removed monkeypatch
+def test_clean_merchant_with_csv_rule(tmp_path):  # Removed monkeypatch
     """Test that clean_merchant uses a rule from the CSV."""
     lookup_file = tmp_path / "merchant_lookup.csv"
     rules = [
@@ -66,37 +66,43 @@ def test_clean_merchant_with_csv_rule(tmp_path): # Removed monkeypatch
     ]
     create_lookup_csv(lookup_file, rules)
 
-    normalize.reset_merchant_lookup_cache(new_path=lookup_file) # Use new reset function
+    normalize.reset_merchant_lookup_cache(
+        new_path=lookup_file
+    )  # Use new reset function
 
     assert normalize.clean_merchant("TRANSACTION AT SUPER MART 123") == "SuperMart"
     assert normalize.clean_merchant("My Favorite COFFEE SHOP") == "Generic Coffee Place"
 
 
-def test_clean_merchant_fallback_behavior(tmp_path): # Removed monkeypatch
+def test_clean_merchant_fallback_behavior(tmp_path):  # Removed monkeypatch
     """Test clean_merchant falls back to default cleaning if no rule matches."""
     lookup_file = tmp_path / "merchant_lookup.csv"
     rules = [["pattern", "canonical"], ["KNOWN PLACE", "Known Place Canonical"]]
     create_lookup_csv(lookup_file, rules)
-    normalize.reset_merchant_lookup_cache(new_path=lookup_file) # Use new reset function
+    normalize.reset_merchant_lookup_cache(
+        new_path=lookup_file
+    )  # Use new reset function
 
     description = "An Unknown Place Ltd."
     expected_fallback = _clean_desc_single(description).title()
     assert normalize.clean_merchant(description) == expected_fallback
 
 
-def test_clean_merchant_empty_lookup_file(tmp_path): # Removed monkeypatch
+def test_clean_merchant_empty_lookup_file(tmp_path):  # Removed monkeypatch
     """Test fallback with an empty (but valid header) lookup file."""
     lookup_file = tmp_path / "merchant_lookup.csv"
     rules = [["pattern", "canonical"]]  # Only header
     create_lookup_csv(lookup_file, rules)
-    normalize.reset_merchant_lookup_cache(new_path=lookup_file) # Use new reset function
+    normalize.reset_merchant_lookup_cache(
+        new_path=lookup_file
+    )  # Use new reset function
 
     description = "Another Unknown Place"
     expected_fallback = _clean_desc_single(description).title()
     assert normalize.clean_merchant(description) == expected_fallback
 
 
-def test_load_merchant_lookup_invalid_regex_raises_valueerror( # Removed monkeypatch
+def test_load_merchant_lookup_invalid_regex_raises_valueerror(  # Removed monkeypatch
     tmp_path, caplog
 ):
     """Test that an invalid regex in the CSV raises ValueError during module load."""
@@ -115,7 +121,9 @@ def test_load_merchant_lookup_invalid_regex_raises_valueerror( # Removed monkeyp
 
     with caplog.at_level(logging.ERROR, logger="balance_pipeline.normalize"):
         with pytest.raises(ValueError) as excinfo:
-            normalize.reset_merchant_lookup_cache(new_path=lookup_file) # This should trigger the load and the error
+            normalize.reset_merchant_lookup_cache(
+                new_path=lookup_file
+            )  # This should trigger the load and the error
 
     assert "Invalid regex pattern" in str(excinfo.value)
     assert "[INVALID REGEX" in str(excinfo.value)
@@ -123,11 +131,13 @@ def test_load_merchant_lookup_invalid_regex_raises_valueerror( # Removed monkeyp
         excinfo.value
     )  # 1-based index, row 1 is header, row 2 is valid, row 3 is bad
     # Check logs
-    assert "invalid regex pattern found" in caplog.text.lower() # This log is from normalize.py
-    assert "[invalid regex" in caplog.text.lower() # This log is from normalize.py
+    assert (
+        "invalid regex pattern found" in caplog.text.lower()
+    )  # This log is from normalize.py
+    assert "[invalid regex" in caplog.text.lower()  # This log is from normalize.py
 
 
-def test_load_merchant_lookup_file_not_found_uses_fallback( # Removed monkeypatch
+def test_load_merchant_lookup_file_not_found_uses_fallback(  # Removed monkeypatch
     tmp_path, caplog
 ):
     """Test that if lookup file is not found, it logs error and uses fallback."""
@@ -137,9 +147,14 @@ def test_load_merchant_lookup_file_not_found_uses_fallback( # Removed monkeypatc
         logging.ERROR, logger="balance_pipeline.normalize"
     )  # Ensure level is set
     with caplog.at_level(logging.ERROR, logger="balance_pipeline.normalize"):
-        normalize.reset_merchant_lookup_cache(new_path=non_existent_file) # Use new reset function
+        normalize.reset_merchant_lookup_cache(
+            new_path=non_existent_file
+        )  # Use new reset function
 
-    assert f"merchant lookup file not found: {non_existent_file}".lower() in caplog.text.lower() # This log is from normalize.py
+    assert (
+        f"merchant lookup file not found: {non_existent_file}".lower()
+        in caplog.text.lower()
+    )  # This log is from normalize.py
     assert normalize._merchant_lookup_data == []  # Should be empty list
 
     # Test clean_merchant uses fallback
@@ -148,7 +163,7 @@ def test_load_merchant_lookup_file_not_found_uses_fallback( # Removed monkeypatc
     assert normalize.clean_merchant(description) == expected_fallback
 
 
-def test_load_merchant_lookup_invalid_header(tmp_path, caplog): # Removed monkeypatch
+def test_load_merchant_lookup_invalid_header(tmp_path, caplog):  # Removed monkeypatch
     """Test that an invalid header in CSV raises ValueError."""
     lookup_file = tmp_path / "merchant_lookup.csv"
     rules = [
@@ -163,16 +178,23 @@ def test_load_merchant_lookup_invalid_header(tmp_path, caplog): # Removed monkey
     # )  # Patch where it's used # No longer needed
 
     with caplog.at_level(logging.ERROR, logger="balance_pipeline.normalize"):
-        with pytest.raises(normalize.FatalSchemaError) as excinfo: # Expect FatalSchemaError directly
-            normalize.reset_merchant_lookup_cache(new_path=lookup_file) # Use new reset function
+        with pytest.raises(
+            normalize.FatalSchemaError
+        ) as excinfo:  # Expect FatalSchemaError directly
+            normalize.reset_merchant_lookup_cache(
+                new_path=lookup_file
+            )  # Use new reset function
 
-    assert "Invalid header" in str(excinfo.value) # This is from FatalSchemaError
+    assert "Invalid header" in str(excinfo.value)  # This is from FatalSchemaError
     assert (
-        f"invalid header in merchant lookup file: {lookup_file}".lower() in caplog.text.lower() # This log is from normalize.py
+        f"invalid header in merchant lookup file: {lookup_file}".lower()
+        in caplog.text.lower()  # This log is from normalize.py
     )
 
 
-def test_load_merchant_lookup_malformed_row_is_skipped(tmp_path, caplog): # Removed monkeypatch
+def test_load_merchant_lookup_malformed_row_is_skipped(
+    tmp_path, caplog
+):  # Removed monkeypatch
     """Test that malformed rows (wrong number of columns) are skipped."""
     lookup_file = tmp_path / "merchant_lookup.csv"
     rules = [
@@ -187,7 +209,9 @@ def test_load_merchant_lookup_malformed_row_is_skipped(tmp_path, caplog): # Remo
         logging.WARNING, logger="balance_pipeline.normalize"
     )  # Ensure level is set
     with caplog.at_level(logging.WARNING, logger="balance_pipeline.normalize"):
-        normalize.reset_merchant_lookup_cache(new_path=lookup_file) # Use new reset function
+        normalize.reset_merchant_lookup_cache(
+            new_path=lookup_file
+        )  # Use new reset function
 
     assert "skipping malformed row 3" in caplog.text.lower()  # Row 3 is malformed
 
@@ -202,12 +226,14 @@ def test_load_merchant_lookup_malformed_row_is_skipped(tmp_path, caplog): # Remo
     )
 
 
-def test_clean_merchant_handles_non_string_input(tmp_path): # Removed monkeypatch
+def test_clean_merchant_handles_non_string_input(tmp_path):  # Removed monkeypatch
     """Test clean_merchant handles non-string input gracefully."""
     lookup_file = tmp_path / "merchant_lookup.csv"
     rules = [["pattern", "canonical"]]  # Empty rules
     create_lookup_csv(lookup_file, rules)
-    normalize.reset_merchant_lookup_cache(new_path=lookup_file) # Use new reset function
+    normalize.reset_merchant_lookup_cache(
+        new_path=lookup_file
+    )  # Use new reset function
 
     with pytest.raises(normalize.DataConsistencyError):
         normalize.clean_merchant(123)

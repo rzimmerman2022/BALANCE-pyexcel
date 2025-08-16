@@ -8,14 +8,14 @@ from balance_pipeline.sign_rules import flip_if_positive, flip_if_withdrawal
 
 def test_load_registry_file_not_found(tmp_path):
     missing = tmp_path / "nosuch.yml"
-    with pytest.raises(FileNotFoundError): # Changed from FatalSchemaError
+    with pytest.raises(FileNotFoundError):  # Changed from FatalSchemaError
         load_registry(missing)
 
 
 def test_load_registry_invalid_yaml(tmp_path):
     bad = tmp_path / "bad.yml"
     bad.write_text("not: [unclosed sequence")
-    with pytest.raises(yaml.YAMLError): # Changed from FatalSchemaError
+    with pytest.raises(yaml.YAMLError):  # Changed from FatalSchemaError
         load_registry(bad)
 
 
@@ -28,7 +28,9 @@ def test_load_registry_wrong_type(tmp_path):
     # For now, let's assume an AssertionError is the new expected behavior if not wrapped.
     # If load_registry is supposed to raise FatalSchemaError here, this test points to a bug in load_registry.
     # Based on "bubble YAML errors" and strict mode, direct errors are plausible.
-    with pytest.raises(AssertionError): # Changed from FatalSchemaError, based on pytest output
+    with pytest.raises(
+        AssertionError
+    ):  # Changed from FatalSchemaError, based on pytest output
         load_registry(f)
 
 

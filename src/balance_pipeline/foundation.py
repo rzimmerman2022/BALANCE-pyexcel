@@ -4,6 +4,7 @@ Defines the foundational schema for the BALANCE-pyexcel pipeline.
 This includes the core set of columns that every processed transaction record
 should aim to have, forming the basis for consistent analysis and reconciliation.
 """
+
 from __future__ import annotations
 
 from pandas import Float64Dtype, StringDtype  # For pandas dtypes
@@ -12,15 +13,15 @@ from pandas import Float64Dtype, StringDtype  # For pandas dtypes
 # These columns represent the "gold standard" minimal viable transaction.
 # 'Account' is included as the "+1" for essential bookkeeping.
 CORE_FOUNDATION_COLUMNS = [
-    "TxnID",               # Unique transaction identifier (string)
-    "Owner",               # Owner of the transaction (Ryan/Jordyn) (string)
-    "Date",                # Transaction date (datetime64[ns])
-    "Amount",              # Transaction amount (float64)
-    "Merchant",            # Cleaned merchant name (string)
-    "Description",         # Cleaned, human-readable transaction description (string)
-    "Category",            # Transaction category (string)
-    "Account",             # Account identifier (string)
-    "sharing_status",      # Sharing status ('individual', 'shared', 'split') (string/pd.StringDtype())
+    "TxnID",  # Unique transaction identifier (string)
+    "Owner",  # Owner of the transaction (Ryan/Jordyn) (string)
+    "Date",  # Transaction date (datetime64[ns])
+    "Amount",  # Transaction amount (float64)
+    "Merchant",  # Cleaned merchant name (string)
+    "Description",  # Cleaned, human-readable transaction description (string)
+    "Category",  # Transaction category (string)
+    "Account",  # Account identifier (string)
+    "sharing_status",  # Sharing status ('individual', 'shared', 'split') (string/pd.StringDtype())
 ]
 
 # Expected dtypes for the core foundational columns
@@ -28,8 +29,8 @@ CORE_FOUNDATION_COLUMNS = [
 CORE_FOUNDATION_DTYPES = {
     "TxnID": StringDtype(),
     "Owner": StringDtype(),
-    "Date": "datetime64[ns]", # Pandas handles this well
-    "Amount": Float64Dtype(), # Ensures it's float, not object if all NA
+    "Date": "datetime64[ns]",  # Pandas handles this well
+    "Amount": Float64Dtype(),  # Ensures it's float, not object if all NA
     "Merchant": StringDtype(),
     "Description": StringDtype(),
     "Category": StringDtype(),

@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+
 def get_resource_path(relative_path: str | Path) -> Path:
     """Get absolute path to resource, works for dev and for PyInstaller"""
     if hasattr(sys, "_MEIPASS"):
@@ -23,11 +24,18 @@ def get_resource_path(relative_path: str | Path) -> Path:
         base_path = Path(__file__).parent.parent.parent  # Go up to project root
     return base_path / relative_path
 
+
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-CSV_INBOX_DEFAULT = Path(os.getenv("CSV_INBOX", PROJECT_ROOT / "csv_inbox")).expanduser()
-SCHEMA_REGISTRY_PATH = Path(os.getenv("SCHEMA_REGISTRY", get_resource_path("rules/schema_registry.yml")))
-MERCHANT_LOOKUP_PATH = Path(os.getenv("MERCHANT_LOOKUP", get_resource_path("rules/merchant_lookup.csv")))
+CSV_INBOX_DEFAULT = Path(
+    os.getenv("CSV_INBOX", PROJECT_ROOT / "csv_inbox")
+).expanduser()
+SCHEMA_REGISTRY_PATH = Path(
+    os.getenv("SCHEMA_REGISTRY", get_resource_path("rules/schema_registry.yml"))
+)
+MERCHANT_LOOKUP_PATH = Path(
+    os.getenv("MERCHANT_LOOKUP", get_resource_path("rules/merchant_lookup.csv"))
+)
 
 # Default output formats and paths
 DEFAULT_OUTPUT_FORMAT = "parquet"
@@ -40,15 +48,15 @@ if SCHEMA_MODE not in ["strict", "flexible"]:
 
 # Core Required Columns - must match CORE_FOUNDATION_COLUMNS from foundation.py
 CORE_REQUIRED_COLUMNS = [
-    "TxnID",               # Unique transaction identifier
-    "Owner",               # Owner of the transaction (Ryan/Jordyn)
-    "Date",                # Transaction date
-    "Amount",              # Transaction amount
-    "Merchant",            # Cleaned merchant name
-    "Description",         # Cleaned, human-readable transaction description
-    "Category",            # Transaction category
-    "Account",             # Account identifier
-    "sharing_status",      # Sharing status ('individual', 'shared', 'split')
+    "TxnID",  # Unique transaction identifier
+    "Owner",  # Owner of the transaction (Ryan/Jordyn)
+    "Date",  # Transaction date
+    "Amount",  # Transaction amount
+    "Merchant",  # Cleaned merchant name
+    "Description",  # Cleaned, human-readable transaction description
+    "Category",  # Transaction category
+    "Account",  # Account identifier
+    "sharing_status",  # Sharing status ('individual', 'shared', 'split')
 ]
 
 # Optional Column Groups - defines which columns are grouped together
@@ -93,6 +101,7 @@ TABLEAU_COLORBLIND_10 = [
     "#FFB000",
 ]
 
+
 @dataclass
 class AnalysisConfig:
     """Configuration parameters for the analysis"""
@@ -111,9 +120,9 @@ class AnalysisConfig:
     CURRENCY_PRECISION: int = 2
     MAX_MEMORY_MB: int = 500
     MAX_PROCESSING_TIME_SECONDS: int = 150  # Increased due to more files and processing
-    
+
     # P0: Observability Enhancement from Blueprint
-    debug_mode: bool = False 
+    debug_mode: bool = False
     external_business_rules_yaml_path: str = "config/business_rules.yml"
 
 
@@ -134,6 +143,7 @@ class DataQualityFlag(Enum):
     NON_NUMERIC_VALUE_CLEANED = "NON_NUMERIC_VALUE_CLEANED"
     BALANCE_MISMATCH_WITH_LEDGER = "BALANCE_MISMATCH_WITH_LEDGER"
 
+
 # Placeholder for future externalized business rules (P1)
 # For now, these could be constants here or loaded if config file exists
 DEFAULT_SETTLEMENT_KEYWORDS = ["venmo", "zelle", "cash app", "paypal"]
@@ -143,82 +153,165 @@ DEFAULT_CALCULATION_NOTE_TRIGGER = "2x to calculate"
 # This would ideally be loaded from YAML
 DEFAULT_MERCHANT_CATEGORIES = {
     "Groceries": [
-        "fry", "safeway", "walmart", "target", "costco", "trader joe", 
-        "whole foods", "kroger", "albertsons", "grocery", "sprouts",
+        "fry",
+        "safeway",
+        "walmart",
+        "target",
+        "costco",
+        "trader joe",
+        "whole foods",
+        "kroger",
+        "albertsons",
+        "grocery",
+        "sprouts",
     ],
     "Utilities": [
-        "electric", "gas", "water", "internet", "phone", "cox", "srp", 
-        "aps", "centurylink", "utility", "conservice", "google fi", 
-        "t-mobile", "verizon",
+        "electric",
+        "gas",
+        "water",
+        "internet",
+        "phone",
+        "cox",
+        "srp",
+        "aps",
+        "centurylink",
+        "utility",
+        "conservice",
+        "google fi",
+        "t-mobile",
+        "verizon",
     ],
     "Dining Out": [
-        "restaurant", "cafe", "coffee", "starbucks", "pizza", "sushi", 
-        "mcdonald", "chipotle", "subway", "doordash", "grubhub", 
-        "uber eats", "postmates", "culinary dropout", "bar",
+        "restaurant",
+        "cafe",
+        "coffee",
+        "starbucks",
+        "pizza",
+        "sushi",
+        "mcdonald",
+        "chipotle",
+        "subway",
+        "doordash",
+        "grubhub",
+        "uber eats",
+        "postmates",
+        "culinary dropout",
+        "bar",
     ],
     "Transport": [
-        "uber", "lyft", "gas station", "shell", "chevron", "circle k", "qt", 
-        "auto repair", "fuel", "parking", "toll", "bird", "lime", "waymo",
+        "uber",
+        "lyft",
+        "gas station",
+        "shell",
+        "chevron",
+        "circle k",
+        "qt",
+        "auto repair",
+        "fuel",
+        "parking",
+        "toll",
+        "bird",
+        "lime",
+        "waymo",
     ],
     "Entertainment": [
-        "movie", "theater", "netflix", "spotify", "hulu", "disney", 
-        "concert", "event", "game", "amc", "cinemark", "ticketmaster", "steam",
+        "movie",
+        "theater",
+        "netflix",
+        "spotify",
+        "hulu",
+        "disney",
+        "concert",
+        "event",
+        "game",
+        "amc",
+        "cinemark",
+        "ticketmaster",
+        "steam",
     ],
     "Healthcare": [
-        "pharmacy", "cvs", "walgreens", "doctor", "medical", "dental", 
-        "clinic", "hospital", "optometrist", "vision",
+        "pharmacy",
+        "cvs",
+        "walgreens",
+        "doctor",
+        "medical",
+        "dental",
+        "clinic",
+        "hospital",
+        "optometrist",
+        "vision",
     ],
     "Shopping": [
-        "amazon", "best buy", "macys", "nordstrom", "online store", "retail", 
-        "clothing", "electronics", "home goods", "ikea",
+        "amazon",
+        "best buy",
+        "macys",
+        "nordstrom",
+        "online store",
+        "retail",
+        "clothing",
+        "electronics",
+        "home goods",
+        "ikea",
     ],
     "Travel": [
-        "airline", "hotel", "airbnb", "expedia", "booking.com", 
-        "southwest", "delta", "united",
+        "airline",
+        "hotel",
+        "airbnb",
+        "expedia",
+        "booking.com",
+        "southwest",
+        "delta",
+        "united",
     ],
     "Services": [
-        "haircut", "gym", "consulting", "legal", "accounting", "cleaning",
+        "haircut",
+        "gym",
+        "consulting",
+        "legal",
+        "accounting",
+        "cleaning",
     ],
     "Rent": ["rent", "property management", "landlord"],
-    "Other Expenses": [] # Fallback
+    "Other Expenses": [],  # Fallback
 }
 
 # Cached rules to avoid repeated file I/O
 _CACHED_RULES: dict[str, Any] = {}
 _CACHE_LOCK = threading.RLock()  # Reentrant lock for thread safety
 
+
 def load_rules(path: str) -> dict[str, Any]:
     """
     Load business rules from YAML file with thread-safe caching.
-    
+
     Args:
         path: Path to the YAML rules file
-        
+
     Returns:
         Dictionary containing the parsed rules
     """
     global _CACHED_RULES
-    
+
     # Fast path: return cached version if already loaded (with lock for read)
     with _CACHE_LOCK:
         if path in _CACHED_RULES:
             return _CACHED_RULES[path].copy()  # Return a copy to prevent mutation
-    
+
     # Slow path: load from file
     rules_path = Path(path)
     if not rules_path.exists():
         raise FileNotFoundError(f"Rules file not found: {rules_path}")
-    
+
     try:
-        with open(rules_path, encoding='utf-8') as f:
+        with open(rules_path, encoding="utf-8") as f:
             rules = yaml.safe_load(f)
-        
+
         # Cache the loaded rules with thread safety
         with _CACHE_LOCK:
             _CACHED_RULES[path] = rules
-        
+
         return rules.copy() if isinstance(rules, dict) else rules
-        
+
     except yaml.YAMLError as e:
         raise ValueError(f"Invalid YAML in rules file {rules_path}: {e}") from e
     except Exception as e:

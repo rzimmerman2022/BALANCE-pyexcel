@@ -13,6 +13,7 @@ def reload_processing() -> ModuleType:
     from importlib import reload
 
     import baseline_analyzer.processing as proc  # type: ignore
+
     return reload(proc)
 
 

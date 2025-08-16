@@ -168,7 +168,9 @@ def test_sync_split_decision_invalid_percent_format_defaults_to_50(caplog):
     df_queue = pd.DataFrame(queue_data)
     result_df = sync_review_decisions(df_trans.copy(), df_queue)
 
-    assert "invalid split percentage format" in caplog.text.lower() # no need to match the entire verbose message
+    assert (
+        "invalid split percentage format" in caplog.text.lower()
+    )  # no need to match the entire verbose message
     tx1_res = result_df[result_df[TRANS_TXNID_COL] == "TX1"].iloc[0]
     assert tx1_res[TRANS_SHARED_FLAG_COL] == "S"
     assert tx1_res[TRANS_SPLIT_PERC_COL] == 50.0
@@ -185,7 +187,8 @@ def test_sync_split_percent_out_of_bounds_clamped(caplog):
     result_df = sync_review_decisions(df_trans.copy(), df_queue)
 
     assert (
-        "split percentage (-10.0) below 0 for txnid: tx1. clamping to 0." in caplog.text.lower()
+        "split percentage (-10.0) below 0 for txnid: tx1. clamping to 0."
+        in caplog.text.lower()
     )
     tx1_res = result_df[result_df[TRANS_TXNID_COL] == "TX1"].iloc[0]
     assert tx1_res[TRANS_SHARED_FLAG_COL] == "S"

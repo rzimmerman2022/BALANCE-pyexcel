@@ -766,9 +766,9 @@ class EnhancedSharedExpenseAnalyzer:
                 logger.error(
                     f"Cannot find index {idx} in DataFrame for date imputation."
                 )
-                return pd.Timestamp.now(tz=UTC).replace(
-                    day=1
-                ) + pd.offsets.MonthEnd(0)  # Fallback
+                return pd.Timestamp.now(tz=UTC).replace(day=1) + pd.offsets.MonthEnd(
+                    0
+                )  # Fallback
         else:
             idx_pos = idx
 
@@ -781,9 +781,7 @@ class EnhancedSharedExpenseAnalyzer:
             logger.warning(
                 f"Invalid slice for date imputation for index {idx} (pos {idx_pos}). Falling back."
             )
-            return pd.Timestamp.now(tz=UTC).replace(
-                day=1
-            ) + pd.offsets.MonthEnd(0)
+            return pd.Timestamp.now(tz=UTC).replace(day=1) + pd.offsets.MonthEnd(0)
 
         nearby_dates = df.iloc[start_idx:end_idx][date_col_name].dropna()
 
@@ -1797,7 +1795,9 @@ class EnhancedSharedExpenseAnalyzer:
             f"{row.get('AllowedAmount',0.0):.2f}_"
             f"{row.get('BalanceImpact',0.0):.2f}"
         )
-        return hashlib.sha256(key_data.encode()).hexdigest()[:32]  # SHA-256 for better collision resistance
+        return hashlib.sha256(key_data.encode()).hexdigest()[
+            :32
+        ]  # SHA-256 for better collision resistance
 
     # --- All other analysis, visualization, and reporting methods from the original script ---
     # --- These methods are assumed to largely work with the processed master_ledger ---
@@ -2110,7 +2110,8 @@ class EnhancedSharedExpenseAnalyzer:
                 analytics["monthly_shared_spending_forecast"] = dict(
                     zip(
                         [d.strftime("%Y-%m") for d in forecast_dates],
-                        np.round(forecast_values, 2), strict=False,
+                        np.round(forecast_values, 2),
+                        strict=False,
                     )
                 )
             else:
@@ -3643,7 +3644,7 @@ class EnhancedSharedExpenseAnalyzer:
                                 "AllowedAmount",
                                 "Shared_Amount_Display",
                             ]
-                        ].to_string()
+                        ].to_string(),
                     )
                 else:
                     logger.debug(
